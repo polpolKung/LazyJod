@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/hash_helper.dart';
@@ -16,34 +17,42 @@ class IngestionState {
   final bool isScanning;
   final double scanProgress;
   final String statusMessage;
+  final String? lastError;
   final List<TargetedAlbumInfo> albums;
   final List<SlipParseResult> parsedSlips;
   final List<String> selectedSlipIds;
+  final int totalScannedAssets;
 
   const IngestionState({
     this.isScanning = false,
     this.scanProgress = 0.0,
     this.statusMessage = '',
+    this.lastError,
     this.albums = const [],
     this.parsedSlips = const [],
     this.selectedSlipIds = const [],
+    this.totalScannedAssets = 0,
   });
 
   IngestionState copyWith({
     bool? isScanning,
     double? scanProgress,
     String? statusMessage,
+    String? lastError,
     List<TargetedAlbumInfo>? albums,
     List<SlipParseResult>? parsedSlips,
     List<String>? selectedSlipIds,
+    int? totalScannedAssets,
   }) {
     return IngestionState(
       isScanning: isScanning ?? this.isScanning,
       scanProgress: scanProgress ?? this.scanProgress,
       statusMessage: statusMessage ?? this.statusMessage,
+      lastError: lastError ?? this.lastError,
       albums: albums ?? this.albums,
       parsedSlips: parsedSlips ?? this.parsedSlips,
       selectedSlipIds: selectedSlipIds ?? this.selectedSlipIds,
+      totalScannedAssets: totalScannedAssets ?? this.totalScannedAssets,
     );
   }
 }
@@ -52,6 +61,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   final TargetedAlbumService _albumService = TargetedAlbumService();
   final DuplicateDetectionService _dupService = DuplicateDetectionService();
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  final ImagePicker _imagePicker = ImagePicker();
   final Ref _ref;
   final _uuid = const Uuid();
 
@@ -74,22 +84,26 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(albums: updated);
   }
 
-  /// Scan targeted albums for slips, perform on-device OCR, and check duplicates
+  /// 1. Scan targeted albums for slips, perform on-device OCR, and check duplicates
   Future<void> scanTargetedAlbums() async {
     state = state.copyWith(
       isScanning: true,
       scanProgress: 0.0,
       statusMessage: 'กำลังขอสิทธิ์เข้าถึงโฟลเดอร์สลิป...',
+      lastError: null,
     );
 
     final perm = await _albumService.requestPermission();
     if (!perm.hasAccess) {
       state = state.copyWith(
         isScanning: false,
-        statusMessage: 'ไม่ได้รับสิทธิ์เข้าถึงรูปภาพ',
+        statusMessage: 'ไม่ได้รับสิทธิ์เข้าถึงรูปภาพ กรุณาเปิดการอนุญาตในการตั้งค่าอุปกรณ์',
       );
       return;
     }
+
+    // Refresh albums after permission granted
+    await loadAlbums();
 
     state = state.copyWith(statusMessage: 'กำลังค้นหาภาพในโฟลเดอร์ธนาคาร...');
 
@@ -100,19 +114,108 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     );
 
     if (assets.isEmpty) {
+      final totalAlbums = state.albums.length;
+      final selectedCount = selectedAlbumIds.length;
       state = state.copyWith(
         isScanning: false,
-        statusMessage: 'ไม่พบรูปภาพในโฟลเดอร์ธนาคารที่กำหนด',
+        totalScannedAssets: 0,
+        statusMessage: 'ไม่พบรูปภาพในโฟลเดอร์ที่เลือก (พบ $totalAlbums อัลบั้ม, เลือกไว้ $selectedCount อัลบั้ม) สามารถกด "เลือกโฟลเดอร์" เพื่อเลือกเพิ่ม หรือใช้ "เลือกรูปจากแกลเลอรี"',
       );
       return;
     }
 
-    // Initialize duplicate detector with existing transactions
+    await _processAssets(assets);
+  }
+
+  /// 2. Pick slip images directly from device gallery
+  Future<void> pickAndScanGallerySlips() async {
+    try {
+      final List<XFile> pickedFiles = await _imagePicker.pickMultiImage();
+      if (pickedFiles.isEmpty) return;
+
+      state = state.copyWith(
+        isScanning: true,
+        scanProgress: 0.0,
+        statusMessage: 'กำลังเตรียมรูปที่เลือก ${pickedFiles.length} รูป...',
+        lastError: null,
+      );
+
+      final existingTransactions = _ref.read(transactionProvider);
+      _dupService.registerExistingTransactions(existingTransactions);
+
+      final List<SlipParseResult> parsedResults = [];
+      final total = pickedFiles.length;
+      int errorCount = 0;
+      String? caughtError;
+
+      for (int i = 0; i < total; i++) {
+        final xfile = pickedFiles[i];
+        final progress = (i + 1) / total;
+        state = state.copyWith(
+          scanProgress: progress,
+          statusMessage: 'กำลังสแกนรูปที่ ${i + 1}/$total...',
+        );
+
+        final file = File(xfile.path);
+        try {
+          final bytes = await file.readAsBytes();
+          final imageHash = HashHelper.hashBytes(bytes);
+
+          final inputImage = InputImage.fromFile(file);
+          final recognizedText = await _textRecognizer.processImage(inputImage);
+
+          final slipResult = ThaiBankSlipParser.parse(
+            recognizedText.text,
+            imagePath: file.path,
+            imageHash: imageHash,
+          );
+
+          final slipId = 'slip_${_uuid.v4()}';
+          final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
+
+          parsedResults.add(slipResult.copyWith(
+            id: slipId,
+            isDuplicate: isDup,
+          ));
+        } catch (e) {
+          errorCount++;
+          caughtError = e.toString();
+        }
+      }
+
+      final selectedIds = parsedResults.where((s) => !s.isDuplicate && s.amount > 0).map((s) => s.id!).toList();
+
+      String msg = 'สแกนเสร็จสิ้น พบสลิป ${parsedResults.length} รายการ';
+      if (parsedResults.isEmpty && errorCount > 0) {
+        msg = 'เกิดข้อผิดพลาดในการประมวลผล OCR ($caughtError)';
+      }
+
+      state = state.copyWith(
+        isScanning: false,
+        scanProgress: 1.0,
+        statusMessage: msg,
+        lastError: caughtError,
+        parsedSlips: parsedResults,
+        selectedSlipIds: selectedIds,
+        totalScannedAssets: total,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isScanning: false,
+        statusMessage: 'เกิดข้อผิดพลาดในการเลือกรูปภาพ: $e',
+        lastError: e.toString(),
+      );
+    }
+  }
+
+  Future<void> _processAssets(List<AssetEntity> assets) async {
     final existingTransactions = _ref.read(transactionProvider);
     _dupService.registerExistingTransactions(existingTransactions);
 
     final List<SlipParseResult> parsedResults = [];
     final total = assets.length;
+    int errorCount = 0;
+    String? lastError;
 
     for (int i = 0; i < total; i++) {
       final asset = assets[i];
@@ -143,26 +246,38 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         final slipId = 'slip_${_uuid.v4()}';
         final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
 
-        final finalizedResult = slipResult.copyWith(
+        parsedResults.add(slipResult.copyWith(
           id: slipId,
           isDuplicate: isDup,
-        );
-
-        parsedResults.add(finalizedResult);
+        ));
       } catch (e) {
-        print('Error OCR processing asset ${asset.id}: $e');
+        errorCount++;
+        lastError = e.toString();
       }
     }
 
     // Default select non-duplicate slips
     final selectedIds = parsedResults.where((s) => !s.isDuplicate && s.amount > 0).map((s) => s.id!).toList();
 
+    String resultMsg = 'สแกนตรวจภาพ $total รูป พบสลิป ${parsedResults.length} รายการ';
+    if (parsedResults.isEmpty && errorCount > 0) {
+      if (lastError != null && lastError.contains('download')) {
+        resultMsg = 'กำลังรอ Google Play Services ติดตั้งโมเดล OCR กรุณารอสักครู่แล้วลองใหม่';
+      } else {
+        resultMsg = 'ตรวจพบรูป $total รูป แต่ OCR เกิดข้อผิดพลาด ($lastError)';
+      }
+    } else if (parsedResults.isEmpty) {
+      resultMsg = 'ตรวจภาพ $total รูปในโฟลเดอร์แล้ว แต่ไม่พบรูปแบบสลิป สามารถกดเลือกรูปเองได้';
+    }
+
     state = state.copyWith(
       isScanning: false,
       scanProgress: 1.0,
-      statusMessage: 'สแกนเสร็จสิ้น พบสลิป ${parsedResults.length} รายการ',
+      statusMessage: resultMsg,
+      lastError: lastError,
       parsedSlips: parsedResults,
       selectedSlipIds: selectedIds,
+      totalScannedAssets: total,
     );
   }
 

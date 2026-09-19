@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
-import '../../../../core/widgets/empty_state.dart';
 import '../../providers/ingestion_provider.dart';
 import 'album_picker_screen.dart';
 import 'statement_import_screen.dart';
@@ -17,10 +16,17 @@ class SlipScannerScreen extends ConsumerWidget {
     final state = ref.watch(ingestionProvider);
     final notifier = ref.read(ingestionProvider.notifier);
 
+    final selectedAlbums = state.albums.where((a) => a.isSelected).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('สแกนสลิปอัตโนมัติ'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.photo_library_outlined),
+            tooltip: 'เลือกรูปจากแกลเลอรี',
+            onPressed: state.isScanning ? null : () => notifier.pickAndScanGallerySlips(),
+          ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),
             tooltip: 'นำเข้า E-Statement PDF',
@@ -71,7 +77,7 @@ class SlipScannerScreen extends ConsumerWidget {
 
           // Scan Progress Indicator
           if (state.isScanning) ...[
-            LinearProgressIndicator(value: state.scanProgress, color: AppColors.primary),
+            LinearProgressIndicator(value: state.scanProgress > 0 ? state.scanProgress : null, color: AppColors.primary),
             Container(
               padding: const EdgeInsets.all(12),
               color: Colors.white,
@@ -94,15 +100,135 @@ class SlipScannerScreen extends ConsumerWidget {
             ),
           ],
 
-          // Parsed Slips List
+          // Status Alert Banner (when not scanning and has a status message)
+          if (!state.isScanning && state.statusMessage.isNotEmpty && state.parsedSlips.isEmpty)
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: state.lastError != null ? Colors.red.shade50 : Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: state.lastError != null ? Colors.red.shade200 : Colors.blue.shade200,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    state.lastError != null ? Icons.warning_amber_rounded : Icons.info_outline,
+                    color: state.lastError != null ? Colors.red.shade700 : Colors.blue.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      state.statusMessage,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: state.lastError != null ? Colors.red.shade900 : Colors.blue.shade900,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Parsed Slips List or Custom Ready State
           Expanded(
             child: state.parsedSlips.isEmpty && !state.isScanning
-                ? EmptyStateWidget(
-                    title: 'พร้อมสแกนสลิปโอนเงิน',
-                    message: 'ระบบจะตรวจจับสลิปจาก 16 ธนาคารไทยในอัลบั้มที่เลือก ตรวจสอบยอดเงิน วันที่ และป้องกันสลิปซ้ำให้อัตโนมัติ',
-                    icon: Icons.qr_code_scanner_outlined,
-                    buttonText: 'เริ่มสแกนสลิป',
-                    onButtonPressed: () => notifier.scanTargetedAlbums(),
+                ? Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.qr_code_scanner_outlined,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'พร้อมสแกนสลิปโอนเงิน',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'ระบบจะตรวจจับสลิปจากธนาคารไทยในอัลบั้มที่เลือก ตรวจสอบยอดเงิน วันที่ และป้องกันสลิปซ้ำให้อัตโนมัติ',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Active folders chip
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.folder_outlined, size: 16, color: AppColors.primary),
+                                const SizedBox(width: 6),
+                                Text(
+                                  selectedAlbums.isNotEmpty
+                                      ? 'เลือกไว้ ${selectedAlbums.length} โฟลเดอร์ (${selectedAlbums.take(2).map((a) => a.name).join(", ")}${selectedAlbums.length > 2 ? "..." : ""})'
+                                      : 'ยังไม่ได้เลือกโฟลเดอร์',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Button 1: Scan Targeted Albums
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => notifier.scanTargetedAlbums(),
+                              icon: const Icon(Icons.sync),
+                              label: const Text('เริ่มสแกนโฟลเดอร์ธนาคาร'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Button 2: Pick from Gallery directly
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => notifier.pickAndScanGallerySlips(),
+                              icon: const Icon(Icons.photo_library_outlined),
+                              label: const Text('เลือกรูปสลิปจากแกลเลอรีโดยตรง'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary, width: 1.5),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
