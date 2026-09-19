@@ -1,0 +1,22 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.pub-cache/
+.pub/
+
+# Android
+android/local.properties
+android/app/build/
+android/.gradle/
+**/android/**/build/
+
+# User Private Test Data (Privacy-First)
+test_slips/
+test slips/
+*.jpg
+*.jpeg
+*.png
+!assets/**
