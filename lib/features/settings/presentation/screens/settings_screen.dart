@@ -10,7 +10,7 @@ import '../../../categories/providers/category_provider.dart';
 import '../../../ingestion/presentation/screens/album_picker_screen.dart';
 import '../../../transactions/providers/transaction_provider.dart';
 import '../../../transactions/services/csv_export_service.dart';
-import '../../analytics/presentation/screens/budget_setting_screen.dart';
+import '../../../analytics/presentation/screens/budget_setting_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});

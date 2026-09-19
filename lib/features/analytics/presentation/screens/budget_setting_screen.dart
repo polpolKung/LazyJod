@@ -6,6 +6,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../categories/providers/category_provider.dart';
 import '../../models/budget_model.dart';
 import '../../providers/analytics_provider.dart';
+import '../../services/analytics_service.dart';
 
 class BudgetSettingScreen extends ConsumerStatefulWidget {
   const BudgetSettingScreen({super.key});
