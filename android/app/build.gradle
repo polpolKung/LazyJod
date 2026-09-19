@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace "com.lazyjod.meow_jot"
-    compileSdk 35
+    compileSdk 36
     ndkVersion "27.0.12077973"
 
     compileOptions {
@@ -25,7 +25,7 @@ android {
     defaultConfig {
         applicationId "com.lazyjod.meow_jot"
         minSdkVersion 21
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0.0"
     }
