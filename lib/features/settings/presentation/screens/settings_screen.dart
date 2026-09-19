@@ -39,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'ประวัติรายการเงินจากแอป Meow Jot (เหมียวจด)',
+        text: 'ประวัติรายการเงินจากแอป ขี้เกียจจด (LazyJod)',
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -50,6 +50,8 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ตั้งค่าและการจัดการ'),
@@ -63,31 +65,39 @@ class SettingsScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.08),
-                  AppColors.accent.withOpacity(0.15),
+                  AppColors.primary.withOpacity(0.12),
+                  AppColors.secondary.withOpacity(0.08),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.25)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.verified_user, color: AppColors.primary, size: 36),
+                const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 36),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'ความเป็นส่วนตัวระดับสูงสุด (Privacy-First)',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'สแกนเฉพาะอัลบั้มที่เลือก ประมวลผล OCR ในเครื่อง และบันทึกข้อมูลแบบ Offline 100%',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                          height: 1.3,
+                        ),
                       ),
                     ],
                   ),
@@ -98,19 +108,33 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // Theme toggle
-          const Text('ธีมและหน้าตา', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+          Text(
+            'ธีมและหน้าตา',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 8),
           _ThemeToggleCard(),
           const SizedBox(height: 20),
 
-          const Text('การจัดการข้อมูล', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+          Text(
+            'การจัดการข้อมูล',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 8),
 
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             child: Column(
               children: [
@@ -156,21 +180,28 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          const Text('เกี่ยวกับแอปพลิเคชัน', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+          Text(
+            'เกี่ยวกับแอปพลิเคชัน',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 8),
 
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             child: Column(
               children: const [
                 ListTile(
-                  leading: Icon(Icons.pets, color: AppColors.primary),
-                  title: Text('Meow Jot (เหมียวจด)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: Text('เวอร์ชัน 1.0.0 (Production-Ready)'),
+                  leading: Icon(Icons.bolt_rounded, color: AppColors.primary, size: 28),
+                  title: Text('ขี้เกียจจด (LazyJod)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  subtitle: Text('เวอร์ชัน 1.1.0 (Zero-Click Auto-Accounting)'),
                 ),
                 Divider(height: 1),
                 ListTile(

@@ -8,6 +8,7 @@ import '../../../ingestion/presentation/screens/slip_scanner_screen.dart';
 import '../../../ingestion/presentation/screens/statement_import_screen.dart';
 import '../../../transactions/presentation/screens/transaction_entry_screen.dart';
 import '../../../transactions/presentation/screens/transaction_list_screen.dart';
+import '../../../transactions/presentation/widgets/transaction_quick_edit_sheet.dart';
 import '../../../transactions/presentation/widgets/transaction_tile.dart';
 import '../../../transactions/providers/transaction_provider.dart';
 import '../../providers/analytics_provider.dart';
@@ -25,28 +26,35 @@ class DashboardScreen extends ConsumerWidget {
     final summary = ref.watch(monthlySummaryProvider);
     final budgetStatuses = ref.watch(budgetStatusesProvider);
     final transactions = ref.watch(transactionProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final monthName = DateFormatter.thaiMonthsFull[selectedMonth.month - 1];
     final yearThai = DateFormatter.toBuddhistYear(selectedMonth.year);
 
-    final recentTransactions = transactions.take(5).toList();
+    // Filter transactions to TODAY only (User Request 5)
+    final now = DateTime.now();
+    final todayTransactions = transactions.where((tx) =>
+      tx.dateTime.year == now.year &&
+      tx.dateTime.month == now.month &&
+      tx.dateTime.day == now.day
+    ).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: AppColors.primary.withOpacity(0.18),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.pets, color: AppColors.primary, size: 20),
+              child: const Icon(Icons.bolt_rounded, color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 10),
             const Text(
-              'Meow Jot',
+              'ขี้เกียจจด',
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
             ),
           ],
@@ -76,9 +84,9 @@ class DashboardScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,7 +97,11 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     Text(
                       '$monthName $yearThai',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.chevron_right),
@@ -100,21 +112,27 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Overview Cards (Balance, Income, Expense)
+              // Overview Cards (Balance, Income, Expense) - Obsidian Dark Theme (No orange!)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF7A45), Color(0xFFFF9C6E)],
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? const [Color(0xFF1E202B), Color(0xFF151620)]
+                        : const [Color(0xFF0F172A), Color(0xFF1E293B)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.35),
+                    width: 1.2,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 12,
+                      color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.05),
+                      blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -122,16 +140,36 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'คงเหลือสุทธิ (Net Balance)',
-                      style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'คงเหลือสุทธิ (Net Balance)',
+                          style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            monthName,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
                       CurrencyFormatter.format(summary.netBalance),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 30,
+                        fontSize: 32,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
@@ -143,17 +181,18 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
+                              color: Colors.white.withOpacity(0.06),
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withOpacity(0.08)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text('รายรับรวม', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 3),
                                 Text(
                                   '+${CurrencyFormatter.format(summary.totalIncome)}',
-                                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: AppColors.income, fontSize: 14, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -164,17 +203,18 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
+                              color: Colors.white.withOpacity(0.06),
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withOpacity(0.08)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text('รายจ่ายรวม', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 3),
                                 Text(
                                   '-${CurrencyFormatter.format(summary.totalExpense)}',
-                                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: AppColors.expense, fontSize: 14, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -187,14 +227,14 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Quick Ingestion & Entry Bar
+              // Quick Actions Bar
               Row(
                 children: [
                   Expanded(
                     child: _buildQuickActionButton(
                       context: context,
                       title: 'สแกนสลิป',
-                      subtitle: 'อัตโนมัติ 16 แบงก์',
+                      subtitle: '16 ธนาคาร',
                       icon: Icons.qr_code_scanner,
                       color: AppColors.primary,
                       onTap: () {
@@ -209,7 +249,7 @@ class DashboardScreen extends ConsumerWidget {
                     child: _buildQuickActionButton(
                       context: context,
                       title: 'จดด้วยมือ',
-                      subtitle: 'พร้อมเครื่องคิดเลข',
+                      subtitle: 'เครื่องคิดเลข',
                       icon: Icons.edit_calendar,
                       color: AppColors.secondary,
                       onTap: () {
@@ -243,18 +283,22 @@ class DashboardScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.2),
+                    color: AppColors.accent.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.accent.withOpacity(0.5)),
+                    border: Border.all(color: AppColors.accent.withOpacity(0.35)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.lightbulb_outline, color: Color(0xFFD46B08), size: 22),
+                      const Icon(Icons.lightbulb_outline, color: AppColors.accent, size: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           summary.insights.first,
-                          style: const TextStyle(fontSize: 12.5, color: AppColors.textPrimary, height: 1.3),
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                            height: 1.3,
+                          ),
                         ),
                       ),
                     ],
@@ -267,16 +311,20 @@ class DashboardScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'สัดส่วนรายจ่ายตามหมวดหมู่',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     CategoryPieChart(
@@ -293,9 +341,13 @@ class DashboardScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'งบประมาณรายเดือน',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
                     ),
                     TextButton(
                       onPressed: () {
@@ -319,13 +371,39 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
               ],
 
-              // Recent Transactions Header
+              // Today's Transactions Header (User Request 5)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'รายการล่าสุด',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  Row(
+                    children: [
+                      Text(
+                        'รายการวันนี้',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        ),
+                      ),
+                      if (todayTransactions.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${todayTransactions.length}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   TextButton(
                     onPressed: () {
@@ -339,22 +417,43 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
 
-              // Recent Transactions List
+              // Today's Transactions List with Quick Edit Support
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                 ),
-                child: recentTransactions.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(24.0),
+                child: todayTransactions.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(24.0),
                         child: Center(
-                          child: Text('ยังไม่มีรายการในระบบ กดปุ่ม + เพื่อเริ่มจด', style: TextStyle(color: AppColors.textMuted)),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.wb_sunny_outlined,
+                                size: 36,
+                                color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'วันนี้ยังไม่มีรายการธุรกรรม',
+                                style: TextStyle(
+                                  color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       )
                     : Column(
-                        children: recentTransactions.map((tx) => TransactionTile(transaction: tx)).toList(),
+                        children: todayTransactions
+                            .map((tx) => TransactionTile(
+                                  transaction: tx,
+                                  onTap: () => showTransactionQuickEditSheet(context, tx),
+                                ))
+                            .toList(),
                       ),
               ),
             ],
@@ -372,15 +471,16 @@ class DashboardScreen extends ConsumerWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
         ),
         child: Column(
           children: [
@@ -393,11 +493,21 @@ class DashboardScreen extends ConsumerWidget {
               child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+              ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

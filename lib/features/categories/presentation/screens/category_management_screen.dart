@@ -12,6 +12,8 @@ class CategoryManagementScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categories = ref.watch(categoryProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('จัดการหมวดหมู่'),
@@ -24,9 +26,9 @@ class CategoryManagementScreen extends ConsumerWidget {
           final cat = categories[index];
           return Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             child: ListTile(
               leading: Container(
@@ -38,10 +40,20 @@ class CategoryManagementScreen extends ConsumerWidget {
                 ),
                 child: Icon(cat.icon, color: cat.color, size: 22),
               ),
-              title: Text(cat.nameThai, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+              title: Text(
+                cat.nameThai,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                ),
+              ),
               subtitle: Text(
                 cat.autoKeywords.isNotEmpty ? 'คีย์เวิร์ด: ${cat.autoKeywords.take(3).join(', ')}...' : 'ไม่มีคีย์เวิร์ดพิเศษ',
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                ),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
