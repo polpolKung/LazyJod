@@ -71,15 +71,53 @@ class ThaiBankSlipParser {
 
   /// 2. Extract Transfer Amount in THB
   static double extractAmount(String text, {ThaiBank? bank}) {
-    // Patterns with explicit labels
+    // --- Step 0: Government welfare slip detection (คนละครึ่ง / ไทยช่วยไทย / เป๋าตัง) ---
+    // These slips show: ค่าสินค้า (full price), สิทธิฯ (subsidy, negative), จำนวนเงินที่ชำระ (user paid)
+    // We MUST record only what the user actually paid (จำนวนเงินที่ชำระ).
+    final isWelfareSlip = RegExp(
+      r'คนละครึ่ง|ไทยช่วยไทย|สิทธิ(?:ไทยช่วยไทย|คนละครึ่ง|เราชนะ|รัฐ)|เป๋าตัง|paotang|g.wallet|halfhalf',
+      caseSensitive: false,
+    ).hasMatch(text);
+
+    if (isWelfareSlip) {
+      // Specifically look for "จำนวนเงินที่ชำระ" line — the actual user payment
+      final welfarePattern = RegExp(
+        r'จำนวนเงินที่ชำระ\s*[:\s]?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)\s*บาท?',
+        caseSensitive: false,
+      );
+      final wm = welfarePattern.firstMatch(text);
+      if (wm != null) {
+        final parsed = double.tryParse(wm.group(1)!.replaceAll(',', ''));
+        if (parsed != null && parsed > 0) return parsed;
+      }
+
+      // Fallback: collect all positive amounts with 2 decimal places,
+      // skip negative-prefixed lines (subsidy), pick the smallest positive = user share
+      final lines = text.split('\n');
+      final List<double> positiveAmounts = [];
+      for (final line in lines) {
+        // Skip subsidy lines (negative amounts)
+        if (RegExp(r'[-−]\s*[0-9]').hasMatch(line)) continue;
+        final m = RegExp(r'([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})').firstMatch(line);
+        if (m != null) {
+          final v = double.tryParse(m.group(1)!.replaceAll(',', ''));
+          if (v != null && v > 0) positiveAmounts.add(v);
+        }
+      }
+      if (positiveAmounts.isNotEmpty) {
+        // Smallest positive amount = what the user actually paid
+        positiveAmounts.sort();
+        return positiveAmounts.first;
+      }
+    }
+
+    // --- Step 1: Labeled patterns (priority order) ---
+    // "จำนวนเงินที่ชำระ" checked first to beat plain "จำนวนเงิน"
     final labeledPatterns = [
-      // จำนวนเงิน / จำนวนเงิน (บาท) / ยอดเงิน / จำนวนเงินที่ชำระ
-      RegExp(r'(?:จำนวนเงินที่ชำระ|จำนวนเงิน|ยอดเงิน|ยอดเงินรวม|จำนวน|amount|total amount)\s*[:\s]?\s*(?:thb|฿|baht)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseSensitive: false),
-      // ฿ 1,250.00 or THB 1,250.00
+      RegExp(r'จำนวนเงินที่ชำระ\s*[:\s]?\s*(?:thb|฿|baht)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseSensitive: false),
+      RegExp(r'(?:จำนวนเงิน|ยอดเงิน|ยอดเงินรวม|จำนวน|amount|total amount)\s*[:\s]?\s*(?:thb|฿|baht)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseSensitive: false),
       RegExp(r'(?:thb|฿)\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseSensitive: false),
-      // 1,250.00 บาท / 1250.00 THB
       RegExp(r'([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2}))\s*(?:บาท|thb|baht)', caseSensitive: false),
-      // Plain number before บาท: e.g. 20 บาท
       RegExp(r'(?<!\d)([1-9][0-9]{0,4}(?:\.[0-9]{2})?)\s*(?:บาท|thb)', caseSensitive: false),
     ];
 
@@ -92,7 +130,7 @@ class ThaiBankSlipParser {
       }
     }
 
-    // Fallback: search for numbers with 2 decimal places in reasonable ranges (e.g. 1.00 - 5,000,000.00)
+    // --- Step 2: Fallback decimal scan (numbers with exactly 2 decimal places) ---
     final fallbackRegex = RegExp(r'(?<!\d|\.)([1-9][0-9]{0,2}(?:,[0-9]{3})*\.[0-9]{2})(?!\d)');
     final matches = fallbackRegex.allMatches(text);
     for (final match in matches) {
@@ -173,6 +211,19 @@ class ThaiBankSlipParser {
       if (_isAccountNumber(s) || _isKeyword(s) || _isBankName(s)) return false;
       if (s.length < 3 || s.length > 55) return false;
 
+      // Reject known OCR noise patterns: short all-lowercase latin strings without vowels
+      // e.g. "nsolna", "nsulna", "UUUN", random OCR artifacts
+      if (RegExp(r'^[a-z]{3,12}$').hasMatch(s)) {
+        // All-lowercase short strings — must have at least 2 vowels to be a real name/word
+        final vowelCount = 'aeiou'.split('').fold(0, (c, v) => c + v.allMatches(s).length);
+        if (vowelCount < 2) return false;
+      }
+      // Reject ALL-CAPS nonsense of 2–5 chars that are not known merchants
+      if (RegExp(r'^[A-Z]{2,5}$').hasMatch(s)) {
+        const knownAcronyms = {'SCB', 'KTB', 'BBL', 'GSB', 'TTB', 'TMB', 'UOB', 'LHB', 'GHB', 'GRAB', 'LINE', 'TRUE', 'AIS', 'DTAC'};
+        if (!knownAcronyms.contains(s.toUpperCase())) return false;
+      }
+
       // Thai person/merchant prefix
       if (s.startsWith('นาย') || s.startsWith('นาง') || s.startsWith('น.ส.') ||
           s.startsWith('นางสาว') || s.startsWith('ด.ช.') || s.startsWith('ด.ญ.') ||
@@ -183,7 +234,7 @@ class ThaiBankSlipParser {
       }
 
       // Thai name: 2 or more Thai words (Firstname + Lastname)
-      if (RegExp(r'^[\u0E01-\u0E2E\u0E30-\u0E4C]{2,}\s+[\u0E01-\u0E2E\u0E30-\u0E4C]{2,}').hasMatch(s)) {
+      if (RegExp(r'^[\u0E01-\u0E2E\u0E30-\u0E4C]{2,}[\s]+[\u0E01-\u0E2E\u0E30-\u0E4C]{2,}').hasMatch(s)) {
         return true;
       }
 
@@ -193,10 +244,13 @@ class ThaiBankSlipParser {
         return true;
       }
 
-      // English name or Merchant name (e.g. "CHANAPHON T", "Somchai K", "SHOPEEPAY", "GRAB")
-      if (RegExp(r'^[A-Za-z][A-Za-z\s\.\(\)\&,-]{2,45}$').hasMatch(s)) {
+      // English proper name or known merchant:
+      // Must start with uppercase and have reasonable structure
+      if (RegExp(r'^[A-Z][A-Za-z\s\.\(\)&,-]{2,45}$').hasMatch(s)) {
         final lower = s.toLowerCase();
         if (lower == 'to' || lower == 'from' || lower == 'amount' || lower == 'date' || lower == 'fee') return false;
+        // Reject if all uppercase and fewer than 3 chars (too short to be a real name)
+        if (s == s.toUpperCase() && s.replaceAll(' ', '').length < 3) return false;
         return true;
       }
 
