@@ -89,7 +89,7 @@ enum ThaiBank {
   List<String> get detectionKeywords {
     switch (this) {
       case ThaiBank.kbank:
-        return ['k plus', 'kplus', 'kasikorn', 'กสิกร', 'kbank', '004'];
+        return ['k plus', 'kplus', 'kasikorn', 'กสิกร', 'kbank', '004', 'make by kbank', 'make'];
       case ThaiBank.scb:
         return ['scb easy', 'scbeasy', 'siam commercial', 'ไทยพาณิชย์', '014', 'scb'];
       case ThaiBank.ktb:

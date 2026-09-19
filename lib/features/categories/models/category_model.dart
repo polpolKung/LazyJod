@@ -101,6 +101,19 @@ class CategoryModel {
       ],
     ),
     const CategoryModel(
+      id: 'cat_transfer',
+      nameThai: 'โอนเงิน / โอนให้ผู้อื่น',
+      nameEnglish: 'Transfer',
+      iconCodePoint: 0xe627, // swap_horiz
+      colorValue: 0xFF2F54EB,
+      type: CategoryType.expense,
+      isDefault: true,
+      autoKeywords: [
+        'โอนเงิน', 'พร้อมเพย์', 'promptpay', 'transfer', 'โอน',
+        'คืนเงิน', 'ฝากเงิน', 'เติมเงิน', 'นาย', 'น.ส.', 'นาง',
+      ],
+    ),
+    const CategoryModel(
       id: 'cat_bills',
       nameThai: 'บิลและสาธารณูปโภค',
       nameEnglish: 'Bills & Utilities',
