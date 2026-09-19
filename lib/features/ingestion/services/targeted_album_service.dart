@@ -100,7 +100,7 @@ class TargetedAlbumService {
   /// Fetches recent slip assets exclusively from the targeted banking albums
   Future<List<AssetEntity>> fetchAssetsFromTargetedAlbums({
     List<String>? selectedAlbumIds,
-    int maxCount = 50,
+    int maxCount = 1000,
   }) async {
     try {
       final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(

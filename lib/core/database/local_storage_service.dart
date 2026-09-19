@@ -10,6 +10,7 @@ class LocalStorageService {
   static const String _prefCategoriesKey = 'lazyjod_categories';
   static const String _prefBudgetsKey = 'lazyjod_budgets';
   static const String _prefRecurringKey = 'lazyjod_recurring';
+  static const String _prefScannedAssetIdsKey = 'lazyjod_scanned_asset_ids';
 
   SharedPreferences? _prefs;
 
@@ -98,5 +99,29 @@ class LocalStorageService {
     if (_prefs == null) await init();
     final list = rules.map((e) => e.toMap()).toList();
     await _prefs?.setString(_prefRecurringKey, jsonEncode(list));
+  }
+
+  // Scanned asset IDs — used to skip re-OCR on next launch
+  Future<Set<String>> loadScannedAssetIds() async {
+    if (_prefs == null) await init();
+    final jsonStr = _prefs?.getString(_prefScannedAssetIdsKey);
+    if (jsonStr == null || jsonStr.isEmpty) return {};
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list.cast<String>().toSet();
+    } catch (e) {
+      return {};
+    }
+  }
+
+  Future<void> addScannedAssetIds(Set<String> newIds) async {
+    if (_prefs == null) await init();
+    final existing = await loadScannedAssetIds();
+    existing.addAll(newIds);
+    // Keep max 10,000 IDs to avoid unbounded storage growth (drop oldest if needed)
+    final trimmed = existing.length > 10000
+        ? existing.skip(existing.length - 10000).toSet()
+        : existing;
+    await _prefs?.setString(_prefScannedAssetIdsKey, jsonEncode(trimmed.toList()));
   }
 }

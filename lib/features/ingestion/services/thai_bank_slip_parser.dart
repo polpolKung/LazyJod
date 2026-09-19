@@ -169,16 +169,37 @@ class ThaiBankSlipParser {
       return bankNamePhrases.any((b) => lower.contains(b));
     }
 
-    bool _isPersonName(String s) {
+    bool _isPersonOrMerchantName(String s) {
       if (_isAccountNumber(s) || _isKeyword(s) || _isBankName(s)) return false;
-      // Thai person prefix
+      if (s.length < 3 || s.length > 55) return false;
+
+      // Thai person/merchant prefix
       if (s.startsWith('นาย') || s.startsWith('นาง') || s.startsWith('น.ส.') ||
+          s.startsWith('นางสาว') || s.startsWith('ด.ช.') || s.startsWith('ด.ญ.') ||
           s.contains('บจก.') || s.contains('บริษัท') || s.contains('หจก.') ||
-          s.startsWith('Mr.') || s.startsWith('Ms.') || s.startsWith('Mrs.')) {
+          s.startsWith('ร้าน') || s.startsWith('Mr.') || s.startsWith('Ms.') ||
+          s.startsWith('Mrs.') || s.startsWith('MR.') || s.startsWith('MS.')) {
         return true;
       }
-      // All-caps English name (≥3 chars, letters + spaces only) — e.g. "CHANAPHON T"
-      if (RegExp(r'^[A-Z][A-Z\s\.]{2,34}$').hasMatch(s)) return true;
+
+      // Thai name: 2 or more Thai words (Firstname + Lastname)
+      if (RegExp(r'^[\u0E01-\u0E2E\u0E30-\u0E4C]{2,}\s+[\u0E01-\u0E2E\u0E30-\u0E4C]{2,}').hasMatch(s)) {
+        return true;
+      }
+
+      // Single Thai word of 4-30 chars without digits or special symbols
+      if (RegExp(r'^[\u0E01-\u0E2E\u0E30-\u0E4C\s]{4,30}$').hasMatch(s) &&
+          !s.contains('สำเร็จ') && !s.contains('โอนเงิน') && !s.contains('รายการ')) {
+        return true;
+      }
+
+      // English name or Merchant name (e.g. "CHANAPHON T", "Somchai K", "SHOPEEPAY", "GRAB")
+      if (RegExp(r'^[A-Za-z][A-Za-z\s\.\(\)\&,-]{2,45}$').hasMatch(s)) {
+        final lower = s.toLowerCase();
+        if (lower == 'to' || lower == 'from' || lower == 'amount' || lower == 'date' || lower == 'fee') return false;
+        return true;
+      }
+
       return false;
     }
 
@@ -191,20 +212,32 @@ class ThaiBankSlipParser {
       'recipient',
     ];
 
+    String? fallbackAccount;
+
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
       for (final kw in recipientKeywords) {
         if (line.toLowerCase().startsWith(kw.toLowerCase())) {
           final remainder = line.substring(kw.length).replaceAll(RegExp(r'^[:\s]+'), '').trim();
-          if (remainder.isNotEmpty && !_isAccountNumber(remainder) && !_isKeyword(remainder) && !_isBankName(remainder)) {
-            return _cleanName(remainder);
+          if (remainder.isNotEmpty && !_isKeyword(remainder) && !_isBankName(remainder)) {
+            if (_isPersonOrMerchantName(remainder)) {
+              return _cleanName(remainder);
+            }
+            if (_isAccountNumber(remainder) && fallbackAccount == null) {
+              fallbackAccount = remainder;
+            }
           }
-          // Look ahead up to 3 lines, skipping bank names and account numbers
-          for (int j = i + 1; j < lines.length && j <= i + 3; j++) {
+
+          // Look ahead up to 4 lines specifically for a person/merchant name
+          for (int j = i + 1; j < lines.length && j <= i + 4; j++) {
             final next = lines[j];
-            if (_isBankName(next) || _isAccountNumber(next)) continue;
+            if (_isBankName(next)) continue;
             if (_isKeyword(next)) break;
-            if (_isPersonName(next) || next.length > 3) {
+            if (_isAccountNumber(next)) {
+              fallbackAccount ??= next;
+              continue;
+            }
+            if (_isPersonOrMerchantName(next)) {
               return _cleanName(next);
             }
           }
@@ -212,10 +245,10 @@ class ThaiBankSlipParser {
       }
     }
 
-    // Secondary strategy: Collect all person/company name lines
+    // Secondary strategy: Collect all person/company name lines across the slip
     final List<String> candidateNames = [];
     for (final line in lines) {
-      if (_isPersonName(line)) {
+      if (_isPersonOrMerchantName(line)) {
         candidateNames.add(_cleanName(line));
       }
     }
@@ -228,7 +261,12 @@ class ThaiBankSlipParser {
       return candidateNames[0];
     }
 
-    // Third strategy: Find PromptPay/account destination number
+    // Third strategy: Use account/phone number found in recipient section
+    if (fallbackAccount != null) {
+      return 'พร้อมเพย์ $fallbackAccount';
+    }
+
+    // Fourth strategy: Find any PromptPay/account destination number
     for (final line in lines) {
       final phoneMatch = RegExp(r'(0\d{2}[-\s]*\d{3}[-\s]*\d{4}|0\d{2}[-\s]*x{3}[-\s]*\d{4}|x{3}[-\s]*\d{4})', caseSensitive: false).firstMatch(line);
       if (phoneMatch != null) {
@@ -305,12 +343,27 @@ class ThaiBankSlipParser {
   }
 
   static bool _isAccountNumber(String text) {
-    return RegExp(r'^x{2,}[-\s\d]+|^[\d\-]{8,}$', caseSensitive: false).hasMatch(text.trim());
+    final clean = text.trim().replaceAll(RegExp(r'[\s\-\.\/]'), '');
+    // If string is at least 6 chars and is only digits and x/X (e.g. 090xxx5844, xxx7058, 12345678)
+    if (clean.length >= 6 && RegExp(r'^[0-9xX]+$').hasMatch(clean)) {
+      return true;
+    }
+    // Starts with 2 or more x/X
+    if (RegExp(r'^(?:x{2,}|X{2,})').hasMatch(text.trim())) {
+      return true;
+    }
+    return false;
   }
 
   static bool _isKeyword(String text) {
     final lower = text.toLowerCase();
-    return lower.contains('จำนวน') || lower.contains('amount') || lower.contains('วันที่') || lower.contains('date') || lower.contains('ค่าธรรมเนียม');
+    return lower.contains('จำนวน') || lower.contains('amount') ||
+           lower.contains('วันที่') || lower.contains('date') ||
+           lower.contains('ค่าธรรมเนียม') || lower.contains('fee') ||
+           lower.contains('สำเร็จ') || lower.contains('successful') ||
+           lower.contains('หมายเลขอ้างอิง') || lower.contains('ref') ||
+           lower.contains('บันทึกช่วยจำ') || lower.contains('memo') ||
+           lower.contains('ยอดเงิน') || lower.contains('รหัสรายการ');
   }
 
   static String _cleanName(String raw) {

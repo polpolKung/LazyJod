@@ -93,7 +93,7 @@ enum ThaiBank {
       case ThaiBank.scb:
         return ['scb easy', 'scbeasy', 'siam commercial', 'ไทยพาณิชย์', '014', 'scb'];
       case ThaiBank.ktb:
-        return ['krungthai next', 'krungthai', 'กรุงไทย', '006', 'เป๋าตัง'];
+        return ['krungthai next', 'krungthai', 'กรุงไทย', '006', 'เป๋าตัง', 'ktb', 'next', 'ktb next', 'ธนาคารกรุงไทย'];
       case ThaiBank.ttb:
         return ['ttb touch', 'ttb', 'tmb', 'thanachart', 'ทหารไทยธนชาต', '011'];
       case ThaiBank.bbl:

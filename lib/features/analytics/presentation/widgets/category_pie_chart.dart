@@ -23,11 +23,16 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (widget.breakdown.isEmpty || widget.totalExpense <= 0) {
       return Container(
         height: 200,
         alignment: Alignment.center,
-        child: const Text('ยังไม่มีข้อมูลรายจ่ายในเดือนนี้', style: TextStyle(color: AppColors.textMuted)),
+        child: Text(
+          'ยังไม่มีข้อมูลรายจ่ายในเดือนนี้',
+          style: TextStyle(color: isDark ? AppColors.darkTextMuted : AppColors.textMuted),
+        ),
       );
     }
 
@@ -80,11 +85,21 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('รายจ่ายรวม', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(
+                    'รายจ่ายรวม',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     CurrencyFormatter.formatCompact(widget.totalExpense),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    ),
                   ),
                 ],
               ),
@@ -111,16 +126,26 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                   Expanded(
                     child: Text(
                       item.categoryName,
-                      style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   Text(
                     '${item.percentage.toStringAsFixed(1)}%  ',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                    ),
                   ),
                   Text(
                     CurrencyFormatter.format(item.amount),
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    ),
                   ),
                 ],
               ),

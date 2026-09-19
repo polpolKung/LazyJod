@@ -15,6 +15,8 @@ class BudgetProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     Color progressColor = AppColors.income;
     if (status.isExceeded) {
       progressColor = AppColors.expense;
@@ -30,10 +32,12 @@ class BudgetProgressCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: status.isExceeded ? AppColors.expense.withOpacity(0.5) : AppColors.border,
+            color: status.isExceeded
+                ? AppColors.expense.withOpacity(0.5)
+                : (isDark ? AppColors.darkBorder : AppColors.border),
           ),
         ),
         child: Column(
@@ -45,7 +49,11 @@ class BudgetProgressCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     status.budget.title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -82,7 +90,7 @@ class BudgetProgressCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: percentClamped,
                 minHeight: 8,
-                backgroundColor: const Color(0xFFF3F4F6),
+                backgroundColor: isDark ? AppColors.darkBorder : const Color(0xFFF3F4F6),
                 valueColor: AlwaysStoppedAnimation<Color>(progressColor),
               ),
             ),
@@ -92,11 +100,11 @@ class BudgetProgressCard extends StatelessWidget {
               children: [
                 Text(
                   'ใช้ไป ${CurrencyFormatter.format(status.currentSpent)} (${status.percentUsed.toStringAsFixed(1)}%)',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                 ),
                 Text(
                   'งบ ${CurrencyFormatter.format(status.budget.monthlyLimit)}',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
                 ),
               ],
             ),

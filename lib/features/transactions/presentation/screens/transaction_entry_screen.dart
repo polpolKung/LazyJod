@@ -109,6 +109,7 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
   @override
   Widget build(BuildContext context) {
     final categories = ref.watch(categoryProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filteredCategories = categories.where((c) =>
       _type == TransactionType.income ? c.type == CategoryType.income : c.type == CategoryType.expense
     ).toList();
@@ -134,14 +135,14 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
+                    color: isDark ? AppColors.darkSurface : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      _buildTypeTab(TransactionType.expense, 'รายจ่าย', AppColors.expense),
-                      _buildTypeTab(TransactionType.income, 'รายรับ', AppColors.income),
-                      _buildTypeTab(TransactionType.transfer, 'โอนเงิน', AppColors.transfer),
+                      _buildTypeTab(TransactionType.expense, 'รายจ่าย', AppColors.expense, isDark),
+                      _buildTypeTab(TransactionType.income, 'รายรับ', AppColors.income, isDark),
+                      _buildTypeTab(TransactionType.transfer, 'โอนเงิน', AppColors.transfer, isDark),
                     ],
                   ),
                 ),
@@ -154,16 +155,19 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'จำนวนเงิน',
-                          style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                          ),
                         ),
                         Row(
                           children: [
@@ -186,9 +190,13 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                 const SizedBox(height: 20),
 
                 // Category Selection Grid
-                const Text(
+                Text(
                   'หมวดหมู่',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -201,8 +209,14 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                       avatar: Icon(cat.icon, size: 18, color: isSelected ? Colors.white : cat.color),
                       selected: isSelected,
                       selectedColor: cat.color,
+                      backgroundColor: isDark ? AppColors.darkCard : null,
+                      side: BorderSide(
+                        color: isSelected
+                            ? cat.color
+                            : (isDark ? AppColors.darkBorder : AppColors.border),
+                      ),
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        color: isSelected ? Colors.white : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                       onSelected: (selected) {
@@ -220,9 +234,9 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -233,11 +247,14 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                             const SizedBox(width: 10),
                             Text(
                               DateFormatter.formatThaiDateTime(_dateTime),
-                              style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                              ),
                             ),
                           ],
                         ),
-                        const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                        Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? AppColors.darkTextMuted : AppColors.textMuted),
                       ],
                     ),
                   ),
@@ -338,7 +355,7 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
     );
   }
 
-  Widget _buildTypeTab(TransactionType t, String label, Color activeColor) {
+  Widget _buildTypeTab(TransactionType t, String label, Color activeColor, bool isDark) {
     final isSelected = _type == t;
     return Expanded(
       child: GestureDetector(
@@ -354,7 +371,7 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: isSelected ? (isDark ? AppColors.darkCard : Colors.white) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             boxShadow: isSelected ? [const BoxShadow(color: Colors.black12, blurRadius: 4)] : null,
           ),
@@ -364,7 +381,7 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
             style: TextStyle(
               fontSize: 15,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? activeColor : AppColors.textSecondary,
+              color: isSelected ? activeColor : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
             ),
           ),
         ),

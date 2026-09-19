@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
-import '../../providers/ingestion_provider.dart';
+import '../providers/ingestion_provider.dart';
 import 'album_picker_screen.dart';
 import 'statement_import_screen.dart';
 
@@ -15,6 +14,7 @@ class SlipScannerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(ingestionProvider);
     final notifier = ref.read(ingestionProvider.notifier);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final selectedAlbums = state.albums.where((a) => a.isSelected).toList();
 
@@ -52,15 +52,26 @@ class SlipScannerScreen extends ConsumerWidget {
           // Privacy Banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: AppColors.primaryLight.withOpacity(0.4),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : AppColors.primaryLight.withOpacity(0.4),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.primary.withOpacity(0.2),
+                ),
+              ),
+            ),
             child: Row(
               children: [
                 const Icon(Icons.shield_outlined, color: AppColors.primary, size: 22),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'สแกนเฉพาะโฟลเดอร์สลิปธนาคาร (Privacy-First) และประมวลผล OCR บนเครื่อง ไม่ส่งภาพออกภายนอก',
-                    style: TextStyle(fontSize: 12, color: AppColors.textPrimary, height: 1.3),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textPrimary,
+                      height: 1.3,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -69,7 +80,7 @@ class SlipScannerScreen extends ConsumerWidget {
                       MaterialPageRoute(builder: (_) => const AlbumPickerScreen()),
                     );
                   },
-                  child: const Text('เลือกโฟลเดอร์', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  child: const Text('เลือกโฟลเดอร์', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary)),
                 ),
               ],
             ),
@@ -77,22 +88,33 @@ class SlipScannerScreen extends ConsumerWidget {
 
           // Scan Progress Indicator
           if (state.isScanning) ...[
-            LinearProgressIndicator(value: state.scanProgress > 0 ? state.scanProgress : null, color: AppColors.primary),
+            LinearProgressIndicator(
+              value: state.scanProgress > 0 ? state.scanProgress : null,
+              color: AppColors.primary,
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.primaryLight,
+            ),
             Container(
-              padding: const EdgeInsets.all(12),
-              color: Colors.white,
+              padding: const EdgeInsets.all(14),
+              color: Theme.of(context).cardColor,
               child: Row(
                 children: [
                   const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       state.statusMessage,
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -106,10 +128,14 @@ class SlipScannerScreen extends ConsumerWidget {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: state.lastError != null ? Colors.red.shade50 : Colors.blue.shade50,
+                color: state.lastError != null
+                    ? (isDark ? const Color(0xFF3B1515) : Colors.red.shade50)
+                    : (isDark ? AppColors.darkCard : Colors.blue.shade50),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: state.lastError != null ? Colors.red.shade200 : Colors.blue.shade200,
+                  color: state.lastError != null
+                      ? AppColors.expense.withOpacity(0.5)
+                      : AppColors.primary.withOpacity(0.4),
                 ),
               ),
               child: Row(
@@ -117,7 +143,7 @@ class SlipScannerScreen extends ConsumerWidget {
                 children: [
                   Icon(
                     state.lastError != null ? Icons.warning_amber_rounded : Icons.info_outline,
-                    color: state.lastError != null ? Colors.red.shade700 : Colors.blue.shade700,
+                    color: state.lastError != null ? AppColors.expense : AppColors.primary,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -126,7 +152,7 @@ class SlipScannerScreen extends ConsumerWidget {
                       state.statusMessage,
                       style: TextStyle(
                         fontSize: 12,
-                        color: state.lastError != null ? Colors.red.shade900 : Colors.blue.shade900,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                         height: 1.4,
                       ),
                     ),
@@ -148,7 +174,7 @@ class SlipScannerScreen extends ConsumerWidget {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryLight.withOpacity(0.5),
+                              color: AppColors.primary.withOpacity(0.15),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -158,15 +184,23 @@ class SlipScannerScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
+                          Text(
                             'พร้อมสแกนสลิปโอนเงิน',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                            ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'ระบบจะตรวจจับสลิปจากธนาคารไทยในอัลบั้มที่เลือก ตรวจสอบยอดเงิน วันที่ และป้องกันสลิปซ้ำให้อัตโนมัติ',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                              height: 1.4,
+                            ),
                           ),
                           const SizedBox(height: 16),
 
@@ -174,9 +208,9 @@ class SlipScannerScreen extends ConsumerWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -187,7 +221,11 @@ class SlipScannerScreen extends ConsumerWidget {
                                   selectedAlbums.isNotEmpty
                                       ? 'เลือกไว้ ${selectedAlbums.length} โฟลเดอร์ (${selectedAlbums.take(2).map((a) => a.name).join(", ")}${selectedAlbums.length > 2 ? "..." : ""})'
                                       : 'ยังไม่ได้เลือกโฟลเดอร์',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -203,7 +241,7 @@ class SlipScannerScreen extends ConsumerWidget {
                               label: const Text('เริ่มสแกนโฟลเดอร์ธนาคาร'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
+                                foregroundColor: Colors.black,
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
@@ -242,15 +280,17 @@ class SlipScannerScreen extends ConsumerWidget {
                         opacity: slip.isDuplicate ? 0.6 : 1.0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected ? AppColors.primary : AppColors.border,
+                              color: isSelected ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.border),
                               width: isSelected ? 2 : 1,
                             ),
                           ),
                           child: CheckboxListTile(
                             value: isSelected,
+                            activeColor: AppColors.primary,
+                            checkColor: Colors.black,
                             onChanged: slip.isDuplicate
                                 ? null
                                 : (_) => notifier.toggleSlipSelection(slip.id!),
@@ -267,7 +307,11 @@ class SlipScannerScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   slip.bank.displayNameThai,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                  ),
                                 ),
                                 if (slip.isDuplicate) ...[
                                   const SizedBox(width: 8),
@@ -291,17 +335,26 @@ class SlipScannerScreen extends ConsumerWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'ผู้รับ: ${slip.recipientName}',
-                                  style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                  ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   DateFormatter.formatThaiDateTime(slip.dateTime),
-                                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                                  ),
                                 ),
                                 if (slip.refId != null) ...[
                                   Text(
                                     'รหัส: ${slip.refId}',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                                    ),
                                   ),
                                 ],
                               ],
@@ -326,16 +379,20 @@ class SlipScannerScreen extends ConsumerWidget {
           if (state.parsedSlips.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: AppColors.border)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border)),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => notifier.scanTargetedAlbums(),
-                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
+                      ),
                       child: const Text('สแกนอีกครั้ง'),
                     ),
                   ),
@@ -354,7 +411,7 @@ class SlipScannerScreen extends ConsumerWidget {
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: Text('นำเข้า (${state.selectedSlipIds.length} รายการ)'),
