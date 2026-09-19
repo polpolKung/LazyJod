@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
-import '../providers/ingestion_provider.dart';
+import '../../providers/ingestion_provider.dart';
 import 'album_picker_screen.dart';
 import 'statement_import_screen.dart';
 
