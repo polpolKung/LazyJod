@@ -73,11 +73,11 @@ class ThaiBankSlipParser {
     // Patterns with explicit labels
     final labeledPatterns = [
       // จำนวนเงิน / จำนวนเงิน (บาท) / ยอดเงิน
-      RegExp(r'(?:จำนวนเงิน|ยอดเงิน|ยอดเงินรวม|จำนวน|amount|total amount)\s*[:\s]?\s*(?:thb|฿|baht)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseInsensitive: true),
+      RegExp(r'(?:จำนวนเงิน|ยอดเงิน|ยอดเงินรวม|จำนวน|amount|total amount)\s*[:\s]?\s*(?:thb|฿|baht)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseSensitive: false),
       // ฿ 1,250.00 or THB 1,250.00
-      RegExp(r'(?:thb|฿)\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseInsensitive: true),
+      RegExp(r'(?:thb|฿)\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)', caseSensitive: false),
       // 1,250.00 บาท / 1250.00 THB
-      RegExp(r'([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2}))\s*(?:บาท|thb|baht)', caseInsensitive: true),
+      RegExp(r'([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2}))\s*(?:บาท|thb|baht)', caseSensitive: false),
     ];
 
     for (final pattern in labeledPatterns) {
@@ -107,7 +107,7 @@ class ThaiBankSlipParser {
   /// 3. Extract Slip Date and Time
   static DateTime? extractDateTime(String text) {
     // Check for Time (HH:mm or HH:mm:ss)
-    final timeRegex = RegExp(r'(?:เวลา|time)?\s*([0-2]?[0-9])[:.]([0-5][0-9])(?::([0-5][0-9]))?\s*(?:น\.|hrs\.|hr)?', caseInsensitive: true);
+    final timeRegex = RegExp(r'(?:เวลา|time)?\s*([0-2]?[0-9])[:.]([0-5][0-9])(?::([0-5][0-9]))?\s*(?:น\.|hrs\.|hr)?', caseSensitive: false);
     final timeMatch = timeRegex.firstMatch(text);
     int hour = 12;
     int minute = 0;
@@ -208,7 +208,7 @@ class ThaiBankSlipParser {
   /// 6. Extract Transaction Reference Number
   static String? extractRefId(String text, {ThaiBank? bank}) {
     final refPatterns = [
-      RegExp(r'(?:รหัสอ้างอิง|เลขที่รายการ|เลขอ้างอิง|ref(?:\s*no\.?)?|transaction\s*id)\s*[:\s]?\s*([A-Za-z0-9\-_]{8,30})', caseInsensitive: true),
+      RegExp(r'(?:รหัสอ้างอิง|เลขที่รายการ|เลขอ้างอิง|ref(?:\s*no\.?)?|transaction\s*id)\s*[:\s]?\s*([A-Za-z0-9\-_]{8,30})', caseSensitive: false),
       // Format common in KBank/SCB slips: e.g. 20260919456789 or 0142621934981
       RegExp(r'(?<!\d)([0-9]{12,24})(?!\d)'),
     ];
@@ -239,7 +239,7 @@ class ThaiBankSlipParser {
   }
 
   static bool _isAccountNumber(String text) {
-    return RegExp(r'^x{2,}[-\s\d]+|^[\d\-]{8,}$', caseInsensitive: true).hasMatch(text.trim());
+    return RegExp(r'^x{2,}[-\s\d]+|^[\d\-]{8,}$', caseSensitive: false).hasMatch(text.trim());
   }
 
   static bool _isKeyword(String text) {
@@ -249,7 +249,7 @@ class ThaiBankSlipParser {
 
   static String _cleanName(String raw) {
     return raw
-        .replaceAll(RegExp(r'^(?:to|จาก|ไปยัง|ผู้รับ|ผู้โอน|ชื่อ)[:\s]*', caseInsensitive: true), '')
+        .replaceAll(RegExp(r'^(?:to|จาก|ไปยัง|ผู้รับ|ผู้โอน|ชื่อ)[:\s]*', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
   }

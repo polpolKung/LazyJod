@@ -63,7 +63,7 @@ class StatementPdfParser {
         double amount = double.tryParse(amountStr.replaceAll('-', '')) ?? 0.0;
 
         // Detect installment information: e.g. "3/10", "งวด 3/10", "0% 10M (3/10)"
-        final installmentRegex = RegExp(r'(?:งวดที่?\s*|\(|\s|^)(\d{1,2})\s*[/]\s*(\d{1,2})(?:\)|\s|$)', caseInsensitive: true);
+        final installmentRegex = RegExp(r'(?:งวดที่?\s*|\(|\s|^)(\d{1,2})\s*[/]\s*(\d{1,2})(?:\)|\s|$)', caseSensitive: false);
         final instMatch = installmentRegex.firstMatch(desc);
         bool isInstallment = false;
         int? currentInst;
