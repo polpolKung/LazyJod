@@ -67,7 +67,9 @@ class CategoryModel {
       autoKeywords: [
         'cafe', 'coffee', 'kitchen', 'restaurant', 'food', 'bakery', 'tea',
         'เซเว่น', '7-eleven', 'lineman', 'grabfood', 'shopeefood', 'เตี๋ยว',
-        'ข้าวมันไก่', 'หมูกระทะ', 'ชาบู', 'ส้มตำ', 'ชาไข่มุก', 'สุกี้'
+        'ข้าวมันไก่', 'หมูกระทะ', 'ชาบู', 'ส้มตำ', 'ชาไข่มุก', 'สุกี้',
+        'กาแฟ', 'คาเฟ่', 'ร้านอาหาร', 'ร้านกาแฟ', 'เบเกอรี่', 'ชานม',
+        'ไก่ทอด', 'บะหมี่', 'ก๋วยเตี๋ยว', 'ข้าวต้ม', 'อาหาร',
       ],
     ),
     const CategoryModel(
@@ -93,7 +95,9 @@ class CategoryModel {
       isDefault: true,
       autoKeywords: [
         'shopee', 'lazada', 'tiktok', 'central', 'lotus', 'big c', 'cj express',
-        'วัตสัน', 'watsons', 'boots', 'uniqlo', 'zara', 'mr.diy', 'd.i.y'
+        'วัตสัน', 'watsons', 'boots', 'uniqlo', 'zara', 'mr.diy', 'd.i.y',
+        'ลาซาด้า', 'ช้อปปี้', 'ติ๊กต็อก', 'เซ็นทรัล', 'โลตัส', 'แม็กซ์แวลู',
+        'บิ๊กซี', 'ท็อปส์', 'จัสโก้', 'อิเกีย', 'ฮาร์บา', 'ช้อปปิ้ง',
       ],
     ),
     const CategoryModel(

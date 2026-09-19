@@ -144,8 +144,10 @@ class ThaiBankSlipParser {
 
     // Priority keywords indicating recipient
     final recipientKeywords = [
-      'ไปยัง', 'ไปยัง:', 'to', 'to:', 'ผู้รับเงิน', 'ชื่อผู้รับ',
-      'เข้าบัญชี', 'บัญชีผู้รับ', 'receiver', 'beneficiary'
+      'ผู้รับโอน', 'ผู้รับโอน:', 'ไปยัง', 'ไปยัง:', 'to', 'to:',
+      'ผู้รับเงิน', 'ชื่อผู้รับ', 'ผู้รับ:', 'ผู้รับ',
+      'เข้าบัญชี', 'บัญชีผู้รับ', 'receiver', 'beneficiary', 'payee',
+      'recipient',
     ];
 
     for (int i = 0; i < lines.length; i++) {
@@ -249,7 +251,7 @@ class ThaiBankSlipParser {
 
   static String _cleanName(String raw) {
     return raw
-        .replaceAll(RegExp(r'^(?:to|จาก|ไปยัง|ผู้รับ|ผู้โอน|ชื่อ)[:\s]*', caseSensitive: false), '')
+        .replaceAll(RegExp(r'^(?:to|จาก|ไปยัง|ผู้รับโอน|ผู้รับ|ผู้โอน|ชื่อ|recipient|beneficiary|payee)[:\s]*', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
   }
