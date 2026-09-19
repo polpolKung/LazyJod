@@ -107,8 +107,33 @@ class ThaiBankSlipParser {
 
   /// 3. Extract Transfer Date and Time
   static DateTime? extractDateTime(String text) {
-    final thaiDate = DateFormatter.parseThaiDate(text);
-    if (thaiDate != null) return thaiDate;
+    int hour = 12;
+    int minute = 0;
+    int second = 0;
+
+    // Check for Time
+    final timeRegex = RegExp(r'(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?');
+    final timeMatch = timeRegex.firstMatch(text);
+    if (timeMatch != null) {
+      hour = int.tryParse(timeMatch.group(1)!) ?? 12;
+      minute = int.tryParse(timeMatch.group(2)!) ?? 0;
+      if (timeMatch.group(3) != null) {
+        second = int.tryParse(timeMatch.group(3)!) ?? 0;
+      }
+    }
+
+    // Check for Thai Date
+    final parsedDate = DateFormatter.parseThaiDate(text);
+    if (parsedDate != null) {
+      return DateTime(
+        parsedDate.year,
+        parsedDate.month,
+        parsedDate.day,
+        hour,
+        minute,
+        second,
+      );
+    }
 
     // ISO/Standard fallback
     final isoRegex = RegExp(r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?');
@@ -117,10 +142,10 @@ class ThaiBankSlipParser {
       final year = int.parse(match.group(1)!);
       final month = int.parse(match.group(2)!);
       final day = int.parse(match.group(3)!);
-      final hour = match.group(4) != null ? int.parse(match.group(4)!) : 0;
-      final minute = match.group(5) != null ? int.parse(match.group(5)!) : 0;
-      final second = match.group(6) != null ? int.parse(match.group(6)!) : 0;
-      return DateTime(year, month, day, hour, minute, second);
+      final h = match.group(4) != null ? int.parse(match.group(4)!) : hour;
+      final m = match.group(5) != null ? int.parse(match.group(5)!) : minute;
+      final s = match.group(6) != null ? int.parse(match.group(6)!) : second;
+      return DateTime(year, month, day, h, m, s);
     }
 
     return null;
