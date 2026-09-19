@@ -1,0 +1,57 @@
+name: lazy_jod
+description: "Meow Jot (เหมียวจด) - Cross-platform personal finance mobile app with automated Thai banking slip parsing, targeted album ingestion, budgeting, and privacy-first local storage."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # Local Database & Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.2.3
+  path_provider: ^2.1.2
+
+  # Privacy & Targeted Photo Scanning
+  photo_manager: ^3.0.0-rc.3
+  image_picker: ^1.0.7
+
+  # On-Device OCR & ML
+  google_mlkit_text_recognition: ^0.13.0
+
+  # PDF Statement Parsing
+  syncfusion_flutter_pdf: ^25.1.41
+  file_picker: ^8.0.0
+
+  # Utilities & Crypto Hashing
+  intl: ^0.19.0
+  crypto: ^3.0.3
+  uuid: ^4.3.3
+  csv: ^6.0.0
+  share_plus: ^9.0.0
+
+  # Charts & UI
+  fl_chart: ^0.68.0
+  flutter_svg: ^2.0.10+1
+  cached_network_image: ^3.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/
