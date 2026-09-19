@@ -110,7 +110,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
     final assets = await _albumService.fetchAssetsFromTargetedAlbums(
       selectedAlbumIds: selectedAlbumIds.isNotEmpty ? selectedAlbumIds : null,
-      maxCount: 30,
+      maxCount: 500,
     );
 
     if (assets.isEmpty) {
@@ -237,10 +237,12 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         final recognizedText = await _textRecognizer.processImage(inputImage);
 
         // Parse extracted text with 16 Thai Banks Slip Parser
+        // Use asset.createDateTime as fallback so slips keep their real date/time
         final slipResult = ThaiBankSlipParser.parse(
           recognizedText.text,
           imagePath: file.path,
           imageHash: imageHash,
+          fallbackDateTime: asset.createDateTime,
         );
 
         final slipId = 'slip_${_uuid.v4()}';
@@ -328,6 +330,54 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     );
 
     return newTransactions.length;
+  }
+
+  void clearStatus() {
+    state = state.copyWith(statusMessage: '');
+  }
+
+  /// Auto-scan and auto-import all new slips silently when the app opens (Zero-Click)
+  Future<int> autoScanAndImportOnLaunch() async {
+    try {
+      state = state.copyWith(
+        isScanning: true,
+        statusMessage: 'ขี้เกียจจดกำลังตรวจสลิปใหม่...',
+        lastError: null,
+      );
+
+      final perm = await _albumService.requestPermission();
+      if (!perm.hasAccess) {
+        state = state.copyWith(isScanning: false, statusMessage: '');
+        return 0;
+      }
+
+      await loadAlbums();
+      final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+      final assets = await _albumService.fetchAssetsFromTargetedAlbums(
+        selectedAlbumIds: selectedAlbumIds.isNotEmpty ? selectedAlbumIds : null,
+        maxCount: 500,
+      );
+
+      if (assets.isEmpty) {
+        state = state.copyWith(isScanning: false, statusMessage: '');
+        return 0;
+      }
+
+      await _processAssets(assets);
+
+      // Auto-import all non-duplicate slips found (do not wait for user confirmation)
+      final autoImportCount = await importSelectedSlips();
+      state = state.copyWith(
+        isScanning: false,
+        statusMessage: autoImportCount > 0
+            ? 'จดสลิปใหม่ให้แล้ว $autoImportCount รายการ ✨'
+            : 'ไม่พบสลิปใหม่ในวันนี้',
+      );
+      return autoImportCount;
+    } catch (e) {
+      state = state.copyWith(isScanning: false, statusMessage: '');
+      return 0;
+    }
   }
 
   @override

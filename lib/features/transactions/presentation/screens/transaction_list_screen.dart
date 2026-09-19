@@ -8,6 +8,7 @@ import '../../models/transaction_model.dart';
 import '../../models/transaction_type.dart';
 import '../../providers/transaction_provider.dart';
 import '../widgets/transaction_tile.dart';
+import '../widgets/transaction_quick_edit_sheet.dart';
 import 'filter_search_screen.dart';
 import 'transaction_detail_screen.dart';
 import 'transaction_entry_screen.dart';
@@ -136,7 +137,7 @@ class TransactionListScreen extends ConsumerWidget {
                     ),
                     // Transaction Tiles
                     Container(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       child: Column(
                         children: txList.map((tx) {
                           return Dismissible(
@@ -176,11 +177,7 @@ class TransactionListScreen extends ConsumerWidget {
                             child: TransactionTile(
                               transaction: tx,
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => TransactionDetailScreen(transactionId: tx.id),
-                                  ),
-                                );
+                                showTransactionQuickEditSheet(context, tx);
                               },
                             ),
                           );

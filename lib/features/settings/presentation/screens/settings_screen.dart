@@ -11,6 +11,7 @@ import '../../../ingestion/presentation/screens/album_picker_screen.dart';
 import '../../../transactions/providers/transaction_provider.dart';
 import '../../../transactions/services/csv_export_service.dart';
 import '../../../analytics/presentation/screens/budget_setting_screen.dart';
+import '../../../../core/theme/theme_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -96,6 +97,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
 
+          // Theme toggle
+          const Text('ธีมและหน้าตา', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+          const SizedBox(height: 8),
+          _ThemeToggleCard(),
+          const SizedBox(height: 20),
+
           const Text('การจัดการข้อมูล', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
           const SizedBox(height: 8),
 
@@ -172,6 +179,46 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: Text('Flutter • Riverpod • ML Kit On-Device • Local Database'),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThemeToggleCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(
+              isDark ? Icons.dark_mode : Icons.light_mode,
+              color: AppColors.primary,
+            ),
+            title: Text(
+              isDark ? 'โหมดมืด (Obsidian)' : 'โหมดสว่าง',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              isDark ? 'พื้นหลังดำ สีเน้น Mint #00E599' : 'พื้นหลังขาว แนะนำสำหรับกลางวัน',
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: Switch(
+              value: isDark,
+              activeColor: AppColors.primary,
+              onChanged: (val) {
+                ref.read(themeProvider.notifier).setTheme(val ? ThemeMode.dark : ThemeMode.light);
+              },
             ),
           ),
         ],

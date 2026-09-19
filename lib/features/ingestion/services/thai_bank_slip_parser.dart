@@ -6,7 +6,7 @@ import '../../../core/utils/date_formatter.dart';
 
 class ThaiBankSlipParser {
   /// Main entrypoint to parse raw OCR text extracted from a slip
-  static SlipParseResult parse(String rawText, {String? imagePath, String? imageHash}) {
+  static SlipParseResult parse(String rawText, {String? imagePath, String? imageHash, DateTime? fallbackDateTime}) {
     final cleanText = _normalizeText(rawText);
 
     final bank = detectBank(cleanText);
@@ -27,7 +27,8 @@ class ThaiBankSlipParser {
     return SlipParseResult(
       bank: bank,
       amount: amount,
-      dateTime: dateTime ?? DateTime.now(),
+      // Use OCR-extracted date first, then asset file time, then now
+      dateTime: dateTime ?? fallbackDateTime ?? DateTime.now(),
       recipientName: recipient,
       senderName: sender,
       refId: refId,
@@ -155,6 +156,32 @@ class ThaiBankSlipParser {
   static String extractRecipient(String text, {ThaiBank? bank}) {
     final lines = text.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
+    // Known bank-name strings to skip when looking ahead
+    final bankNamePhrases = [
+      'กรุงเทพ', 'กสิกร', 'ไทยพาณิชย์', 'กรุงไทย', 'กรุงศรี', 'ออมสิน',
+      'ธนาคาร', 'bangkok bank', 'kasikorn', 'kbank', 'ktb', 'scb', 'bay',
+      'bbl', 'gsb', 'ttb', 'tmb', 'baac', 'kkp', 'cimb', 'uob', 'tisco',
+      'lhb', 'ghb', 'truemoney', 'promptpay', 'พร้อมเพย์',
+    ];
+
+    bool _isBankName(String s) {
+      final lower = s.toLowerCase();
+      return bankNamePhrases.any((b) => lower.contains(b));
+    }
+
+    bool _isPersonName(String s) {
+      if (_isAccountNumber(s) || _isKeyword(s) || _isBankName(s)) return false;
+      // Thai person prefix
+      if (s.startsWith('นาย') || s.startsWith('นาง') || s.startsWith('น.ส.') ||
+          s.contains('บจก.') || s.contains('บริษัท') || s.contains('หจก.') ||
+          s.startsWith('Mr.') || s.startsWith('Ms.') || s.startsWith('Mrs.')) {
+        return true;
+      }
+      // All-caps English name (≥3 chars, letters + spaces only) — e.g. "CHANAPHON T"
+      if (RegExp(r'^[A-Z][A-Z\s\.]{2,34}$').hasMatch(s)) return true;
+      return false;
+    }
+
     // Priority keywords indicating recipient (including Bangkok Bank "ไปที่")
     final recipientKeywords = [
       'ไปที่', 'ไปที่:', 'ไปยัง', 'ไปยัง:', 'ผู้รับโอน', 'ผู้รับโอน:',
@@ -169,14 +196,16 @@ class ThaiBankSlipParser {
       for (final kw in recipientKeywords) {
         if (line.toLowerCase().startsWith(kw.toLowerCase())) {
           final remainder = line.substring(kw.length).replaceAll(RegExp(r'^[:\s]+'), '').trim();
-          if (remainder.isNotEmpty && !_isAccountNumber(remainder) && !_isKeyword(remainder)) {
+          if (remainder.isNotEmpty && !_isAccountNumber(remainder) && !_isKeyword(remainder) && !_isBankName(remainder)) {
             return _cleanName(remainder);
           }
-          // If remainder is empty or keyword, check next line
-          if (i + 1 < lines.length) {
-            final nextLine = lines[i + 1];
-            if (!_isKeyword(nextLine) && !_isAccountNumber(nextLine)) {
-              return _cleanName(nextLine);
+          // Look ahead up to 3 lines, skipping bank names and account numbers
+          for (int j = i + 1; j < lines.length && j <= i + 3; j++) {
+            final next = lines[j];
+            if (_isBankName(next) || _isAccountNumber(next)) continue;
+            if (_isKeyword(next)) break;
+            if (_isPersonName(next) || next.length > 3) {
+              return _cleanName(next);
             }
           }
         }
@@ -186,14 +215,8 @@ class ThaiBankSlipParser {
     // Secondary strategy: Collect all person/company name lines
     final List<String> candidateNames = [];
     for (final line in lines) {
-      if (line.contains('บจก.') || line.contains('บริษัท') || line.contains('หจก.') ||
-          line.contains('นาย ') || line.contains('นาย') ||
-          line.contains('นาง ') || line.contains('นาง') ||
-          line.contains('น.ส.') || line.contains('น.ส. ') ||
-          line.contains('Mr.') || line.contains('Ms.') || line.contains('Mrs.')) {
-        if (!_isKeyword(line) && !_isAccountNumber(line)) {
-          candidateNames.add(_cleanName(line));
-        }
+      if (_isPersonName(line)) {
+        candidateNames.add(_cleanName(line));
       }
     }
 
@@ -268,7 +291,7 @@ class ThaiBankSlipParser {
 
     // 1. Specific merchant & spending categories first (Food, Shopping, Transport, Bills, Health)
     for (final category in CategoryModel.defaultCategories) {
-      if (category.id == 'cat_transfer' || category.id == 'cat_other_expense') continue;
+      if (category.id == 'cat_transfer' || category.id == 'cat_uncategorized' || category.id == 'cat_other_expense') continue;
       for (final kw in category.autoKeywords) {
         if (combined.contains(kw.toLowerCase())) {
           return category.id;
@@ -276,9 +299,9 @@ class ThaiBankSlipParser {
       }
     }
 
-    // 2. Default for P2P bank transfers, PromptPay, or individual transfers:
-    // When no specific shopping/food keyword is matched, assign to Transfer!
-    return 'cat_transfer';
+    // 2. Default for P2P transfers, PromptPay, or any unrecognized slip:
+    // Let the user choose the category themselves!
+    return 'cat_uncategorized';
   }
 
   static bool _isAccountNumber(String text) {

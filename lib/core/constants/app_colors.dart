@@ -1,29 +1,39 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Brand colors (Warm Meow theme)
-  static const Color primary = Color(0xFFFF7A45); // Warm Coral / Cat Orange
-  static const Color primaryLight = Color(0xFFFFE8E0);
-  static const Color primaryDark = Color(0xFFD45524);
+  // Brand colors (Obsidian & Emerald Mint FinTech theme)
+  static const Color primary = Color(0xFF00E599); // Vibrant Neon Mint
+  static const Color primaryLight = Color(0xFFD1FAE5);
+  static const Color primaryDark = Color(0xFF059669);
   
-  static const Color secondary = Color(0xFF597EF7); // Soft Indigo
-  static const Color accent = Color(0xFFFFC069); // Butter Cream
+  static const Color secondary = Color(0xFF38BDF8); // Electric Sky
+  static const Color accent = Color(0xFFF59E0B); // Amber Gold
   
   // Financial semantic colors
   static const Color expense = Color(0xFFFF4D4F); // Soft Crimson
-  static const Color income = Color(0xFF52C41A); // Fresh Meadow Green
-  static const Color transfer = Color(0xFF1890FF); // Sky Blue
-  static const Color warning = Color(0xFFFAAD14); // Warning Gold
+  static const Color income = Color(0xFF00E599); // Electric Mint Green
+  static const Color transfer = Color(0xFF38BDF8); // Sky Blue
+  static const Color warning = Color(0xFFF59E0B); // Warning Amber
   
-  // Backgrounds & Neutrals
-  static const Color background = Color(0xFFF9FAFC);
+  // Light Backgrounds & Neutrals
+  static const Color background = Color(0xFFF8FAFC);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF1F2937);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color textMuted = Color(0xFF9CA3AF);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color divider = Color(0xFFF3F4F6);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textMuted = Color(0xFF94A3B8);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color divider = Color(0xFFF1F5F9);
+
+  // Dark Backgrounds & Neutrals (Cyber Obsidian)
+  static const Color darkBackground = Color(0xFF0F1015);
+  static const Color darkSurface = Color(0xFF171821);
+  static const Color darkCard = Color(0xFF1E202B);
+  static const Color darkBorder = Color(0xFF2B2E3B);
+  static const Color darkDivider = Color(0xFF22242F);
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  static const Color darkTextMuted = Color(0xFF64748B);
 
   // 16 Thai Bank Colors
   static const Color bankKBank = Color(0xFF138F2D); // KBank Green

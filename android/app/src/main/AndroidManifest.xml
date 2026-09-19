@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="Meow Jot"
+        android:label="ขี้เกียจจด"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../categories/presentation/widgets/category_quick_picker_sheet.dart';
 import '../../../categories/providers/category_provider.dart';
 import '../../models/transaction_model.dart';
 import '../../models/transaction_type.dart';
+import '../../providers/transaction_provider.dart';
 
 class TransactionTile extends ConsumerWidget {
   final TransactionModel transaction;
@@ -25,6 +27,7 @@ class TransactionTile extends ConsumerWidget {
       orElse: () => categories.first,
     );
 
+    final isUncategorized = category.id == 'cat_uncategorized';
     final isExpense = transaction.type == TransactionType.expense;
     final amountPrefix = isExpense ? '-' : '+';
     final amountColor = isExpense ? AppColors.expense : AppColors.income;
@@ -35,15 +38,36 @@ class TransactionTile extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            // Category Icon with Circle
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: category.color.withOpacity(0.12),
-                shape: BoxShape.circle,
+            // Category Icon — tap to change category instantly
+            GestureDetector(
+              onTap: () async {
+                final newCategoryId = await showCategoryQuickPicker(
+                  context, ref,
+                  currentCategoryId: transaction.categoryId,
+                );
+                if (newCategoryId != null && newCategoryId != transaction.categoryId) {
+                  final updated = transaction.copyWith(categoryId: newCategoryId);
+                  ref.read(transactionProvider.notifier).updateTransaction(updated);
+                }
+              },
+              child: Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: isUncategorized
+                      ? AppColors.warning.withOpacity(0.15)
+                      : category.color.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                  border: isUncategorized
+                      ? Border.all(color: AppColors.warning, width: 1.5)
+                      : null,
+                ),
+                child: Icon(
+                  isUncategorized ? Icons.help_outline : category.icon,
+                  color: isUncategorized ? AppColors.warning : category.color,
+                  size: 24,
+                ),
               ),
-              child: Icon(category.icon, color: category.color, size: 24),
             ),
             const SizedBox(width: 14),
             // Title, Category, and Badges
@@ -59,7 +83,6 @@ class TransactionTile extends ConsumerWidget {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -97,14 +120,31 @@ class TransactionTile extends ConsumerWidget {
                     children: [
                       Text(
                         DateFormatter.formatTimeOnly(transaction.dateTime),
-                        style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                        style: const TextStyle(fontSize: 12, color: AppColors.darkTextMuted),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '•  ${category.nameThai}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                      if (transaction.tags.isNotEmpty) ...[
+                      if (isUncategorized)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.warning.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '• แตะ 🏷 เลือกหมวดหมู่',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.warning,
+                            ),
+                          ),
+                        )
+                      else
+                        Text(
+                          '•  ${category.nameThai}',
+                          style: const TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
+                        ),
+                      if (!isUncategorized && transaction.tags.isNotEmpty) ...[
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(

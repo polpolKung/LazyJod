@@ -101,6 +101,16 @@ class CategoryModel {
       ],
     ),
     const CategoryModel(
+      id: 'cat_uncategorized',
+      nameThai: 'รอเลือกหมวดหมู่',
+      nameEnglish: 'Uncategorized',
+      iconCodePoint: 0xe335, // help_outline
+      colorValue: 0xFFF59E0B, // Amber Gold
+      type: CategoryType.expense,
+      isDefault: true,
+      autoKeywords: [],
+    ),
+    const CategoryModel(
       id: 'cat_transfer',
       nameThai: 'โอนเงิน / โอนให้ผู้อื่น',
       nameEnglish: 'Transfer',
