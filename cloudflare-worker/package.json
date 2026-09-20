@@ -1,0 +1,13 @@
+{
+  "name": "lazyjod-cloudflare-proxy",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker Proxy for LazyJod Gemini Vision OCR",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.109.2"
+  }
+}

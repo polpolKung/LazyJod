@@ -9,10 +9,14 @@ import '../../../core/utils/hash_helper.dart';
 import '../../transactions/models/transaction_model.dart';
 import '../../transactions/models/transaction_type.dart';
 import '../../transactions/providers/transaction_provider.dart';
+import '../models/ocr_sync_item.dart';
 import '../models/slip_parse_result.dart';
 import '../services/duplicate_detection_service.dart';
+import '../services/hybrid_ocr_service.dart';
+import '../services/ocr_sync_queue_service.dart';
 import '../services/targeted_album_service.dart';
 import '../services/thai_bank_slip_parser.dart';
+import 'sync_queue_provider.dart';
 
 class IngestionState {
   final bool isScanning;
@@ -62,12 +66,17 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   final TargetedAlbumService _albumService = TargetedAlbumService();
   final DuplicateDetectionService _dupService = DuplicateDetectionService();
   final LocalStorageService _storage = LocalStorageService();
-  final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  // HybridOcrService replaces the raw TextRecognizer — it runs ML Kit offline
+  // and transparently upgrades to Gemini Vision when online + name is a fallback.
+  final HybridOcrService _hybridOcr = HybridOcrService.instance;
   final ImagePicker _imagePicker = ImagePicker();
   final Ref _ref;
   final _uuid = const Uuid();
 
+  late final OcrSyncQueueService _syncQueue;
+
   IngestionNotifier(this._ref) : super(const IngestionState()) {
+    _syncQueue = OcrSyncQueueService(_storage, _ref);
     loadAlbums();
   }
 
@@ -164,13 +173,11 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
           final bytes = await file.readAsBytes();
           final imageHash = HashHelper.hashBytes(bytes);
 
-          final inputImage = InputImage.fromFile(file);
-          final recognizedText = await _textRecognizer.processImage(inputImage);
-
-          final slipResult = ThaiBankSlipParser.parse(
-            recognizedText.text,
-            imagePath: file.path,
-            imageHash: imageHash,
+          // ── Hybrid OCR: ML Kit offline → Gemini online if name is fallback ──
+          final slipResult = await _hybridOcr.process(
+            imageFile:        file,
+            imagePath:        file.path,
+            imageHash:        imageHash,
           );
 
           final slipId = 'slip_${_uuid.v4()}';
@@ -260,16 +267,11 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         final bytes = await file.readAsBytes();
         final imageHash = HashHelper.hashBytes(bytes);
 
-        // Run ML Kit Text Recognition on device
-        final inputImage = InputImage.fromFile(file);
-        final recognizedText = await _textRecognizer.processImage(inputImage);
-
-        // Parse extracted text with Thai Banks Slip Parser
-        // Use asset.createDateTime as fallback so slips keep their real date/time
-        final slipResult = ThaiBankSlipParser.parse(
-          recognizedText.text,
-          imagePath: file.path,
-          imageHash: imageHash,
+        // ── Hybrid OCR: ML Kit offline → Gemini online if name is fallback ──
+        final slipResult = await _hybridOcr.process(
+          imageFile:        file,
+          imagePath:        file.path,
+          imageHash:        imageHash,
           fallbackDateTime: asset.createDateTime,
         );
 
@@ -385,6 +387,20 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
     if (newTransactions.isNotEmpty) {
       await _ref.read(transactionProvider.notifier).addBatchTransactions(newTransactions);
+
+      // ── Background Sync: enqueue fallback-named transactions for cloud retry ──
+      for (final tx in newTransactions) {
+        final isFallback = tx.note.startsWith('พร้อมเพย์') ||
+            tx.note.startsWith('โอนเงิน');
+        if (isFallback && tx.slipImagePath != null && tx.slipImageHash != null) {
+          await _syncQueue.enqueue(OcrSyncItem(
+            transactionId: tx.id,
+            imagePath:     tx.slipImagePath!,
+            imageHash:     tx.slipImageHash!,
+            queuedAt:      DateTime.now(),
+          ));
+        }
+      }
     }
 
     // Clear parsed list after import
@@ -448,7 +464,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
   @override
   void dispose() {
-    _textRecognizer.close();
+    _hybridOcr.dispose();
     super.dispose();
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../features/ingestion/models/ocr_sync_item.dart';
 import '../../features/transactions/models/transaction_model.dart';
 import '../../features/categories/models/category_model.dart';
 import '../../features/transactions/models/recurring_schedule.dart';
@@ -148,4 +149,31 @@ class LocalStorageService {
     if (_prefs == null) await init();
     await _prefs?.setBool(_prefFirstLaunchKey, true);
   }
+
+  // ── OCR Sync Queue ────────────────────────────────────────────────────────
+  static const String _prefSyncQueueKey = 'lazyjod_ocr_sync_queue';
+
+  /// Loads all pending [OcrSyncItem]s from local storage.
+  Future<List<OcrSyncItem>> loadSyncQueue() async {
+    if (_prefs == null) await init();
+    final jsonStr = _prefs?.getString(_prefSyncQueueKey);
+    if (jsonStr == null || jsonStr.isEmpty) return [];
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((e) => OcrSyncItem.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      print('Error decoding sync queue: $e');
+      return [];
+    }
+  }
+
+  /// Persists [queue] to local storage, replacing any previous queue state.
+  Future<void> saveSyncQueue(List<OcrSyncItem> queue) async {
+    if (_prefs == null) await init();
+    final list = queue.map((e) => e.toMap()).toList();
+    await _prefs?.setString(_prefSyncQueueKey, jsonEncode(list));
+  }
 }
+
