@@ -200,6 +200,8 @@ class ThaiBankSlipParser {
       'ธนาคาร', 'bangkok bank', 'kasikorn', 'kbank', 'ktb', 'scb', 'bay',
       'bbl', 'gsb', 'ttb', 'tmb', 'baac', 'kkp', 'cimb', 'uob', 'tisco',
       'lhb', 'ghb', 'truemoney', 'promptpay', 'พร้อมเพย์',
+      'krungthai', 'kkp start', 'next', 'ktb next', 'krungthai next',
+      'pao tang', 'paotang', 'เป๋าตัง', 'make by kbank', 'make', 'dime',
     ];
 
     bool _isBankName(String s) {
@@ -245,12 +247,22 @@ class ThaiBankSlipParser {
       }
 
       // English proper name or known merchant:
-      // Must start with uppercase and have reasonable structure
-      if (RegExp(r'^[A-Z][A-Za-z\s\.\(\)&,-]{2,45}$').hasMatch(s)) {
+      // Must have proper title case or uppercase words, not mixed-case OCR noise (e.g. "UNa nUwa nwu")
+      if (RegExp(r'^[A-Za-z][A-Za-z0-9\s\.\(\)&,-]{2,45}$').hasMatch(s)) {
         final lower = s.toLowerCase();
         if (lower == 'to' || lower == 'from' || lower == 'amount' || lower == 'date' || lower == 'fee') return false;
-        // Reject if all uppercase and fewer than 3 chars (too short to be a real name)
-        if (s == s.toUpperCase() && s.replaceAll(' ', '').length < 3) return false;
+        final words = s.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+        if (words.isEmpty) return false;
+        for (final w in words) {
+          final clean = w.replaceAll(RegExp(r'[,\.\(\)\&]'), '');
+          if (clean.isEmpty) continue;
+          final isTitleCase = RegExp(r'^[A-Z][a-z]+$').hasMatch(clean);
+          final isAllUpper = RegExp(r'^[A-Z0-9]{2,}$').hasMatch(clean);
+          final isSingleInitial = RegExp(r'^[A-Z]\.?$').hasMatch(clean);
+          if (!isTitleCase && !isAllUpper && !isSingleInitial) {
+            return false; // Rejects OCR artifacts like "UNa", "nUwa", "nwu"
+          }
+        }
         return true;
       }
 
@@ -299,6 +311,20 @@ class ThaiBankSlipParser {
       }
     }
 
+    // Priority Strategy 1.5: PaoTang / G-Wallet specific merchant extraction
+    // In PaoTang slips, the line immediately following "G-Wallet ID:" is always the merchant name!
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].toLowerCase().contains('g-wallet id') || lines[i].toLowerCase().contains('g wallet id') || lines[i].toLowerCase().contains('g-wallet')) {
+        for (int j = i + 1; j < lines.length && j <= i + 3; j++) {
+          final next = lines[j];
+          if (_isKeyword(next) || _isBankName(next) || _isAccountNumber(next)) continue;
+          if (_isPersonOrMerchantName(next)) {
+            return _cleanName(next);
+          }
+        }
+      }
+    }
+
     // Secondary strategy: Collect all person/company name lines across the slip
     final List<String> candidateNames = [];
     for (final line in lines) {
@@ -322,7 +348,7 @@ class ThaiBankSlipParser {
 
     // Fourth strategy: Find any PromptPay/account destination number
     for (final line in lines) {
-      final phoneMatch = RegExp(r'(0\d{2}[-\s]*\d{3}[-\s]*\d{4}|0\d{2}[-\s]*x{3}[-\s]*\d{4}|x{3}[-\s]*\d{4})', caseSensitive: false).firstMatch(line);
+      final phoneMatch = RegExp(r'(0\d{2}[-\s]*\d{3}[-\s]*\d{4}|0\d{2}[-\s]*x{3}[-\s]*\d{4}|x{3}[-\s]*\d{4}|x{3}[-\s]*x{3,8}[-\s]*\d{3,4})', caseSensitive: false).firstMatch(line);
       if (phoneMatch != null) {
         return 'พร้อมเพย์ ${phoneMatch.group(1)}';
       }
@@ -417,7 +443,15 @@ class ThaiBankSlipParser {
            lower.contains('สำเร็จ') || lower.contains('successful') ||
            lower.contains('หมายเลขอ้างอิง') || lower.contains('ref') ||
            lower.contains('บันทึกช่วยจำ') || lower.contains('memo') ||
-           lower.contains('ยอดเงิน') || lower.contains('รหัสรายการ');
+           lower.contains('ยอดเงิน') || lower.contains('รหัสรายการ') ||
+           lower.contains('รหัสอ้างอิง') || lower.contains('ค่าสินค้า') ||
+           lower.contains('สิทธิ') || lower.contains('g-wallet') ||
+           lower.contains('g wallet') ||
+           // PaoTang business category tags — NOT recipient names
+           lower.contains('อาหาร') && lower.contains('เครื่องดื่ม') ||
+           lower.contains('ของหวาน') ||
+           lower.contains('ร้านอาหาร') || lower.contains('ของใช้') ||
+           lower.contains('เครื่องดื่ม') && lower.length < 30;
   }
 
   static String _cleanName(String raw) {
