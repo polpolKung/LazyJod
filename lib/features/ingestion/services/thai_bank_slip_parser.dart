@@ -253,9 +253,15 @@ class ThaiBankSlipParser {
         if (lower == 'to' || lower == 'from' || lower == 'amount' || lower == 'date' || lower == 'fee') return false;
         final words = s.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
         if (words.isEmpty) return false;
+        // Single-word English names must be at least 4 chars (e.g. "Grab", "Shopee"; rejects "Pay")
+        if (words.length == 1 && s.trim().length < 4) return false;
         for (final w in words) {
           final clean = w.replaceAll(RegExp(r'[,\.\(\)\&]'), '');
           if (clean.isEmpty) continue;
+          // Reject words with both letters and digits (e.g. transaction IDs like "Aaa86ab443fa54854")
+          if (RegExp(r'[A-Za-z]').hasMatch(clean) && RegExp(r'[0-9]').hasMatch(clean)) {
+            return false;
+          }
           final isTitleCase = RegExp(r'^[A-Z][a-z]+$').hasMatch(clean);
           final isAllUpper = RegExp(r'^[A-Z0-9]{2,}$').hasMatch(clean);
           final isSingleInitial = RegExp(r'^[A-Z]\.?$').hasMatch(clean);
@@ -447,11 +453,14 @@ class ThaiBankSlipParser {
            lower.contains('รหัสอ้างอิง') || lower.contains('ค่าสินค้า') ||
            lower.contains('สิทธิ') || lower.contains('g-wallet') ||
            lower.contains('g wallet') ||
+           lower.contains('pay') || lower.contains('payment') ||
+           lower.contains('transfer') || lower.contains('promptpay') ||
+           lower.contains('พร้อมเพย์') || lower.contains('scan') ||
            // PaoTang business category tags — NOT recipient names
-           lower.contains('อาหาร') && lower.contains('เครื่องดื่ม') ||
+           (lower.contains('อาหาร') && lower.contains('เครื่องดื่ม')) ||
            lower.contains('ของหวาน') ||
            lower.contains('ร้านอาหาร') || lower.contains('ของใช้') ||
-           lower.contains('เครื่องดื่ม') && lower.length < 30;
+           (lower.contains('เครื่องดื่ม') && lower.length < 30);
   }
 
   static String _cleanName(String raw) {
