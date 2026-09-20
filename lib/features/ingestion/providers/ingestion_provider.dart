@@ -110,9 +110,10 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(statusMessage: 'กำลังค้นหาภาพในโฟลเดอร์ธนาคาร...');
 
     final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+    final scanLimit = await _storage.getScanHistoryLimit();
     final assets = await _albumService.fetchAssetsFromTargetedAlbums(
       selectedAlbumIds: selectedAlbumIds.isNotEmpty ? selectedAlbumIds : null,
-      maxCount: 1000,
+      maxCount: scanLimit,
     );
 
     if (assets.isEmpty) {
@@ -333,6 +334,28 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(selectedSlipIds: current);
   }
 
+  bool _isSelfTransfer(String? sender, String recipient) {
+    if (sender == null || sender.isEmpty) return false;
+    String clean(String s) => s
+        .replaceAll(RegExp(r'^(?:นาย|นาง|น\.ส\.|นางสาว|ด\.ช\.|ด\.ญ\.|Mr\.|Ms\.)\s*', caseSensitive: false), '')
+        .replaceAll(RegExp(r'[\*\s\.\-_]'), '')
+        .trim()
+        .toLowerCase();
+    final cleanSender = clean(sender);
+    final cleanRecipient = clean(recipient);
+    if (cleanSender.length >= 3 && cleanRecipient.length >= 3) {
+      if (cleanSender.contains(cleanRecipient) || cleanRecipient.contains(cleanSender)) {
+        return true;
+      }
+      if (cleanSender.length >= 4 && cleanRecipient.length >= 4) {
+        if (cleanSender.substring(0, 4) == cleanRecipient.substring(0, 4)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /// Import selected parsed slips directly into user's transactions
   Future<int> importSelectedSlips() async {
     final selectedSlips = state.parsedSlips
@@ -342,14 +365,16 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final List<TransactionModel> newTransactions = [];
 
     for (final slip in selectedSlips) {
+      final isTransfer = _isSelfTransfer(slip.senderName, slip.recipientName);
+
       newTransactions.add(TransactionModel(
         id: 'tx_${_uuid.v4()}',
-        type: TransactionType.expense,
+        type: isTransfer ? TransactionType.transfer : TransactionType.expense,
         amount: slip.amount,
         dateTime: slip.dateTime,
-        categoryId: slip.suggestedCategoryId ?? 'cat_food',
-        note: slip.recipientName,
-        tags: [slip.bank.shortCode],
+        categoryId: isTransfer ? 'cat_transfer' : (slip.suggestedCategoryId ?? 'cat_food'),
+        note: isTransfer ? 'ย้ายเงิน: ${slip.recipientName}' : slip.recipientName,
+        tags: isTransfer ? [slip.bank.shortCode, 'ย้ายเงิน'] : [slip.bank.shortCode],
         bankSource: slip.bank,
         slipImagePath: slip.imagePath,
         slipImageHash: slip.imageHash,
@@ -393,9 +418,10 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
       await loadAlbums();
       final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+      final scanLimit = await _storage.getScanHistoryLimit();
       final assets = await _albumService.fetchAssetsFromTargetedAlbums(
         selectedAlbumIds: selectedAlbumIds.isNotEmpty ? selectedAlbumIds : null,
-        maxCount: 1000,
+        maxCount: scanLimit,
       );
 
       if (assets.isEmpty) {

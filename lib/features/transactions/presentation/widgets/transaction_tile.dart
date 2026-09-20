@@ -27,10 +27,15 @@ class TransactionTile extends ConsumerWidget {
       orElse: () => categories.first,
     );
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUncategorized = category.id == 'cat_uncategorized';
     final isExpense = transaction.type == TransactionType.expense;
-    final amountPrefix = isExpense ? '-' : '+';
-    final amountColor = isExpense ? AppColors.expense : AppColors.income;
+    final isTransfer = transaction.type == TransactionType.transfer;
+
+    final amountPrefix = isTransfer ? '⇄ ' : (isExpense ? '-' : '+');
+    final amountColor = isTransfer
+        ? const Color(0xFF38BDF8)
+        : (isExpense ? AppColors.expense : AppColors.income);
 
     return InkWell(
       onTap: onTap,
@@ -54,17 +59,19 @@ class TransactionTile extends ConsumerWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: isUncategorized
-                      ? AppColors.warning.withOpacity(0.15)
-                      : category.color.withOpacity(0.12),
+                  color: isTransfer
+                      ? const Color(0xFF38BDF8).withOpacity(0.15)
+                      : (isUncategorized
+                          ? AppColors.warning.withOpacity(0.15)
+                          : category.color.withOpacity(0.12)),
                   shape: BoxShape.circle,
                   border: isUncategorized
                       ? Border.all(color: AppColors.warning, width: 1.5)
-                      : null,
+                      : (isTransfer ? Border.all(color: const Color(0xFF38BDF8), width: 1.2) : null),
                 ),
                 child: Icon(
-                  isUncategorized ? Icons.help_outline : category.icon,
-                  color: isUncategorized ? AppColors.warning : category.color,
+                  isTransfer ? Icons.swap_horiz_rounded : (isUncategorized ? Icons.help_outline : category.icon),
+                  color: isTransfer ? const Color(0xFF38BDF8) : (isUncategorized ? AppColors.warning : category.color),
                   size: 24,
                 ),
               ),
@@ -79,16 +86,34 @@ class TransactionTile extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          transaction.note.isNotEmpty ? transaction.note : category.nameThai,
-                          style: const TextStyle(
+                          transaction.note.isNotEmpty ? transaction.note : (isTransfer ? 'ย้ายเงินระหว่างบัญชี' : category.nameThai),
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (transaction.isFromSlip) ...[
+                      if (isTransfer) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38BDF8).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'ย้ายเงิน',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF38BDF8),
+                            ),
+                          ),
+                        ),
+                      ] else if (transaction.isFromSlip) ...[
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
@@ -120,10 +145,21 @@ class TransactionTile extends ConsumerWidget {
                     children: [
                       Text(
                         DateFormatter.formatTimeOnly(transaction.dateTime),
-                        style: const TextStyle(fontSize: 12, color: AppColors.darkTextMuted),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      if (isUncategorized)
+                      if (isTransfer)
+                        Text(
+                          '•  ไม่คิดเป็นรายรับ-จ่าย',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                          ),
+                        )
+                      else if (isUncategorized)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
@@ -142,9 +178,12 @@ class TransactionTile extends ConsumerWidget {
                       else
                         Text(
                           '•  ${category.nameThai}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                          ),
                         ),
-                      if (!isUncategorized && transaction.tags.isNotEmpty) ...[
+                      if (!isUncategorized && !isTransfer && transaction.tags.isNotEmpty) ...[
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(

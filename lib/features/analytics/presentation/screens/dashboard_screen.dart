@@ -112,7 +112,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Overview Cards (Balance, Income, Expense) - Obsidian Dark Theme (No orange!)
+              // Overview Cards (Balance, Income, Expense) - Theme Aware (Obsidian in dark, Clean card in light)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -120,18 +120,18 @@ class DashboardScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: isDark
                         ? const [Color(0xFF1E202B), Color(0xFF151620)]
-                        : const [Color(0xFF0F172A), Color(0xFF1E293B)],
+                        : const [Colors.white, Color(0xFFF8FAFC)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.primary.withOpacity(0.35),
-                    width: 1.2,
+                    color: isDark ? AppColors.primary.withOpacity(0.35) : AppColors.border,
+                    width: isDark ? 1.2 : 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.05),
+                      color: isDark ? AppColors.primary.withOpacity(0.12) : Colors.black.withOpacity(0.04),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -143,14 +143,18 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'คงเหลือสุทธิ (Net Balance)',
-                          style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.18),
+                            color: AppColors.primary.withOpacity(isDark ? 0.18 : 0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -167,8 +171,8 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       CurrencyFormatter.format(summary.netBalance),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : AppColors.textPrimary,
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
@@ -181,14 +185,22 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.06),
+                              color: isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withOpacity(0.08)),
+                              border: Border.all(
+                                color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('รายรับรวม', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                Text(
+                                  'รายรับรวม',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
                                 const SizedBox(height: 3),
                                 Text(
                                   '+${CurrencyFormatter.format(summary.totalIncome)}',
@@ -203,14 +215,22 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.06),
+                              color: isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withOpacity(0.08)),
+                              border: Border.all(
+                                color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('รายจ่ายรวม', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                Text(
+                                  'รายจ่ายรวม',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
                                 const SizedBox(height: 3),
                                 Text(
                                   '-${CurrencyFormatter.format(summary.totalExpense)}',

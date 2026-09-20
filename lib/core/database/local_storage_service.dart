@@ -124,4 +124,28 @@ class LocalStorageService {
         : existing;
     await _prefs?.setString(_prefScannedAssetIdsKey, jsonEncode(trimmed.toList()));
   }
+
+  // Scan History Limit & First Launch
+  static const String _prefScanLimitKey = 'lazyjod_scan_limit';
+  static const String _prefFirstLaunchKey = 'lazyjod_first_launch_done';
+
+  Future<int> getScanHistoryLimit() async {
+    if (_prefs == null) await init();
+    return _prefs?.getInt(_prefScanLimitKey) ?? 50; // default to 50 for fast scanning
+  }
+
+  Future<void> setScanHistoryLimit(int limit) async {
+    if (_prefs == null) await init();
+    await _prefs?.setInt(_prefScanLimitKey, limit);
+  }
+
+  Future<bool> isFirstLaunch() async {
+    if (_prefs == null) await init();
+    return !(_prefs?.getBool(_prefFirstLaunchKey) ?? false);
+  }
+
+  Future<void> setFirstLaunchCompleted() async {
+    if (_prefs == null) await init();
+    await _prefs?.setBool(_prefFirstLaunchKey, true);
+  }
 }

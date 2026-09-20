@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/database/local_storage_service.dart';
 import '../../../categories/presentation/screens/category_management_screen.dart';
 import '../../../categories/providers/category_provider.dart';
 import '../../../ingestion/presentation/screens/album_picker_screen.dart';
@@ -15,6 +16,60 @@ import '../../../../core/theme/theme_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  Future<void> _showScanLimitDialog(BuildContext context) async {
+    final storage = LocalStorageService();
+    final current = await storage.getScanHistoryLimit();
+    if (!context.mounted) return;
+
+    final options = [
+      (30, '⚡ 30 สลิป', 'เร็วมาก (~5 วินาที)'),
+      (50, '🚀 50 สลิป (แนะนำ)', 'รวดเร็วและครอบคลุม (~10 วินาที)'),
+      (100, '📦 100 สลิป', 'สำหรับคนโอนบ่อย (~20 วินาที)'),
+      (300, '🗄️ 300 สลิป', 'ตรวจย้อนหลังเยอะ (~1 นาที)'),
+      (500, '📚 500 สลิป', 'ตรวจย้อนหลังละเอียด (~1.5 นาที)'),
+      (1000, '♾️ 1,000 สลิป (ทั้งหมด)', 'ตรวจทั้งหมด แต่อาจใช้เวลา 2-3 นาที'),
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          title: const Text('จำนวนสลิปที่สแกนต่อครั้ง', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((opt) {
+              final isSelected = opt.$1 == current;
+              return ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                tileColor: isSelected ? AppColors.primary.withOpacity(isDark ? 0.15 : 0.08) : null,
+                title: Text(
+                  opt.$2,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppColors.primary : null,
+                    fontSize: 14,
+                  ),
+                ),
+                subtitle: Text(opt.$3, style: const TextStyle(fontSize: 11)),
+                trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
+                onTap: () async {
+                  await storage.setScanHistoryLimit(opt.$1);
+                  if (ctx.mounted) Navigator.of(ctx).pop();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('ตั้งค่าการสแกนเป็น ${opt.$2} เรียบร้อยแล้ว')),
+                    );
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
     try {
@@ -138,6 +193,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
+                ListTile(
+                  leading: const Icon(Icons.speed_rounded, color: AppColors.primary),
+                  title: const Text('จำนวนสลิปที่สแกนต่อครั้ง', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  subtitle: const Text('ปรับลดจำนวนสลิปเพื่อให้แอปสแกนและเปิดได้เร็วขึ้น', style: TextStyle(fontSize: 12)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showScanLimitDialog(context),
+                ),
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.file_download_outlined, color: AppColors.primary),
                   title: const Text('ส่งออกข้อมูลเป็น CSV (Excel ภาษาไทย)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/database/local_storage_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../analytics/presentation/screens/dashboard_screen.dart';
 import '../../../categories/presentation/screens/category_management_screen.dart';
@@ -29,10 +30,142 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    // Trigger zero-click auto-scan when app opens
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(ingestionProvider.notifier).autoScanAndImportOnLaunch();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final storage = LocalStorageService();
+      final isFirst = await storage.isFirstLaunch();
+      if (isFirst && mounted) {
+        _showFirstLaunchScanDialog(context, storage);
+      } else {
+        ref.read(ingestionProvider.notifier).autoScanAndImportOnLaunch();
+      }
     });
+  }
+
+  void _showFirstLaunchScanDialog(BuildContext context, LocalStorageService storage) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(ctx).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.flash_on_rounded, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ยินดีต้อนรับสู่ ขี้เกียจจด ✨',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'เลือกจำนวนสลิปที่ต้องการให้ระบบตรวจจับครั้งแรก',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              _buildScanOption(ctx, storage, 30, '⚡ 30 สลิปล่าสุด', 'เร็วมาก (~5 วินาที)', isDark),
+              _buildScanOption(ctx, storage, 50, '🚀 50 สลิปล่าสุด (แนะนำ)', 'รวดเร็วและครอบคลุม (~10 วินาที)', isDark, isRecommended: true),
+              _buildScanOption(ctx, storage, 100, '📦 100 สลิปล่าสุด', 'สำหรับคนโอนบ่อย (~20 วินาที)', isDark),
+              _buildScanOption(ctx, storage, 300, '🗄️ 300 สลิปล่าสุด', 'ตรวจจับย้อนหลังเยอะ (~1 นาที)', isDark),
+              _buildScanOption(ctx, storage, 1000, '♾️ ทั้งหมด (สูงสุด 1,000)', 'อาจใช้เวลา 2-3 นาที', isDark),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildScanOption(
+    BuildContext context,
+    LocalStorageService storage,
+    int count,
+    String title,
+    String subtitle,
+    bool isDark, {
+    bool isRecommended = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isRecommended
+            ? AppColors.primary.withOpacity(isDark ? 0.12 : 0.08)
+            : (isDark ? Colors.white.withOpacity(0.04) : const Color(0xFFF8FAFC)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isRecommended
+              ? AppColors.primary.withOpacity(0.4)
+              : (isDark ? AppColors.darkBorder : AppColors.border),
+          width: isRecommended ? 1.5 : 1.0,
+        ),
+      ),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: isRecommended
+                ? AppColors.primary
+                : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 14,
+          color: isRecommended ? AppColors.primary : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
+        ),
+        onTap: () async {
+          Navigator.of(context).pop();
+          await storage.setScanHistoryLimit(count);
+          await storage.setFirstLaunchCompleted();
+          ref.read(ingestionProvider.notifier).autoScanAndImportOnLaunch();
+        },
+      ),
+    );
   }
 
   @override

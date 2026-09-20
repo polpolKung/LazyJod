@@ -34,6 +34,13 @@ class TransactionDetailScreen extends ConsumerWidget {
     );
 
     final isExpense = tx.type == TransactionType.expense;
+    final isTransfer = tx.type == TransactionType.transfer;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final amountPrefix = isTransfer ? '⇄ ' : (isExpense ? '-' : '+');
+    final amountColor = isTransfer
+        ? const Color(0xFF38BDF8)
+        : (isExpense ? AppColors.expense : AppColors.income);
 
     return Scaffold(
       appBar: AppBar(
@@ -82,9 +89,9 @@ class TransactionDetailScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
               ),
               child: Column(
                 children: [
@@ -92,59 +99,134 @@ class TransactionDetailScreen extends ConsumerWidget {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: category.color.withOpacity(0.12),
+                      color: isTransfer
+                          ? const Color(0xFF38BDF8).withOpacity(0.15)
+                          : category.color.withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(category.icon, color: category.color, size: 32),
+                    child: Icon(
+                      isTransfer ? Icons.swap_horiz_rounded : category.icon,
+                      color: isTransfer ? const Color(0xFF38BDF8) : category.color,
+                      size: 32,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    tx.note.isNotEmpty ? tx.note : category.nameThai,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    tx.note.isNotEmpty ? tx.note : (isTransfer ? 'ย้ายเงินระหว่างบัญชี' : category.nameThai),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${isExpense ? '-' : '+'}${CurrencyFormatter.format(tx.amount)}',
+                    '$amountPrefix${CurrencyFormatter.format(tx.amount)}',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: isExpense ? AppColors.expense : AppColors.income,
+                      color: amountColor,
                     ),
                   ),
+                  if (isTransfer) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF38BDF8).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        '⇄ ไม่นำไปคิดรวมในรายรับ-รายจ่าย',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF38BDF8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // Quick Toggle: Switch between Expense and Transfer
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  side: BorderSide(
+                    color: isTransfer ? AppColors.expense : const Color(0xFF38BDF8),
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: Icon(
+                  isTransfer ? Icons.arrow_upward_rounded : Icons.swap_horiz_rounded,
+                  color: isTransfer ? AppColors.expense : const Color(0xFF38BDF8),
+                  size: 20,
+                ),
+                label: Text(
+                  isTransfer
+                      ? 'เปลี่ยนกลับเป็น "รายจ่าย"'
+                      : '⇄ เปลี่ยนเป็น "ย้ายเงิน" (ไม่คิดรายรับ-จ่าย)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: isTransfer ? AppColors.expense : const Color(0xFF38BDF8),
+                  ),
+                ),
+                onPressed: () {
+                  final newType = isTransfer ? TransactionType.expense : TransactionType.transfer;
+                  ref.read(transactionProvider.notifier).updateTransaction(
+                    tx.copyWith(
+                      type: newType,
+                      categoryId: isTransfer ? 'cat_uncategorized' : 'cat_transfer',
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isTransfer
+                          ? 'เปลี่ยนเป็นรายจ่ายแล้ว'
+                          : 'ตั้งค่าเป็น "ย้ายเงิน" แล้ว (ไม่คิดรวมในรายรับ-จ่าย)'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Detail List Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
               ),
               child: Column(
                 children: [
-                  _buildDetailRow('ประเภท', tx.type.displayNameThai),
-                  const Divider(height: 24),
-                  _buildDetailRow('หมวดหมู่', category.nameThai),
-                  const Divider(height: 24),
-                  _buildDetailRow('วันที่และเวลา', DateFormatter.formatThaiDateTime(tx.dateTime)),
-                  const Divider(height: 24),
-                  _buildDetailRow('ธนาคาร / ช่องทาง', tx.bankSource.displayNameThai),
+                  _buildDetailRow('ประเภท', tx.type.displayNameThai, isDark),
+                  Divider(height: 24, color: isDark ? AppColors.darkBorder : AppColors.border),
+                  _buildDetailRow('หมวดหมู่', isTransfer ? 'ย้ายเงินระหว่างบัญชี' : category.nameThai, isDark),
+                  Divider(height: 24, color: isDark ? AppColors.darkBorder : AppColors.border),
+                  _buildDetailRow('วันที่และเวลา', DateFormatter.formatThaiDateTime(tx.dateTime), isDark),
+                  Divider(height: 24, color: isDark ? AppColors.darkBorder : AppColors.border),
+                  _buildDetailRow('ธนาคาร / ช่องทาง', tx.bankSource.displayNameThai, isDark),
                   if (tx.slipRefId != null && tx.slipRefId!.isNotEmpty) ...[
-                    const Divider(height: 24),
-                    _buildDetailRow('รหัสอ้างอิงสลิป', tx.slipRefId!),
+                    Divider(height: 24, color: isDark ? AppColors.darkBorder : AppColors.border),
+                    _buildDetailRow('รหัสอ้างอิงสลิป', tx.slipRefId!, isDark),
                   ],
                   if (tx.tags.isNotEmpty) ...[
-                    const Divider(height: 24),
-                    _buildDetailRow('แท็ก', tx.tags.join(' ')),
+                    Divider(height: 24, color: isDark ? AppColors.darkBorder : AppColors.border),
+                    _buildDetailRow('แท็ก', tx.tags.join(' '), isDark),
                   ],
                   if (tx.isFromSlip) ...[
-                    const Divider(height: 24),
-                    _buildDetailRow('ที่มาข้อมูล', 'สแกนอัตโนมัติจากสลิปธนาคาร'),
+                    Divider(height: 24, color: isDark ? AppColors.darkBorder : AppColors.border),
+                    _buildDetailRow('ที่มาข้อมูล', 'สแกนอัตโนมัติจากสลิปธนาคาร', isDark),
                   ],
                 ],
               ),
@@ -157,14 +239,21 @@ class TransactionDetailScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('รูปภาพสลิป', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      'รูปภาพสลิป',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -183,15 +272,25 @@ class TransactionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailRow(String title, String value) {
+  Widget _buildDetailRow(String title, String value, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+          ),
+        ),
         Flexible(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+            ),
             textAlign: TextAlign.right,
           ),
         ),
