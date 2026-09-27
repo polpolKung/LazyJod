@@ -220,7 +220,7 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
                     final newCatId = await showCategoryQuickPicker(
                       context,
                       ref,
-                      currentCategoryId: _selectedCategoryId,
+                      currentCategoryId: _isTransfer ? kTransferCategoryResult : _selectedCategoryId,
                     );
                     if (newCatId == null) return;
                     if (newCatId == kTransferCategoryResult) {

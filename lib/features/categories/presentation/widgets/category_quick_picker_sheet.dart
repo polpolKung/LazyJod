@@ -12,9 +12,9 @@ const String kTransferCategoryResult = '__transfer__';
 Future<String?> showCategoryQuickPicker(BuildContext context, WidgetRef ref, {String? currentCategoryId}) async {
   final categories = ref.read(categoryProvider);
 
-  // Show all expense categories EXCEPT cat_transfer (that's handled by the special button below)
+  // Show all expense categories
   final expenseCategories = categories
-      .where((c) => c.type == CategoryType.expense && c.id != 'cat_transfer')
+      .where((c) => c.type == CategoryType.expense)
       .toList();
 
   return showModalBottomSheet<String>(

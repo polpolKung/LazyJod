@@ -48,7 +48,9 @@ class TransactionTile extends ConsumerWidget {
               onTap: () async {
                 final newCategoryId = await showCategoryQuickPicker(
                   context, ref,
-                  currentCategoryId: transaction.categoryId,
+                  currentCategoryId: transaction.type == TransactionType.transfer
+                      ? kTransferCategoryResult
+                      : transaction.categoryId,
                 );
                 if (newCategoryId == null) return;
                 if (newCategoryId == kTransferCategoryResult) {
@@ -58,9 +60,15 @@ class TransactionTile extends ConsumerWidget {
                     categoryId: 'cat_transfer',
                   );
                   ref.read(transactionProvider.notifier).updateTransaction(updated);
-                } else if (newCategoryId != transaction.categoryId) {
-                  final updated = transaction.copyWith(categoryId: newCategoryId);
-                  ref.read(transactionProvider.notifier).updateTransaction(updated);
+                } else {
+                  final wasTransfer = transaction.type == TransactionType.transfer;
+                  if (newCategoryId != transaction.categoryId || wasTransfer) {
+                    final updated = transaction.copyWith(
+                      categoryId: newCategoryId,
+                      type: wasTransfer ? TransactionType.expense : transaction.type,
+                    );
+                    ref.read(transactionProvider.notifier).updateTransaction(updated);
+                  }
                 }
               },
               child: Container(

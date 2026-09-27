@@ -19,7 +19,7 @@ class CategoryManagementScreen extends ConsumerWidget {
         title: const Text('จัดการหมวดหมู่'),
       ),
       body: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: categories.length,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
@@ -69,8 +69,27 @@ class CategoryManagementScreen extends ConsumerWidget {
                   if (!cat.isDefault)
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.expense),
-                      onPressed: () {
-                        ref.read(categoryProvider.notifier).deleteCategory(cat.id);
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('ยืนยันการลบหมวดหมู่'),
+                            content: Text('คุณต้องการลบหมวดหมู่ "${cat.nameThai}" ใช่หรือไม่?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('ยกเลิก'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text('ลบ', style: TextStyle(color: AppColors.expense)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          ref.read(categoryProvider.notifier).deleteCategory(cat.id);
+                        }
                       },
                     ),
                 ],
