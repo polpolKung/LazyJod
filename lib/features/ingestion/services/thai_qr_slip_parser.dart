@@ -50,7 +50,7 @@ class ThaiQrSlipParser {
     final compact = text.replaceAll(RegExp(r'\s+'), '');
     final found = <String>{};
 
-    for (final match in RegExp(r'000201[0-9A-Za-z]{20,500}6304[0-9A-Fa-f]{4}')
+    for (final match in RegExp(r'000201[0-9A-Za-z.+/=_-]{20,500}6304[0-9A-Fa-f]{4}')
         .allMatches(compact)) {
       found.add(match.group(0)!);
     }
