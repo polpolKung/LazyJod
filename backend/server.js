@@ -79,10 +79,17 @@ app.post('/api/ocr/enhance', upload.single('slip_image'), async (req, res) => {
     console.log(`[GeminiProxy] Received image: ${req.file.originalname || 'slip.jpg'} (${(req.file.size / 1024).toFixed(1)} KB)`);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const modelName = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
     const model = genAI.getGenerativeModel({ model: modelName });
 
-    const mimeType = req.file.mimetype || 'image/jpeg';
+    let mimeType = req.file.mimetype || '';
+    if (!mimeType || mimeType === 'application/octet-stream') {
+      const name = (req.file.originalname || '').toLowerCase();
+      if (name.endsWith('.png')) mimeType = 'image/png';
+      else if (name.endsWith('.webp')) mimeType = 'image/webp';
+      else mimeType = 'image/jpeg';
+    }
+
     const imagePart = {
       inlineData: {
         data: req.file.buffer.toString('base64'),

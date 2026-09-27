@@ -94,7 +94,7 @@ class SettingsScreen extends ConsumerWidget {
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'ประวัติรายการเงินจากแอป ขี้เกียจจด (LazyJod)',
+        text: 'ประวัติรายการเงินจากแอป เหมียวจด (Lazy Jod)',
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -263,7 +263,7 @@ class SettingsScreen extends ConsumerWidget {
               children: const [
                 ListTile(
                   leading: Icon(Icons.bolt_rounded, color: AppColors.primary, size: 28),
-                  title: Text('ขี้เกียจจด (LazyJod)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  title: Text('เหมียวจด (Lazy Jod)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                   subtitle: Text('เวอร์ชัน 1.1.0 (Zero-Click Auto-Accounting)'),
                 ),
                 Divider(height: 1),

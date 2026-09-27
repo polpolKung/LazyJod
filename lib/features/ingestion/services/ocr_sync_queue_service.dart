@@ -56,14 +56,36 @@ class OcrSyncQueueService {
   ///
   /// This method is designed to run silently in the background — it never
   /// throws and never mutates UI state directly.
+  /// Processes all pending queue items via Gemini Vision and updates the
+  /// matching transactions. Clears the queue atomically when done.
+  ///
+  /// This method is designed to run silently in the background — it never
+  /// throws and never mutates UI state directly.
   Future<void> drainQueue() async {
     final queue = await _storage.loadSyncQueue();
+    final txNotifier = _ref.read(transactionProvider.notifier);
+    final transactions = _ref.read(transactionProvider);
+
+    // Also pick up any existing saved transactions that still have fallback names
+    // (e.g. from previous offline sessions or slips scanned before cloud sync was ready)
+    final Set<String> enqueuedTxIds = queue.map((e) => e.transactionId).toSet();
+    for (final tx in transactions) {
+      if (tx.slipImagePath != null &&
+          isFallbackRecipient(tx.note) &&
+          !enqueuedTxIds.contains(tx.id)) {
+        queue.add(OcrSyncItem(
+          transactionId: tx.id,
+          imagePath:     tx.slipImagePath!,
+          imageHash:     tx.slipImageHash ?? '',
+          queuedAt:      DateTime.now(),
+        ));
+        enqueuedTxIds.add(tx.id);
+      }
+    }
+
     if (queue.isEmpty) return;
 
     debugPrint('[SyncQueue] Draining ${queue.length} pending items...');
-
-    final txNotifier = _ref.read(transactionProvider.notifier);
-    final transactions = _ref.read(transactionProvider);
 
     final List<OcrSyncItem> failedItems = [];
 
@@ -92,7 +114,7 @@ class OcrSyncQueueService {
           localResult: localResult,
         );
 
-        // Only update if Gemini actually improved the name
+        // Only update if Gemini actually returned a real person/merchant name
         if (_isRealName(enhanced.recipientName) &&
             enhanced.recipientName != tx.note) {
           final updatedTx = tx.copyWith(note: enhanced.recipientName);
@@ -104,13 +126,11 @@ class OcrSyncQueueService {
         }
       } catch (e) {
         debugPrint('[SyncQueue] Error processing ${item.transactionId}: $e');
-        // Keep failed items for a single retry on next connectivity event
         failedItems.add(item);
       }
     }
 
-    // Persist only the items that encountered unexpected errors (not missing
-    // images or deleted transactions — those are gone for good)
+    // Persist only the items that encountered unexpected errors
     await _storage.saveSyncQueue(failedItems);
     debugPrint(
       '[SyncQueue] Drain complete. ${queue.length - failedItems.length} updated, '
@@ -138,10 +158,24 @@ class OcrSyncQueueService {
 
   /// Returns true when [name] looks like a real person/merchant name rather
   /// than a fallback identifier.
-  bool _isRealName(String name) {
-    if (name.isEmpty) return false;
-    if (name.startsWith('พร้อมเพย์')) return false;
-    if (name.startsWith('โอนเงิน')) return false;
-    return true;
+  static bool _isRealName(String name) {
+    return !isFallbackRecipient(name);
+  }
+
+  /// Evaluates whether a recipient string is an incomplete / fallback placeholder.
+  static bool isFallbackRecipient(String name) {
+    if (name.isEmpty) return true;
+    final clean = name.trim().toLowerCase();
+    if (clean == 'prompt' || clean == 'promptpay' || clean == 'pay' || clean == 'next' || clean == 'โอนเงิน') return true;
+    if (clean.startsWith('พร้อมเพย์') || clean.startsWith('โอนเงิน') || clean.startsWith('บิล')) return true;
+    if (clean.contains('xxx') || clean.contains('xxx-')) return true;
+    if (clean.startsWith('โอนเงิน (') || clean.startsWith('โอนเข้า') || clean.startsWith('ไปยัง') || clean.startsWith('ไปที่')) return true;
+    const banks = {'kbank', 'scb', 'ktb', 'bbl', 'bay', 'gsb', 'ttb', 'tmb', 'uob', 'cimb', 'krungthai', 'kasikorn', 'bangkok bank'};
+    if (banks.contains(clean)) return true;
+    if (!RegExp(r'[\u0E00-\u0E7F]').hasMatch(name)) {
+      const safeEngMerchants = {'grab', 'shopee', 'lazada', '7-eleven', 'truemoney', 'tiktok', 'netflix', 'apple', 'google', 'spotify', 'starbucks', 'lotus', 'big c', 'dtac', 'ais', 'true'};
+      if (!safeEngMerchants.contains(clean) && clean.length < 5) return true;
+    }
+    return false;
   }
 }

@@ -14,6 +14,7 @@ class SlipParseResult {
   final String? imageHash;
   final String rawOcrText;
   final bool isDuplicate;
+  final String? qrPayload;
 
   const SlipParseResult({
     this.id,
@@ -29,6 +30,7 @@ class SlipParseResult {
     this.imageHash,
     required this.rawOcrText,
     this.isDuplicate = false,
+    this.qrPayload,
   });
 
   SlipParseResult copyWith({
@@ -45,6 +47,7 @@ class SlipParseResult {
     String? imageHash,
     String? rawOcrText,
     bool? isDuplicate,
+    String? qrPayload,
   }) {
     return SlipParseResult(
       id: id ?? this.id,
@@ -60,6 +63,7 @@ class SlipParseResult {
       imageHash: imageHash ?? this.imageHash,
       rawOcrText: rawOcrText ?? this.rawOcrText,
       isDuplicate: isDuplicate ?? this.isDuplicate,
+      qrPayload: qrPayload ?? this.qrPayload,
     );
   }
 
@@ -77,6 +81,7 @@ class SlipParseResult {
       'imagePath': imagePath,
       'imageHash': imageHash,
       'isDuplicate': isDuplicate,
+      'qrPayload': qrPayload,
     };
   }
 }

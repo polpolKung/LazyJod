@@ -54,7 +54,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 10),
             const Text(
-              'ขี้เกียจจด',
+              'เหมียวจด',
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
             ),
           ],

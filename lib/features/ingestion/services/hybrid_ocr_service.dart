@@ -4,18 +4,19 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../models/slip_parse_result.dart';
 import 'gemini_vision_proxy_service.dart';
+import 'ocr_sync_queue_service.dart';
+import 'slip_barcode_scanner.dart';
 import 'thai_bank_slip_parser.dart';
+import 'thai_qr_slip_parser.dart';
 
-/// Routes slip-image OCR through the best available pipeline:
+/// Routes slip-image processing through the best available pipeline:
 ///
-///  1. **Always** runs on-device ML Kit (offline, instant, zero-config).
-///  2. **If** online **and** the recipient resolved to only a fallback
-///     identifier (PromptPay number / "โอนเงิน"), attempts Gemini Vision
-///     via the Backend Proxy for accurate Thai name extraction.
-///  3. On any failure the offline result is returned unchanged — zero data loss.
+///  1. **QR / barcode first** — Thai slip Mini-QR, PromptPay EMV, BOT barcode.
+///  2. **On-device ML Kit OCR** — always runs (names, fallback when QR is sparse).
+///  3. **Merge** — QR wins for amount / ref / bank / time; OCR keeps real names.
+///  4. **Gemini Vision** (optional) when online and the recipient is still a fallback.
 ///
-/// This class is intentionally stateless so it can be used as a singleton or
-/// created fresh per-scan without lifecycle concerns.
+/// On any failure the next stage still runs — zero data loss.
 class HybridOcrService {
   HybridOcrService._();
 
@@ -24,29 +25,42 @@ class HybridOcrService {
   final TextRecognizer _mlKit = TextRecognizer(
     script: TextRecognitionScript.latin,
   );
+  final SlipBarcodeScanner _barcodes = SlipBarcodeScanner.instance;
 
   /// Processes [imageFile] and returns the best [SlipParseResult] available.
-  ///
-  /// [imagePath]  — absolute path stored on the result (display / hash lookup).
-  /// [imageHash]  — pre-computed SHA-256; avoids re-reading bytes.
-  /// [fallbackDateTime] — asset creation time used when the slip has no date.
   Future<SlipParseResult> process({
     required File imageFile,
     String? imagePath,
     String? imageHash,
     DateTime? fallbackDateTime,
   }) async {
-    // ── Step 1: Offline ML Kit ──────────────────────────────────────────────
-    final SlipParseResult localResult = await _runLocalOcr(
-      imageFile:        imageFile,
-      imagePath:        imagePath,
-      imageHash:        imageHash,
+    final barcodeFuture = _barcodes.scanFile(imageFile);
+    final ocrFuture = _runLocalOcr(
+      imageFile: imageFile,
+      imagePath: imagePath,
+      imageHash: imageHash,
       fallbackDateTime: fallbackDateTime,
     );
 
-    // ── Step 2: Route to cloud only when it adds value ──────────────────────
-    if (!_isRecipientFallback(localResult.recipientName)) {
-      // ML Kit already found a real person/merchant name — no cloud call needed.
+    final barcodePayloads = await barcodeFuture;
+    var localResult = await ocrFuture;
+
+    final textPayloads = ThaiQrSlipParser.extractPayloadsFromText(
+      localResult.rawOcrText,
+    );
+    final qr = ThaiQrSlipParser.parseBest([
+      ...barcodePayloads,
+      ...textPayloads,
+    ]);
+
+    if (qr != null && qr.isUseful) {
+      localResult = ThaiQrSlipParser.mergeWithOcr(ocr: localResult, qr: qr);
+      debugPrint(
+        '[HybridOCR] Merged ${qr.kind.name} QR (score=${qr.score}, amount=${qr.amount}, ref=${qr.refId}).',
+      );
+    }
+
+    if (!OcrSyncQueueService.isFallbackRecipient(localResult.recipientName)) {
       return localResult;
     }
 
@@ -58,14 +72,10 @@ class HybridOcrService {
 
     debugPrint('[HybridOCR] Online + fallback recipient → calling Gemini proxy.');
     return GeminiVisionProxyService.instance.enhance(
-      imageFile:   imageFile,
+      imageFile: imageFile,
       localResult: localResult,
     );
   }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // Private helpers
-  // ───────────────────────────────────────────────────────────────────────────
 
   Future<SlipParseResult> _runLocalOcr({
     required File imageFile,
@@ -77,34 +87,24 @@ class HybridOcrService {
     final recognized = await _mlKit.processImage(inputImage);
     return ThaiBankSlipParser.parse(
       recognized.text,
-      imagePath:        imagePath,
-      imageHash:        imageHash,
+      imagePath: imagePath,
+      imageHash: imageHash,
       fallbackDateTime: fallbackDateTime,
     );
-  }
-
-  /// Returns true when the recipient name is a known fallback identifier
-  /// rather than a real person or merchant name.
-  bool _isRecipientFallback(String name) {
-    if (name.isEmpty) return true;
-    // ThaiBankSlipParser uses these prefixes as safe fallbacks
-    if (name.startsWith('พร้อมเพย์')) return true;
-    if (name.startsWith('โอนเงิน')) return true;
-    return false;
   }
 
   Future<bool> _isOnline() async {
     try {
       final results = await Connectivity().checkConnectivity();
-      return results.any((r) =>
-          r == ConnectivityResult.mobile ||
-          r == ConnectivityResult.wifi ||
-          r == ConnectivityResult.ethernet);
+      if (results.isEmpty) return false;
+      return results.any((r) => r != ConnectivityResult.none);
     } catch (_) {
       return false;
     }
   }
 
-  /// Call [dispose] if you create a non-singleton instance per-scan.
-  void dispose() => _mlKit.close();
+  void dispose() {
+    _mlKit.close();
+    _barcodes.dispose();
+  }
 }

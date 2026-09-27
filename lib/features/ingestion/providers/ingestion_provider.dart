@@ -389,9 +389,9 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       await _ref.read(transactionProvider.notifier).addBatchTransactions(newTransactions);
 
       // ── Background Sync: enqueue fallback-named transactions for cloud retry ──
+      bool hasEnqueued = false;
       for (final tx in newTransactions) {
-        final isFallback = tx.note.startsWith('พร้อมเพย์') ||
-            tx.note.startsWith('โอนเงิน');
+        final isFallback = OcrSyncQueueService.isFallbackRecipient(tx.note);
         if (isFallback && tx.slipImagePath != null && tx.slipImageHash != null) {
           await _syncQueue.enqueue(OcrSyncItem(
             transactionId: tx.id,
@@ -399,7 +399,13 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
             imageHash:     tx.slipImageHash!,
             queuedAt:      DateTime.now(),
           ));
+          hasEnqueued = true;
         }
+      }
+
+      if (hasEnqueued) {
+        // Silently drain queue in background if network is available
+        Future(() => _syncQueue.drainQueue()).catchError((_) {});
       }
     }
 
@@ -422,7 +428,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     try {
       state = state.copyWith(
         isScanning: true,
-        statusMessage: 'ขี้เกียจจดกำลังตรวจสลิปใหม่...',
+        statusMessage: 'เหมียวจดกำลังตรวจสลิปใหม่...',
         lastError: null,
       );
 

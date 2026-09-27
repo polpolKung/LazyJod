@@ -124,4 +124,40 @@ enum ThaiBank {
         return [];
     }
   }
+
+  /// Maps Bank of Thailand 3-digit institution codes (as encoded in slip-verify QR).
+  static ThaiBank fromBankCode(String? code) {
+    switch (code?.trim()) {
+      case '002':
+        return ThaiBank.bbl;
+      case '004':
+        return ThaiBank.kbank;
+      case '006':
+        return ThaiBank.ktb;
+      case '011':
+        return ThaiBank.ttb;
+      case '014':
+        return ThaiBank.scb;
+      case '022':
+        return ThaiBank.cimb;
+      case '024':
+        return ThaiBank.uob;
+      case '025':
+        return ThaiBank.bay;
+      case '030':
+        return ThaiBank.gsb;
+      case '033':
+        return ThaiBank.ghb;
+      case '034':
+        return ThaiBank.baac;
+      case '067':
+        return ThaiBank.tisco;
+      case '069':
+        return ThaiBank.kkp;
+      case '073':
+        return ThaiBank.lhb;
+      default:
+        return ThaiBank.unknown;
+    }
+  }
 }

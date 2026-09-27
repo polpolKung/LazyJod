@@ -28,19 +28,19 @@ final connectivityStreamProvider =
 /// not cause rebuilds across the widget tree — it's a fire-and-forget side
 /// effect watcher.
 final syncQueueProvider = Provider<void>((ref) {
-  bool wasOffline = false;
+  // Start as true so that on app launch, if the device is online,
+  // it immediately triggers drainQueue() to process any pending offline slips.
+  bool wasOffline = true;
 
   ref.listen<AsyncValue<List<ConnectivityResult>>>(
     connectivityStreamProvider,
     (previous, next) {
       next.whenData((results) {
-        final isOnline = results.any((r) =>
-            r == ConnectivityResult.mobile ||
-            r == ConnectivityResult.wifi ||
-            r == ConnectivityResult.ethernet);
+        final isOnline = results.isNotEmpty &&
+            results.any((r) => r != ConnectivityResult.none);
 
         if (isOnline && wasOffline) {
-          debugPrint('[SyncQueue] Connectivity restored — triggering queue drain.');
+          debugPrint('[SyncQueue] Online — triggering queue drain.');
           final syncService = ref.read(ocrSyncQueueServiceProvider);
           // Run in a detached Future so the listener returns immediately.
           Future(() => syncService.drainQueue()).catchError((e) {

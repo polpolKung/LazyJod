@@ -106,10 +106,13 @@ export default {
 
         const arrayBuffer = await file.arrayBuffer();
         const base64Data = arrayBufferToBase64(arrayBuffer);
-        const mimeType = file.type || 'image/jpeg';
-
-        const modelName = env.GEMINI_MODEL || 'gemini-3.6-flash';
-        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        let mimeType = file.type || '';
+        if (!mimeType || mimeType === 'application/octet-stream') {
+          const name = (file.name || '').toLowerCase();
+          if (name.endsWith('.png')) mimeType = 'image/png';
+          else if (name.endsWith('.webp')) mimeType = 'image/webp';
+          else mimeType = 'image/jpeg';
+        }
 
         const payload = {
           contents: [
@@ -130,19 +133,45 @@ export default {
           },
         };
 
-        const geminiRes = await fetch(geminiApiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        const candidateModels = [
+          env.GEMINI_MODEL || 'gemini-3.6-flash',
+          'gemini-3.7-flash',
+          'gemini-3.8-flash',
+          'gemini-2.5-flash-lite',
+        ];
 
-        if (!geminiRes.ok) {
-          const errText = await geminiRes.text();
-          console.error('Gemini API Error:', errText);
+        let geminiData = null;
+        let lastErrorText = '';
+        let lastStatus = 500;
+
+        for (const modelName of candidateModels) {
+          try {
+            const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const geminiRes = await fetch(geminiApiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+
+            if (geminiRes.ok) {
+              geminiData = await geminiRes.json();
+              break;
+            } else {
+              lastStatus = geminiRes.status;
+              lastErrorText = await geminiRes.text();
+              console.warn(`[GeminiProxy] Model ${modelName} returned ${geminiRes.status}, trying next fallback model...`);
+            }
+          } catch (modelErr) {
+            lastErrorText = modelErr.message || String(modelErr);
+          }
+        }
+
+        if (!geminiData) {
+          console.error('All Gemini Models Failed:', lastErrorText);
           return new Response(
             JSON.stringify({
-              error: `Gemini API returned ${geminiRes.status}`,
-              details: errText,
+              error: `All candidate models failed (last status: ${lastStatus})`,
+              details: lastErrorText,
               recipient_name: null,
               sender_name: null,
               raw_text: '',
@@ -153,16 +182,19 @@ export default {
             }
           );
         }
-
-        const geminiData = await geminiRes.json();
         const rawTextResponse =
           geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-        // Strip markdown fences
-        const cleanedJson = rawTextResponse
+        // Extract JSON block even if model includes conversational text
+        let cleanedJson = rawTextResponse
           .replace(/```json/gi, '')
           .replace(/```/g, '')
           .trim();
+
+        const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanedJson = jsonMatch[0];
+        }
 
         let parsed = {};
         try {

@@ -76,7 +76,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ยินดีต้อนรับสู่ ขี้เกียจจด ✨',
+                          'ยินดีต้อนรับสู่ เหมียวจด ✨',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

@@ -199,7 +199,7 @@ class ThaiBankSlipParser {
       'กรุงเทพ', 'กสิกร', 'ไทยพาณิชย์', 'กรุงไทย', 'กรุงศรี', 'ออมสิน',
       'ธนาคาร', 'bangkok bank', 'kasikorn', 'kbank', 'ktb', 'scb', 'bay',
       'bbl', 'gsb', 'ttb', 'tmb', 'baac', 'kkp', 'cimb', 'uob', 'tisco',
-      'lhb', 'ghb', 'truemoney', 'promptpay', 'พร้อมเพย์',
+      'lhb', 'ghb', 'truemoney', 'promptpay', 'prompt', 'พร้อมเพย์',
       'krungthai', 'kkp start', 'next', 'ktb next', 'krungthai next',
       'pao tang', 'paotang', 'เป๋าตัง', 'make by kbank', 'make', 'dime',
     ];
@@ -250,7 +250,7 @@ class ThaiBankSlipParser {
       // Must have proper title case or uppercase words, not mixed-case OCR noise (e.g. "UNa nUwa nwu")
       if (RegExp(r'^[A-Za-z][A-Za-z0-9\s\.\(\)&,-]{2,45}$').hasMatch(s)) {
         final lower = s.toLowerCase();
-        if (lower == 'to' || lower == 'from' || lower == 'amount' || lower == 'date' || lower == 'fee') return false;
+        if (lower == 'to' || lower == 'from' || lower == 'amount' || lower == 'date' || lower == 'fee' || lower == 'prompt' || lower == 'promptpay' || lower == 'pay') return false;
         final words = s.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
         if (words.isEmpty) return false;
         // Single-word English names must be at least 4 chars (e.g. "Grab", "Shopee"; rejects "Pay")
