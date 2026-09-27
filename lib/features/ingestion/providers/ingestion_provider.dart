@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -5,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/local_storage_service.dart';
+import '../../../core/services/scan_notification_service.dart';
 import '../../../core/utils/hash_helper.dart';
 import '../../transactions/models/transaction_model.dart';
 import '../../transactions/models/transaction_type.dart';
@@ -69,6 +71,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   // HybridOcrService replaces the raw TextRecognizer — it runs ML Kit offline
   // and transparently upgrades to Gemini Vision when online + name is a fallback.
   final HybridOcrService _hybridOcr = HybridOcrService.instance;
+  final ScanNotificationService _notif = ScanNotificationService.instance;
   final ImagePicker _imagePicker = ImagePicker();
   final Ref _ref;
   final _uuid = const Uuid();
@@ -77,6 +80,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
   IngestionNotifier(this._ref) : super(const IngestionState()) {
     _syncQueue = OcrSyncQueueService(_storage, _ref);
+    _notif.init();
     loadAlbums();
   }
 
@@ -145,6 +149,8 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       final List<XFile> pickedFiles = await _imagePicker.pickMultiImage();
       if (pickedFiles.isEmpty) return;
 
+      await _notif.requestPermission();
+
       state = state.copyWith(
         isScanning: true,
         scanProgress: 0.0,
@@ -155,43 +161,56 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       final existingTransactions = _ref.read(transactionProvider);
       _dupService.registerExistingTransactions(existingTransactions);
 
-      final List<SlipParseResult> parsedResults = [];
       final total = pickedFiles.length;
+      final List<SlipParseResult?> results = List.filled(total, null);
+      int completed = 0;
       int errorCount = 0;
       String? caughtError;
 
-      for (int i = 0; i < total; i++) {
-        final xfile = pickedFiles[i];
-        final progress = (i + 1) / total;
-        state = state.copyWith(
-          scanProgress: progress,
-          statusMessage: 'กำลังสแกนรูปที่ ${i + 1}/$total...',
-        );
+      // ── Parallel processing — max 3 concurrent OCR calls ──────────────────
+      const concurrency = 3;
+      final semaphore = _Semaphore(concurrency);
 
-        final file = File(xfile.path);
-        try {
-          final bytes = await file.readAsBytes();
-          final imageHash = HashHelper.hashBytes(bytes);
+      await Future.wait(
+        List.generate(total, (i) async {
+          await semaphore.acquire();
+          try {
+            final xfile = pickedFiles[i];
+            final file = File(xfile.path);
+            final bytes = await file.readAsBytes();
+            final imageHash = HashHelper.hashBytes(bytes);
 
-          // ── Hybrid OCR: ML Kit offline → Gemini online if name is fallback ──
-          final slipResult = await _hybridOcr.process(
-            imageFile:        file,
-            imagePath:        file.path,
-            imageHash:        imageHash,
-          );
+            final slipResult = await _hybridOcr.process(
+              imageFile: file,
+              imagePath: file.path,
+              imageHash: imageHash,
+            );
 
-          final slipId = 'slip_${_uuid.v4()}';
-          final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
+            final slipId = 'slip_${_uuid.v4()}';
+            final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
+            results[i] = slipResult.copyWith(id: slipId, isDuplicate: isDup);
+          } catch (e) {
+            errorCount++;
+            caughtError = e.toString();
+          } finally {
+            completed++;
+            semaphore.release();
+            final progress = completed / total;
+            final foundSoFar = results.whereType<SlipParseResult>().length;
+            state = state.copyWith(
+              scanProgress: progress,
+              statusMessage: 'กำลังสแกนรูปที่ $completed/$total...',
+            );
+            await _notif.showProgress(
+              current: completed,
+              total: total,
+              foundSoFar: foundSoFar,
+            );
+          }
+        }),
+      );
 
-          parsedResults.add(slipResult.copyWith(
-            id: slipId,
-            isDuplicate: isDup,
-          ));
-        } catch (e) {
-          errorCount++;
-          caughtError = e.toString();
-        }
-      }
+      final parsedResults = results.whereType<SlipParseResult>().toList();
 
       // Sort parsed slips newest first (by slip transaction dateTime)
       parsedResults.sort((a, b) => b.dateTime.compareTo(a.dateTime));
@@ -203,6 +222,8 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         msg = 'เกิดข้อผิดพลาดในการประมวลผล OCR ($caughtError)';
       }
 
+      await _notif.showDone(total: total, found: parsedResults.length);
+
       state = state.copyWith(
         isScanning: false,
         scanProgress: 1.0,
@@ -213,6 +234,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         totalScannedAssets: total,
       );
     } catch (e) {
+      await _notif.cancelAll();
       state = state.copyWith(
         isScanning: false,
         statusMessage: 'เกิดข้อผิดพลาดในการเลือกรูปภาพ: $e',
@@ -249,52 +271,66 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       return;
     }
 
-    final List<SlipParseResult> parsedResults = [];
     final total = newAssets.length;
+    final List<SlipParseResult?> results = List.filled(total, null);
+    final Set<String> processedAssetIds = {};
+    int completed = 0;
     int errorCount = 0;
     String? lastError;
-    final Set<String> processedAssetIds = {};
 
-    for (int i = 0; i < total; i++) {
-      final asset = newAssets[i];
-      final progress = (i + 1) / total;
-      state = state.copyWith(
-        scanProgress: progress,
-        statusMessage: 'กำลังสแกนสลิป ${i + 1}/$total...',
-      );
+    // ── Parallel processing — max 3 concurrent OCR calls ──────────────────
+    const concurrency = 3;
+    final semaphore = _Semaphore(concurrency);
 
-      final file = await asset.file;
-      if (file == null) continue;
+    await Future.wait(
+      List.generate(total, (i) async {
+        await semaphore.acquire();
+        final asset = newAssets[i];
+        try {
+          final file = await asset.file;
+          if (file == null) return;
 
-      try {
-        final bytes = await file.readAsBytes();
-        final imageHash = HashHelper.hashBytes(bytes);
+          final bytes = await file.readAsBytes();
+          final imageHash = HashHelper.hashBytes(bytes);
 
-        // ── Hybrid OCR: ML Kit offline → Gemini online if name is fallback ──
-        final slipResult = await _hybridOcr.process(
-          imageFile:        file,
-          imagePath:        file.path,
-          imageHash:        imageHash,
-          fallbackDateTime: asset.createDateTime,
-        );
+          // ── Hybrid OCR: ML Kit offline → Gemini online if name is fallback ──
+          final slipResult = await _hybridOcr.process(
+            imageFile: file,
+            imagePath: file.path,
+            imageHash: imageHash,
+            fallbackDateTime: asset.createDateTime,
+          );
 
-        final slipId = 'slip_${_uuid.v4()}';
-        final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
+          final slipId = 'slip_${_uuid.v4()}';
+          final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
+          results[i] = slipResult.copyWith(id: slipId, isDuplicate: isDup);
 
-        parsedResults.add(slipResult.copyWith(
-          id: slipId,
-          isDuplicate: isDup,
-        ));
+          // Mark this asset as processed regardless of whether it's a slip
+          processedAssetIds.add(asset.id);
+        } catch (e) {
+          errorCount++;
+          lastError = e.toString();
+          // Still mark as processed so we don't re-attempt a broken image next time
+          processedAssetIds.add(asset.id);
+        } finally {
+          completed++;
+          semaphore.release();
+          final progress = completed / total;
+          final foundSoFar = results.whereType<SlipParseResult>().length;
+          state = state.copyWith(
+            scanProgress: progress,
+            statusMessage: 'กำลังสแกนสลิป $completed/$total...',
+          );
+          await _notif.showProgress(
+            current: completed,
+            total: total,
+            foundSoFar: foundSoFar,
+          );
+        }
+      }),
+    );
 
-        // Mark this asset as processed regardless of whether it's a slip
-        processedAssetIds.add(asset.id);
-      } catch (e) {
-        errorCount++;
-        lastError = e.toString();
-        // Still mark as processed so we don't re-attempt a broken image next time
-        processedAssetIds.add(asset.id);
-      }
-    }
+    final parsedResults = results.whereType<SlipParseResult>().toList();
 
     // Persist newly scanned asset IDs so they are skipped on next launch
     if (processedAssetIds.isNotEmpty) {
@@ -312,7 +348,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       resultMsg += ' (ข้าม $skippedCount รูปที่ตรวจแล้ว)';
     }
     if (parsedResults.isEmpty && errorCount > 0) {
-      if (lastError != null && lastError.contains('download')) {
+      if (lastError != null && lastError!.contains('download')) {
         resultMsg = 'กำลังรอ Google Play Services ติดตั้งโมเดล OCR กรุณารอสักครู่แล้วลองใหม่';
       } else {
         resultMsg = 'ตรวจพบรูป $total รูป แต่ OCR เกิดข้อผิดพลาด ($lastError)';
@@ -320,6 +356,8 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     } else if (parsedResults.isEmpty) {
       resultMsg = 'ตรวจภาพ $total รูปในโฟลเดอร์แล้ว แต่ไม่พบรูปแบบสลิป สามารถกดเลือกรูปเองได้';
     }
+
+    await _notif.showDone(total: total, found: parsedResults.length);
 
     state = state.copyWith(
       isScanning: false,
@@ -477,6 +515,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   @override
   void dispose() {
     _hybridOcr.dispose();
+    _notif.cancelAll();
     super.dispose();
   }
 }
@@ -484,3 +523,32 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 final ingestionProvider = StateNotifierProvider<IngestionNotifier, IngestionState>((ref) {
   return IngestionNotifier(ref);
 });
+
+/// Lightweight semaphore for limiting concurrent async tasks.
+class _Semaphore {
+  _Semaphore(this._maxCount) : _count = _maxCount;
+
+  final int _maxCount;
+  int _count;
+  final _waiters = <Completer<void>>[];
+
+  Future<void> acquire() async {
+    if (_count > 0) {
+      _count--;
+      return;
+    }
+    final completer = Completer<void>();
+    _waiters.add(completer);
+    await completer.future;
+  }
+
+  void release() {
+    if (_waiters.isNotEmpty) {
+      final next = _waiters.removeAt(0);
+      next.complete();
+    } else {
+      _count++;
+      if (_count > _maxCount) _count = _maxCount;
+    }
+  }
+}

@@ -120,7 +120,31 @@ class SlipScannerScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            // Background scan tip — show only when there's more than a couple images
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              color: isDark
+                  ? AppColors.transfer.withOpacity(0.10)
+                  : AppColors.transfer.withOpacity(0.06),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 14, color: AppColors.transfer),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '⚡ สลับไปแอพอื่นได้เลย ระบบสแกนอยู่เบื้องหลัง — แต่อย่าปัดแอพทิ้งนะ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.transfer : AppColors.transfer.withOpacity(0.85),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
+
 
           // Status Alert Banner (when not scanning and has a status message)
           if (!state.isScanning && state.statusMessage.isNotEmpty && state.parsedSlips.isEmpty)
