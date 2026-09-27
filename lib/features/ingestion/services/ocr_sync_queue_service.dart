@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../../../core/database/local_storage_service.dart';
 import '../../transactions/models/transaction_model.dart';
+import '../../transactions/models/transaction_type.dart';
 import '../../transactions/providers/transaction_provider.dart';
 import '../models/ocr_sync_item.dart';
 import '../models/slip_parse_result.dart';
+import '../providers/ingestion_provider.dart';
 import 'gemini_vision_proxy_service.dart';
 import 'thai_bank_slip_parser.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,13 +117,20 @@ class OcrSyncQueueService {
         );
 
         // Only update if Gemini actually returned a real person/merchant name
-        if (_isRealName(enhanced.recipientName) &&
-            enhanced.recipientName != tx.note) {
-          final updatedTx = tx.copyWith(note: enhanced.recipientName);
+        if (_isRealName(enhanced.recipientName)) {
+          final isSelf = IngestionNotifier.isSelfTransfer(
+            enhanced.senderName,
+            enhanced.recipientName,
+          );
+          final updatedTx = tx.copyWith(
+            note: isSelf ? 'ย้ายเงิน: ${enhanced.recipientName}' : enhanced.recipientName,
+            type: isSelf ? TransactionType.transfer : tx.type,
+            categoryId: isSelf ? 'cat_transfer' : (enhanced.suggestedCategoryId ?? tx.categoryId),
+          );
           await txNotifier.updateTransaction(updatedTx);
           debugPrint(
             '[SyncQueue] Updated ${item.transactionId}: '
-            '"${tx.note}" → "${enhanced.recipientName}"',
+            '"${tx.note}" → "${enhanced.recipientName}" (isSelf: $isSelf)',
           );
         }
       } catch (e) {
@@ -170,11 +179,24 @@ class OcrSyncQueueService {
     if (clean.startsWith('พร้อมเพย์') || clean.startsWith('โอนเงิน') || clean.startsWith('บิล')) return true;
     if (clean.contains('xxx') || clean.contains('xxx-')) return true;
     if (clean.startsWith('โอนเงิน (') || clean.startsWith('โอนเข้า') || clean.startsWith('ไปยัง') || clean.startsWith('ไปที่')) return true;
-    const banks = {'kbank', 'scb', 'ktb', 'bbl', 'bay', 'gsb', 'ttb', 'tmb', 'uob', 'cimb', 'krungthai', 'kasikorn', 'bangkok bank'};
+    const banks = {
+      'kbank', 'scb', 'ktb', 'bbl', 'bay', 'gsb', 'ttb', 'tmb', 'uob',
+      'cimb', 'krungthai', 'kasikorn', 'bangkok bank', 'bualuang',
+      'move clean live green', 'move clean'
+    };
     if (banks.contains(clean)) return true;
+
+    // Any text that does not contain Thai characters:
+    // Only accept known genuine English merchant brands. All other English strings
+    // (e.g. slogans like "Move Clean Live Green", watermark, noise) must fall back to Gemini!
     if (!RegExp(r'[\u0E00-\u0E7F]').hasMatch(name)) {
-      const safeEngMerchants = {'grab', 'shopee', 'lazada', '7-eleven', 'truemoney', 'tiktok', 'netflix', 'apple', 'google', 'spotify', 'starbucks', 'lotus', 'big c', 'dtac', 'ais', 'true'};
-      if (!safeEngMerchants.contains(clean) && clean.length < 5) return true;
+      const safeEngMerchants = {
+        'grab', 'grabfood', 'shopee', 'shopeefood', 'lazada', '7-eleven', '7 eleven',
+        'truemoney', 'tiktok', 'netflix', 'apple', 'google', 'spotify', 'starbucks',
+        'lotus', 'big c', 'dtac', 'ais', 'true', 'line man', 'lineman', 'foodpanda',
+        'mcdonalds', 'kfc', 'amazon', 'cafe amazon', 'mr.diy', 'uniqlo', 'zara'
+      };
+      if (!safeEngMerchants.contains(clean)) return true;
     }
     return false;
   }

@@ -119,6 +119,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
     // Refresh albums after permission granted
     await loadAlbums();
+    await _notif.requestPermission();
 
     state = state.copyWith(statusMessage: 'กำลังค้นหาภาพในโฟลเดอร์ธนาคาร...');
 
@@ -483,6 +484,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       }
 
       await loadAlbums();
+      await _notif.requestPermission();
       final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
       final scanLimit = await _storage.getScanHistoryLimit();
       final assets = await _albumService.fetchAssetsFromTargetedAlbums(

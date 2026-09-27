@@ -50,7 +50,15 @@ class TransactionTile extends ConsumerWidget {
                   context, ref,
                   currentCategoryId: transaction.categoryId,
                 );
-                if (newCategoryId != null && newCategoryId != transaction.categoryId) {
+                if (newCategoryId == null) return;
+                if (newCategoryId == kTransferCategoryResult) {
+                  // Mark as ย้ายเงิน
+                  final updated = transaction.copyWith(
+                    type: TransactionType.transfer,
+                    categoryId: 'cat_transfer',
+                  );
+                  ref.read(transactionProvider.notifier).updateTransaction(updated);
+                } else if (newCategoryId != transaction.categoryId) {
                   final updated = transaction.copyWith(categoryId: newCategoryId);
                   ref.read(transactionProvider.notifier).updateTransaction(updated);
                 }

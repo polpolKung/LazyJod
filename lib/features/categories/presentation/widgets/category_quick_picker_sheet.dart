@@ -4,10 +4,18 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../categories/models/category_model.dart';
 import '../../../categories/providers/category_provider.dart';
 
+/// Special sentinel value returned when user picks "ย้ายเงิน"
+const String kTransferCategoryResult = '__transfer__';
+
 /// Shows a bottom sheet grid of all categories for instant one-tap selection.
+/// Returns a category ID, or [kTransferCategoryResult] for ย้ายเงิน.
 Future<String?> showCategoryQuickPicker(BuildContext context, WidgetRef ref, {String? currentCategoryId}) async {
   final categories = ref.read(categoryProvider);
-  final expenseCategories = categories.where((c) => c.type == CategoryType.expense).toList();
+
+  // Show all expense categories EXCEPT cat_transfer (that's handled by the special button below)
+  final expenseCategories = categories
+      .where((c) => c.type == CategoryType.expense && c.id != 'cat_transfer')
+      .toList();
 
   return showModalBottomSheet<String>(
     context: context,
@@ -16,9 +24,9 @@ Future<String?> showCategoryQuickPicker(BuildContext context, WidgetRef ref, {St
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (ctx) => DraggableScrollableSheet(
-      initialChildSize: 0.55,
-      minChildSize: 0.4,
-      maxChildSize: 0.85,
+      initialChildSize: 0.65,
+      minChildSize: 0.45,
+      maxChildSize: 0.9,
       expand: false,
       builder: (_, scrollController) => Column(
         children: [
@@ -91,7 +99,51 @@ Future<String?> showCategoryQuickPicker(BuildContext context, WidgetRef ref, {St
               },
             ),
           ),
-          const SizedBox(height: 24),
+
+          // ── ย้ายเงิน separator ──────────────────────────────────────────────
+          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.only(top: 10, bottom: 4, left: 20, right: 20),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 12, color: AppColors.transfer),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'ย้ายเงินระหว่างบัญชีตัวเอง — ไม่นับเป็นรายรับหรือรายจ่าย',
+                    style: TextStyle(fontSize: 11, color: AppColors.transfer),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ย้ายเงิน big button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.transfer, width: 1.5),
+                  backgroundColor: AppColors.transfer.withOpacity(0.08),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: const Icon(Icons.swap_horiz_rounded, color: AppColors.transfer, size: 22),
+                label: const Text(
+                  '⇄  ย้ายเงินระหว่างบัญชี (ไม่คิดรายรับ-จ่าย)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13.5,
+                    color: AppColors.transfer,
+                  ),
+                ),
+                onPressed: () => Navigator.of(ctx).pop(kTransferCategoryResult),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
         ],
       ),
     ),

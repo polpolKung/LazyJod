@@ -31,11 +31,28 @@ class ScanNotificationService {
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: ios),
     );
+
+    // Explicitly create notification channel with high importance
+    final channel = const AndroidNotificationChannel(
+      _channelId,
+      _channelName,
+      description: _channelDesc,
+      importance: Importance.high,
+      playSound: false,
+      enableVibration: false,
+      showBadge: true,
+    );
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     _initialized = true;
   }
 
   /// Request runtime notification permission (Android 13+).
   Future<void> requestPermission() async {
+    await _ensureInit();
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
@@ -52,15 +69,15 @@ class ScanNotificationService {
       _channelId,
       _channelName,
       channelDescription: _channelDesc,
-      importance: Importance.low,
-      priority: Priority.low,
+      importance: Importance.high,
+      priority: Priority.high,
       ongoing: true,          // non-dismissible while scanning
       showProgress: true,
       maxProgress: total,
       progress: current,
-      onlyAlertOnce: true,    // don't vibrate on every update
+      onlyAlertOnce: true,    // don't sound/vibrate on every tick
       icon: '@mipmap/ic_launcher',
-      channelShowBadge: false,
+      channelShowBadge: true,
     );
     final details = NotificationDetails(android: androidDetails);
     await _plugin.show(
@@ -86,8 +103,8 @@ class ScanNotificationService {
       _channelId,
       _channelName,
       channelDescription: _channelDesc,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      importance: Importance.high,
+      priority: Priority.high,
       autoCancel: true,
       icon: '@mipmap/ic_launcher',
     );

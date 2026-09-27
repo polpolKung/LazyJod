@@ -34,7 +34,7 @@ class GeminiProxyConfig {
   static Uri get enhanceUri => Uri.parse('$proxyBaseUrl$enhancePath');
 
   /// HTTP request timeout for the proxy call.
-  static const Duration requestTimeout = Duration(seconds: 15);
+  static const Duration requestTimeout = Duration(seconds: 25);
 
   /// Name of the multipart field that carries the image bytes.
   static const String imageFieldName = 'slip_image';

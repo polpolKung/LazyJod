@@ -202,6 +202,7 @@ class ThaiBankSlipParser {
       'lhb', 'ghb', 'truemoney', 'promptpay', 'prompt', 'พร้อมเพย์',
       'krungthai', 'kkp start', 'next', 'ktb next', 'krungthai next',
       'pao tang', 'paotang', 'เป๋าตัง', 'make by kbank', 'make', 'dime',
+      'move clean', 'live green', 'bualuang', 'mbanking', 'banking',
     ];
 
     bool _isBankName(String s) {

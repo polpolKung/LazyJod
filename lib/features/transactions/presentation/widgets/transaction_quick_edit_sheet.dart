@@ -6,6 +6,7 @@ import '../../../categories/models/category_model.dart';
 import '../../../categories/presentation/widgets/category_quick_picker_sheet.dart';
 import '../../../categories/providers/category_provider.dart';
 import '../../models/transaction_model.dart';
+import '../../models/transaction_type.dart';
 import '../../providers/transaction_provider.dart';
 import '../screens/transaction_detail_screen.dart';
 
@@ -34,6 +35,7 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
   late TextEditingController _noteController;
   late String _selectedCategoryId;
   late DateTime _selectedDate;
+  late bool _isTransfer;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
     _noteController = TextEditingController(text: widget.transaction.note);
     _selectedCategoryId = widget.transaction.categoryId;
     _selectedDate = widget.transaction.dateTime;
+    _isTransfer = widget.transaction.type == TransactionType.transfer;
   }
 
   @override
@@ -88,6 +91,7 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
       note: _noteController.text.trim(),
       categoryId: _selectedCategoryId,
       dateTime: _selectedDate,
+      type: _isTransfer ? TransactionType.transfer : (widget.transaction.type == TransactionType.transfer ? TransactionType.expense : widget.transaction.type),
     );
 
     ref.read(transactionProvider.notifier).updateTransaction(updated);
@@ -218,8 +222,17 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
                       ref,
                       currentCategoryId: _selectedCategoryId,
                     );
-                    if (newCatId != null) {
-                      setState(() => _selectedCategoryId = newCatId);
+                    if (newCatId == null) return;
+                    if (newCatId == kTransferCategoryResult) {
+                      setState(() {
+                        _selectedCategoryId = 'cat_transfer';
+                        _isTransfer = true;
+                      });
+                    } else {
+                      setState(() {
+                        _selectedCategoryId = newCatId;
+                        _isTransfer = false;
+                      });
                     }
                   },
                   borderRadius: BorderRadius.circular(12),
