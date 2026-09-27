@@ -275,6 +275,7 @@ class SlipScannerScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final slip = state.parsedSlips[index];
                       final isSelected = state.selectedSlipIds.contains(slip.id);
+                      final isSelfTransfer = IngestionNotifier.isSelfTransfer(slip.senderName, slip.recipientName);
 
                       return Opacity(
                         opacity: slip.isDuplicate ? 0.6 : 1.0,
@@ -313,6 +314,20 @@ class SlipScannerScreen extends ConsumerWidget {
                                     color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                                   ),
                                 ),
+                                if (isSelfTransfer) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.transfer.withOpacity(0.18),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'ย้ายเงิน (บัญชีตัวเอง)',
+                                      style: TextStyle(fontSize: 10, color: AppColors.transfer, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
                                 if (slip.isDuplicate) ...[
                                   const SizedBox(width: 8),
                                   Container(
@@ -360,11 +375,11 @@ class SlipScannerScreen extends ConsumerWidget {
                               ],
                             ),
                             secondary: Text(
-                              CurrencyFormatter.format(slip.amount),
-                              style: const TextStyle(
+                              '${isSelfTransfer ? '⇄ ' : ''}${CurrencyFormatter.format(slip.amount)}',
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.expense,
+                                color: isSelfTransfer ? AppColors.transfer : AppColors.expense,
                               ),
                             ),
                             controlAffinity: ListTileControlAffinity.leading,

@@ -142,10 +142,33 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                     children: [
                       _buildTypeTab(TransactionType.expense, 'รายจ่าย', AppColors.expense, isDark),
                       _buildTypeTab(TransactionType.income, 'รายรับ', AppColors.income, isDark),
-                      _buildTypeTab(TransactionType.transfer, 'โอนเงิน', AppColors.transfer, isDark),
+                      _buildTypeTab(TransactionType.transfer, 'ย้ายเงิน', AppColors.transfer, isDark),
                     ],
                   ),
                 ),
+                if (_type == TransactionType.transfer) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.transfer.withOpacity(isDark ? 0.15 : 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.transfer.withOpacity(0.3)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 16, color: AppColors.transfer),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'ย้ายเงินระหว่างบัญชีตนเอง ไม่คิดรวมเป็นรายรับหรือรายจ่าย',
+                            style: TextStyle(fontSize: 12, color: AppColors.transfer, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
 
                 // Amount Field with Calculator Trigger
@@ -176,7 +199,9 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
-                                color: _type == TransactionType.expense ? AppColors.expense : AppColors.income,
+                                color: _type == TransactionType.transfer
+                                    ? AppColors.transfer
+                                    : (_type == TransactionType.expense ? AppColors.expense : AppColors.income),
                               ),
                             ),
                             const SizedBox(width: 8),

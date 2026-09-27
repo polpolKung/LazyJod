@@ -102,6 +102,7 @@ class _FilterSearchScreenState extends ConsumerState<FilterSearchScreen> {
                 _buildFilterChip('ทั้งหมด', _type == null, () => setState(() => _type = null)),
                 _buildFilterChip('รายจ่าย', _type == TransactionType.expense, () => setState(() => _type = TransactionType.expense)),
                 _buildFilterChip('รายรับ', _type == TransactionType.income, () => setState(() => _type = TransactionType.income)),
+                _buildFilterChip('ย้ายเงิน', _type == TransactionType.transfer, () => setState(() => _type = TransactionType.transfer)),
               ],
             ),
             const SizedBox(height: 24),

@@ -193,6 +193,9 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         }
       }
 
+      // Sort parsed slips newest first (by slip transaction dateTime)
+      parsedResults.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
       final selectedIds = parsedResults.where((s) => !s.isDuplicate && s.amount > 0).map((s) => s.id!).toList();
 
       String msg = 'สแกนเสร็จสิ้น พบสลิป ${parsedResults.length} รายการ';
@@ -298,6 +301,9 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       await _storage.addScannedAssetIds(processedAssetIds);
     }
 
+    // Sort parsed slips newest first (by slip transaction dateTime)
+    parsedResults.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
     // Default select non-duplicate slips
     final selectedIds = parsedResults.where((s) => !s.isDuplicate && s.amount > 0).map((s) => s.id!).toList();
 
@@ -336,7 +342,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(selectedSlipIds: current);
   }
 
-  bool _isSelfTransfer(String? sender, String recipient) {
+  static bool isSelfTransfer(String? sender, String recipient) {
     if (sender == null || sender.isEmpty) return false;
     String clean(String s) => s
         .replaceAll(RegExp(r'^(?:นาย|นาง|น\.ส\.|นางสาว|ด\.ช\.|ด\.ญ\.|Mr\.|Ms\.)\s*', caseSensitive: false), '')
@@ -345,14 +351,14 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         .toLowerCase();
     final cleanSender = clean(sender);
     final cleanRecipient = clean(recipient);
-    if (cleanSender.length >= 3 && cleanRecipient.length >= 3) {
+    if (cleanSender.length >= 2 && cleanRecipient.length >= 2) {
       if (cleanSender.contains(cleanRecipient) || cleanRecipient.contains(cleanSender)) {
         return true;
       }
-      if (cleanSender.length >= 4 && cleanRecipient.length >= 4) {
-        if (cleanSender.substring(0, 4) == cleanRecipient.substring(0, 4)) {
-          return true;
-        }
+      final minLen = cleanSender.length < cleanRecipient.length ? cleanSender.length : cleanRecipient.length;
+      final checkLen = minLen >= 4 ? 4 : (minLen >= 3 ? 3 : 2);
+      if (cleanSender.substring(0, checkLen) == cleanRecipient.substring(0, checkLen)) {
+        return true;
       }
     }
     return false;
@@ -367,7 +373,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final List<TransactionModel> newTransactions = [];
 
     for (final slip in selectedSlips) {
-      final isTransfer = _isSelfTransfer(slip.senderName, slip.recipientName);
+      final isTransfer = isSelfTransfer(slip.senderName, slip.recipientName);
 
       newTransactions.add(TransactionModel(
         id: 'tx_${_uuid.v4()}',

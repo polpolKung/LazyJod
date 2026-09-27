@@ -103,9 +103,18 @@ class TargetedAlbumService {
     int maxCount = 1000,
   }) async {
     try {
+      final filterOption = FilterOptionGroup()
+        ..addOrderOption(
+          const OrderOption(
+            type: OrderOptionType.createDate,
+            asc: false,
+          ),
+        );
+
       final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
         type: RequestType.image,
         onlyAll: false,
+        filterOption: filterOption,
       );
 
       final List<AssetEntity> targetAssets = [];
@@ -124,7 +133,7 @@ class TargetedAlbumService {
         }
       }
 
-      // Sort assets descending by creation date
+      // Sort assets descending by creation date (newest first)
       targetAssets.sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
       return targetAssets.take(maxCount).toList();
     } catch (e) {
