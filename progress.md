@@ -1,33 +1,47 @@
+# 🤖 AI Instruction / Autonomous Progress Tracking Rule
+> **CRITICAL DIRECTIVE FOR ALL FUTURE CHATS / SESSIONS:**
+> You are working as the autonomous development assistant on the **"Income-Expense App" (เหมียวจด / LazyJod)** project.
+>
+> **MANDATORY RULE:** You must autonomously update or rewrite this `progress.md` file **EVERY SINGLE TIME** a feature, component, bug fix, or task is successfully implemented. Do NOT wait for the user to ask or remind you to do this. Whenever a task is done, update this file immediately as part of your completion workflow.
+>
+> **When a new chat starts with:** `"Read progress.md and continue."`
+> 1. Read this `progress.md` file completely to grasp the codebase context, tech stack, architecture, and completed features.
+> 2. Check the **Next Steps (📌)** section to know exactly where the project stands.
+> 3. Proactively report your understanding and propose the next steps to proceed immediately.
+
+---
+
 # Project Progress — เหมียวจด (LazyJod)
 
 ## 1. Tech Stack & Environment
 - **Framework:** Flutter (Channel stable, Dart 3.x)
-- **State Management:** Riverpod (`flutter_riverpod: ^2.5.1`)
+- **Architecture:** Feature-first modular architecture with Riverpod state management (`flutter_riverpod: ^2.5.1`)
 - **Local Storage & Database:**
-  - `shared_preferences: ^2.2.3` (Transactions, Categories, Budgets, Recurring rules, Album configurations, Scanned slip IDs, OCR queue)
-  - `path_provider: ^2.1.3`
+  - `shared_preferences: ^2.2.3` (Offline persistence: Transactions, Categories, Budgets, Recurring rules, Album settings, Scanned Slip ID cache, Cloud OCR sync queue)
+  - `path_provider: ^2.1.3` (Local file storage, temporary CSV exports)
 - **OCR, Barcode & Vision Engine:**
-  - `google_mlkit_text_recognition: ^0.13.0` (On-Device Local ML Kit OCR)
-  - `mobile_scanner: ^5.1.1` (Barcode / QR Scanner for Thai Slip Mini-QR, PromptPay EMV, BOT barcode)
-  - `connectivity_plus: ^6.0.3`
-  - Cloudflare Worker Proxy + Google Gemini 1.5 Flash Vision (`gemini_vision_proxy_service.dart`) for fallback name enhancement
+  - `google_mlkit_text_recognition: ^0.13.0` (On-Device Local ML Kit Text Recognition)
+  - `mobile_scanner: ^5.1.1` (Barcode / Mini-QR payload extractor for Thai slips)
+  - `connectivity_plus: ^6.0.3` (Online/offline state detection)
+  - Cloudflare Worker Proxy + Google Gemini 1.5 Flash Vision (`gemini_vision_proxy_service.dart`) for fallback name resolution
 - **Media & Photo Library:**
-  - `photo_manager: ^3.0.0` (Targeted Banking & Income Album Ingestion)
-  - `image_picker: ^1.1.2` (Direct Gallery Picking)
+  - `photo_manager: ^3.0.0` (Privacy-first targeted photo library access for banking & income albums)
+  - `image_picker: ^1.1.2` (Direct multi-image gallery picker)
 - **Notifications:**
-  - `flutter_local_notifications: ^17.1.2` (Scan progress & batch completion notifications)
-- **Analytics & PDF/Export:**
-  - `fl_chart: ^0.68.0` (Spending Insights, Category Pie Charts)
-  - `syncfusion_flutter_pdf: ^26.1.41` (E-Statement Statement PDF Parser)
-  - `share_plus: ^9.0.0` (CSV Export sharing)
-  - `intl: ^0.19.0` (Thai locale formatting, currency & relative dates)
+  - `flutter_local_notifications: ^17.1.2` (Foreground/background scan progress & batch completion notifications)
+- **Analytics, Charts & Document Processing:**
+  - `fl_chart: ^0.68.0` (Spending Insights, Category Breakdown Pie Charts)
+  - `syncfusion_flutter_pdf: ^26.1.41` (E-Statement PDF Parser for credit card & bank statements)
+  - `share_plus: ^9.0.0` (Native file sharing for CSV exports)
+  - `intl: ^0.19.0` (Thai locale formatting, currency `฿` & Buddhist calendar conversion)
   - `uuid: ^4.4.0` / `crypto: ^3.0.3` (SHA-256 slip deduplication)
 
 ---
 
 ## 2. Current Phase
 - **Phase:** Feature-Complete Core & Advanced Ingestion (Zero-Click Auto-Accounting)
-- **Status:** Stable, Production-Ready with Optional Income Slip Scanning added.
+- **Status:** Stable, Production-Ready, Tested (38/38 Unit Tests Passing 100%)
+- **Recent Milestone:** Optional Income Slip Scanning & Album Targeting completed and pushed to `main`.
 
 ---
 
@@ -50,21 +64,20 @@
   - Tier 3: Heuristic fuzzy match (amount + recipient name similarity within ±3 minute window).
 - ✅ **Targeted Album Service (`targeted_album_service.dart`):**
   - Privacy-first folder targeting for both banking expense folders and custom income folders.
-  - Skips personal photos and only reads targeted albums.
+  - Skips personal photos and only reads whitelisted/selected albums.
 - ✅ **Optional Income Slip Scanning (`album_picker_screen.dart`, `slip_scanner_screen.dart`):**
-  - Dual-tab album selection for **Expense** vs **Income (Optional)** folders.
-  - Master toggle for income slip scanning.
+  - Dual-tab album selection for **Expense** vs **Income (Optional)** folders with master toggle.
   - Automatic detection of designated income folders (e.g. `สลิปเงินเข้า`, `สลิปขายของ`, `รายรับ`).
   - Income OCR recognition with sender extraction and automatic categorization (`cat_salary`, `cat_bonus`, `cat_other_income`).
   - Interactive slip type switching (`🟢 รายรับ`, `🔴 รายจ่าย`, `🔵 ย้ายเงิน`) directly from the scanner preview list.
   - Visual distinction in scanner UI (green `+฿` styling for income, breakdown in bottom action bar).
 
-### Accounting & Features
+### Accounting & Core Features
 - ✅ **Transaction Management:** Full CRUD, quick edit sheets, filtering by date/category/tags/bank, search.
 - ✅ **Self-Transfer Detection (`isSelfTransfer`):** Automatically detects transfers between user's own bank accounts (`TransactionType.transfer`).
 - ✅ **Budget & Spending Insights:** Category limits, progress cards, near-limit warning (>80%), exceeded alerts, pie charts.
 - ✅ **E-Statement PDF Import (`statement_import_screen.dart`):** Parses credit card and bank statements.
-- ✅ **In-App Calculator Pad:** Supports expressions, operator precedence, decimals.
+- ✅ **In-App Calculator Pad:** Supports arithmetic expressions, operator precedence, decimals.
 - ✅ **CSV Export:** Thai-compatible UTF-8 BOM CSV export for Excel.
 - ✅ **Dark & Light Mode:** Obsidian dark theme (`#121212`, Mint `#00E599`) and clean light theme.
 
