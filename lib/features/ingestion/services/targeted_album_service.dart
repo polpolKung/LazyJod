@@ -197,9 +197,13 @@ class TargetedAlbumService {
 
       for (final path in paths) {
         // Check if path is selected for income (Priority 1)
-        final isIncomeTarget = selectedIncomeAlbumIds != null && selectedIncomeAlbumIds.isNotEmpty
-            ? selectedIncomeAlbumIds.contains(path.id)
-            : isLikelyIncomeAlbum(path.name);
+        // Dual-check: ID match first (fast), then name-based match as fallback
+        // (Android may re-issue album IDs after permission changes)
+        final isIncomeByIdMatch = selectedIncomeAlbumIds != null &&
+            selectedIncomeAlbumIds.isNotEmpty &&
+            selectedIncomeAlbumIds.contains(path.id);
+        final isIncomeByKeyword = isLikelyIncomeAlbum(path.name);
+        final isIncomeTarget = isIncomeByIdMatch || isIncomeByKeyword;
 
         if (isIncomeTarget) {
           final assets = await path.getAssetListRange(start: 0, end: maxCount);
@@ -216,9 +220,13 @@ class TargetedAlbumService {
         }
 
         // Check if path is selected for expense (Priority 2)
-        final isExpenseTarget = selectedExpenseAlbumIds != null && selectedExpenseAlbumIds.isNotEmpty
-            ? selectedExpenseAlbumIds.contains(path.id)
-            : isLikelyBankingAlbum(path.name);
+        // Dual-check: ID match first, then name-based banking keyword match
+        // Income folders are NEVER selected for expense (already guarded by isIncomeTarget above)
+        final isExpenseByIdMatch = selectedExpenseAlbumIds != null &&
+            selectedExpenseAlbumIds.isNotEmpty &&
+            selectedExpenseAlbumIds.contains(path.id);
+        final isExpenseByKeyword = isLikelyBankingAlbum(path.name); // already excludes income albums
+        final isExpenseTarget = isExpenseByIdMatch || isExpenseByKeyword;
 
         if (isExpenseTarget) {
           final assets = await path.getAssetListRange(start: 0, end: maxCount);

@@ -5,7 +5,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import '../../transactions/models/transaction_type.dart';
 import '../models/slip_parse_result.dart';
 import 'gemini_vision_proxy_service.dart';
-import 'ocr_sync_queue_service.dart';
 import 'slip_barcode_scanner.dart';
 import 'thai_bank_slip_parser.dart';
 import 'thai_qr_slip_parser.dart';
@@ -13,9 +12,10 @@ import 'thai_qr_slip_parser.dart';
 /// Routes slip-image processing through the best available pipeline:
 ///
 ///  1. **QR / barcode first** — Thai slip Mini-QR, PromptPay EMV, BOT barcode.
-///  2. **On-device ML Kit OCR** — always runs (names, fallback when QR is sparse).
+///  2. **On-device ML Kit OCR** — always runs (amount, date, bank, refId).
 ///  3. **Merge** — QR wins for amount / ref / bank / time; OCR keeps real names.
-///  4. **Gemini Vision** (optional) when online and the recipient is still a fallback.
+///  4. **Gemini Vision** — when online, ALWAYS called for best Thai name extraction.
+///     Offline: falls back to local OCR result.
 ///
 /// On any failure the next stage still runs — zero data loss.
 class HybridOcrService {
@@ -63,17 +63,19 @@ class HybridOcrService {
       );
     }
 
-    if (!OcrSyncQueueService.isFallbackRecipient(localResult.recipientName)) {
-      return localResult;
-    }
-
+    // ── Gemini Enhancement ────────────────────────────────────────────────────
+    // When online, always call Gemini for best name extraction.
+    // Gemini far outperforms local OCR for Thai names and avoids returning
+    // PromptPay numbers as the recipient name.
+    // Local OCR result is kept for amount / date / bank / refId (reliable),
+    // while Gemini's response overwrites the recipient/sender names.
     final online = await _isOnline();
     if (!online) {
-      debugPrint('[HybridOCR] Offline — keeping local result (fallback name).');
+      debugPrint('[HybridOCR] Offline — keeping local OCR result only.');
       return localResult;
     }
 
-    debugPrint('[HybridOCR] Online + fallback recipient → calling Gemini proxy.');
+    debugPrint('[HybridOCR] Online → calling Gemini proxy for name extraction.');
     return GeminiVisionProxyService.instance.enhance(
       imageFile: imageFile,
       localResult: localResult,

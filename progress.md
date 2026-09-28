@@ -60,23 +60,25 @@
   - Tier 1: QR & Barcode parsing (EMVCo PromptPay QR, BOT Mini-QR, TrueMoney, BOT biller).
   - Tier 2: Offline ML Kit OCR for Thai text.
   - Tier 3: QR + OCR payload merging.
-  - Tier 4: Background cloud retry via Cloudflare Worker Gemini proxy when offline fallback occurs.
+  - Tier 4: **Gemini Vision always runs when online** (not just on fallback names). Gemini is the primary name extraction source; local OCR provides amount/date/bank/refId. Offline: local OCR only.
+  - `GeminiVisionProxyService.enhance()` now always carries `transactionType` from `localResult` to prevent income slips reverting to expense after Gemini re-parse.
 - ✅ **Multi-Tier Duplicate Prevention (`duplicate_detection_service.dart`):**
   - Tier 1: Exact image SHA-256 byte hash.
   - Tier 2: Bank transaction Ref ID match.
   - Tier 3: Heuristic fuzzy match (amount + recipient name similarity within ±3 minute window).
 - ✅ **Targeted Album Service (`targeted_album_service.dart`):**
-  - Privacy-first folder targeting for both banking expense folders and custom income folders.
-  - **Album Isolation Fix:** Albums matching income keywords or selected for income are strictly excluded from banking expense classification (preventing income slips from ever being parsed as expenses).
-  - Removed confusing "Optional master switch" — selecting or adding an album in the Income tab directly scans it as income.
+  - Privacy-first folder targeting for both banking expense folders and custom income albums.
+  - **Album Isolation Fix:** Albums matching income keywords or selected for income are strictly excluded from banking expense classification.
+  - **Album ID Mismatch Fix (Bug 3):** Android may re-issue album IDs after permission changes. Now uses dual-check: ID match first, then name-keyword match as fallback. This ensures albums added by the user always scan correctly as income.
+  - Income folders are NEVER scanned as expense (dual-guard: keyword isolation + explicit exclusion in `fetchAssetsToScan`).
 - ✅ **Gallery Pick Type Selector (`slip_scanner_screen.dart`):**
   - Direct gallery picking now prompts the user via BottomSheet:
-    - 🟢 **สลิปรายรับ (Income)** — processes all chosen images as income (note: sender name, category: `cat_other_income`/`cat_bonus`/`cat_salary`).
+    - 🟢 **สลิปรายรับ (Income)** — processes all chosen images as income.
     - 🔴 **สลิปรายจ่าย (Expense)** — processes all chosen images as expense.
-  - Added batch type switching chips (`[ เป็นรายรับทั้งหมด 🟢 ]`, `[ เป็นรายจ่ายทั้งหมด 🔴 ]`) at the top of the scan preview list.
+  - Added batch type switching chips at the top of the scan preview list.
   - Interactive per-item type switcher badge remains available.
 - ✅ **Fixed Navigation Black Screen Bug (`slip_scanner_screen.dart`):**
-  - Replaced unqualified `Navigator.pop()` in `importSelectedSlips()` with safe `canPop()` check so that importing slips from the bottom navigation bar never pops the root route into a black screen.
+  - Replaced unqualified `Navigator.pop()` with safe `canPop()` check.
 - ✅ **Verified with Real User KTB Slip (`test_slips/Income/1790620289198.jpg`):**
   - Extracted: Bank KTB, Amount 2,000.00 THB, Ref `Afdc8e9b2a067421e`, Sender `นายทิพย์ ท***`, Recipient `นายฌานพล ทิพวัน`.
   - Transaction successfully generated with type `TransactionType.income`, note `รับเงินจาก: นายทิพย์ ท***`.

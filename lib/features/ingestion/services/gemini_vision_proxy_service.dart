@@ -71,6 +71,7 @@ class GeminiVisionProxyService {
 
       // Re-parse with cloud raw text to pick up any missed fields
       // (amount, date, refId), but only if Gemini returned usable text.
+      // IMPORTANT: carry transactionType from localResult to avoid resetting income→expense.
       SlipParseResult merged = localResult;
       if (cloudRawText.isNotEmpty) {
         merged = ThaiBankSlipParser.parse(
@@ -78,17 +79,19 @@ class GeminiVisionProxyService {
           imagePath:        localResult.imagePath,
           imageHash:        localResult.imageHash,
           fallbackDateTime: localResult.dateTime,
+          transactionType:  localResult.transactionType,
         );
       }
 
       // Prefer cloud names over local fallback names
       return merged.copyWith(
-        id:            localResult.id,
-        isDuplicate:   localResult.isDuplicate,
-        recipientName: (cloudRecipient != null && cloudRecipient.isNotEmpty)
+        id:              localResult.id,
+        isDuplicate:     localResult.isDuplicate,
+        transactionType: localResult.transactionType, // always keep original type
+        recipientName:   (cloudRecipient != null && cloudRecipient.isNotEmpty)
             ? cloudRecipient
             : merged.recipientName,
-        senderName:    (cloudSender != null && cloudSender.isNotEmpty)
+        senderName:      (cloudSender != null && cloudSender.isNotEmpty)
             ? cloudSender
             : merged.senderName,
         // Boost confidence because Gemini processed the image
