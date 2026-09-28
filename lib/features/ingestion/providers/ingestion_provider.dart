@@ -29,6 +29,7 @@ class IngestionState {
   final List<SlipParseResult> parsedSlips;
   final List<String> selectedSlipIds;
   final int totalScannedAssets;
+  final bool isIncomeScanEnabled;
 
   const IngestionState({
     this.isScanning = false,
@@ -39,6 +40,7 @@ class IngestionState {
     this.parsedSlips = const [],
     this.selectedSlipIds = const [],
     this.totalScannedAssets = 0,
+    this.isIncomeScanEnabled = false,
   });
 
   IngestionState copyWith({
@@ -50,6 +52,7 @@ class IngestionState {
     List<SlipParseResult>? parsedSlips,
     List<String>? selectedSlipIds,
     int? totalScannedAssets,
+    bool? isIncomeScanEnabled,
   }) {
     return IngestionState(
       isScanning: isScanning ?? this.isScanning,
@@ -60,6 +63,7 @@ class IngestionState {
       parsedSlips: parsedSlips ?? this.parsedSlips,
       selectedSlipIds: selectedSlipIds ?? this.selectedSlipIds,
       totalScannedAssets: totalScannedAssets ?? this.totalScannedAssets,
+      isIncomeScanEnabled: isIncomeScanEnabled ?? this.isIncomeScanEnabled,
     );
   }
 }
@@ -68,8 +72,6 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   final TargetedAlbumService _albumService = TargetedAlbumService();
   final DuplicateDetectionService _dupService = DuplicateDetectionService();
   final LocalStorageService _storage = LocalStorageService();
-  // HybridOcrService replaces the raw TextRecognizer — it runs ML Kit offline
-  // and transparently upgrades to Gemini Vision when online + name is a fallback.
   final HybridOcrService _hybridOcr = HybridOcrService.instance;
   final ScanNotificationService _notif = ScanNotificationService.instance;
   final ImagePicker _imagePicker = ImagePicker();
@@ -85,21 +87,86 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   }
 
   Future<void> loadAlbums() async {
-    final albums = await _albumService.getAvailableAlbums();
-    state = state.copyWith(albums: albums);
+    final isIncomeEnabled = await _storage.isIncomeScanEnabled();
+    final expenseFolders = await _storage.getExpenseFolderNames();
+    final incomeFolders = await _storage.getIncomeFolderNames();
+    _albumService.setExpenseFolderNames(expenseFolders);
+    _albumService.setIncomeFolderNames(incomeFolders);
+
+    final savedExpenseIds = await _storage.getSelectedExpenseAlbumIds();
+    final savedIncomeIds = await _storage.getSelectedIncomeAlbumIds();
+
+    final albums = await _albumService.getAvailableAlbums(
+      savedExpenseIds: savedExpenseIds.isNotEmpty ? savedExpenseIds : null,
+      savedIncomeIds: savedIncomeIds.isNotEmpty ? savedIncomeIds : null,
+    );
+    state = state.copyWith(
+      albums: albums,
+      isIncomeScanEnabled: isIncomeEnabled,
+    );
   }
 
-  void toggleAlbumSelection(String albumId) {
+  Future<void> toggleIncomeScan(bool enabled) async {
+    await _storage.setIncomeScanEnabled(enabled);
+    state = state.copyWith(isIncomeScanEnabled: enabled);
+  }
+
+  Future<void> toggleAlbumSelection(String albumId, {bool isIncome = false}) async {
     final updated = state.albums.map((a) {
       if (a.id == albumId) {
-        return a.copyWith(isSelected: !a.isSelected);
+        return isIncome
+            ? a.copyWith(isIncomeSelected: !a.isIncomeSelected)
+            : a.copyWith(isSelected: !a.isSelected);
       }
       return a;
     }).toList();
+
     state = state.copyWith(albums: updated);
+
+    // Persist selections
+    if (isIncome) {
+      final selectedIncome = updated.where((a) => a.isIncomeSelected).map((a) => a.id).toSet();
+      await _storage.setSelectedIncomeAlbumIds(selectedIncome);
+    } else {
+      final selectedExpense = updated.where((a) => a.isSelected).map((a) => a.id).toSet();
+      await _storage.setSelectedExpenseAlbumIds(selectedExpense);
+    }
   }
 
-  /// 1. Scan targeted albums for slips, perform on-device OCR, and check duplicates
+  Future<void> addCustomFolderName(String name, {bool isIncome = false}) async {
+    if (isIncome) {
+      _albumService.addIncomeFolderName(name);
+      await _storage.setIncomeFolderNames(_albumService.incomeFolderNames);
+    } else {
+      _albumService.addTargetedFolderName(name);
+      await _storage.setExpenseFolderNames(_albumService.targetedFolderNames);
+    }
+    await loadAlbums();
+  }
+
+  /// Change a slip's transaction type manually (e.g. from review screen)
+  void setSlipTransactionType(String slipId, TransactionType newType) {
+    final updated = state.parsedSlips.map((slip) {
+      if (slip.id == slipId) {
+        final newCategory = ThaiBankSlipParser.suggestCategory(
+          slip.recipientName,
+          slip.rawOcrText,
+          transactionType: newType,
+          sender: slip.senderName,
+        );
+        return slip.copyWith(
+          transactionType: newType,
+          suggestedCategoryId: newCategory,
+        );
+      }
+      return slip;
+    }).toList();
+
+    state = state.copyWith(parsedSlips: updated);
+  }
+
+  /// 1. Scan targeted albums for slips (both Expense and optional Income),
+  /// perform on-device OCR, and check duplicates
   Future<void> scanTargetedAlbums() async {
     state = state.copyWith(
       isScanning: true,
@@ -121,18 +188,24 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     await loadAlbums();
     await _notif.requestPermission();
 
-    state = state.copyWith(statusMessage: 'กำลังค้นหาภาพในโฟลเดอร์ธนาคาร...');
+    state = state.copyWith(statusMessage: 'กำลังค้นหาภาพในโฟลเดอร์ที่เลือก...');
 
-    final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+    final selectedExpenseIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+    final selectedIncomeIds = state.isIncomeScanEnabled
+        ? state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList()
+        : <String>[];
+
     final scanLimit = await _storage.getScanHistoryLimit();
-    final assets = await _albumService.fetchAssetsFromTargetedAlbums(
-      selectedAlbumIds: selectedAlbumIds.isNotEmpty ? selectedAlbumIds : null,
+    final scannables = await _albumService.fetchAssetsToScan(
+      selectedExpenseAlbumIds: selectedExpenseIds.isNotEmpty ? selectedExpenseIds : null,
+      selectedIncomeAlbumIds: selectedIncomeIds.isNotEmpty ? selectedIncomeIds : null,
+      scanIncome: state.isIncomeScanEnabled,
       maxCount: scanLimit,
     );
 
-    if (assets.isEmpty) {
+    if (scannables.isEmpty) {
       final totalAlbums = state.albums.length;
-      final selectedCount = selectedAlbumIds.length;
+      final selectedCount = selectedExpenseIds.length + selectedIncomeIds.length;
       state = state.copyWith(
         isScanning: false,
         totalScannedAssets: 0,
@@ -141,7 +214,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       return;
     }
 
-    await _processAssets(assets, skipSeenAssets: false);
+    await _processScannableAssets(scannables, skipSeenAssets: false);
   }
 
   /// 2. Pick slip images directly from device gallery
@@ -185,6 +258,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
               imageFile: file,
               imagePath: file.path,
               imageHash: imageHash,
+              transactionType: TransactionType.expense,
             );
 
             final slipId = 'slip_${_uuid.v4()}';
@@ -244,7 +318,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     }
   }
 
-  Future<void> _processAssets(List<AssetEntity> assets, {bool skipSeenAssets = true}) async {
+  Future<void> _processScannableAssets(List<ScannableAsset> scannables, {bool skipSeenAssets = true}) async {
     final existingTransactions = _ref.read(transactionProvider);
     _dupService.registerExistingTransactions(existingTransactions);
 
@@ -252,13 +326,13 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final seenAssetIds = skipSeenAssets ? await _storage.loadScannedAssetIds() : <String>{};
 
     // Filter out assets already scanned in previous sessions
-    final newAssets = skipSeenAssets
-        ? assets.where((a) => !seenAssetIds.contains(a.id)).toList()
-        : assets;
+    final newScannables = skipSeenAssets
+        ? scannables.where((s) => !seenAssetIds.contains(s.asset.id)).toList()
+        : scannables;
 
-    final skippedCount = assets.length - newAssets.length;
+    final skippedCount = scannables.length - newScannables.length;
 
-    if (newAssets.isEmpty) {
+    if (newScannables.isEmpty) {
       state = state.copyWith(
         isScanning: false,
         scanProgress: 1.0,
@@ -272,7 +346,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       return;
     }
 
-    final total = newAssets.length;
+    final total = newScannables.length;
     final List<SlipParseResult?> results = List.filled(total, null);
     final Set<String> processedAssetIds = {};
     int completed = 0;
@@ -286,7 +360,8 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     await Future.wait(
       List.generate(total, (i) async {
         await semaphore.acquire();
-        final asset = newAssets[i];
+        final scannable = newScannables[i];
+        final asset = scannable.asset;
         try {
           final file = await asset.file;
           if (file == null) return;
@@ -300,18 +375,21 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
             imagePath: file.path,
             imageHash: imageHash,
             fallbackDateTime: asset.createDateTime,
+            transactionType: scannable.targetType,
           );
 
           final slipId = 'slip_${_uuid.v4()}';
           final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
-          results[i] = slipResult.copyWith(id: slipId, isDuplicate: isDup);
+          results[i] = slipResult.copyWith(
+            id: slipId,
+            isDuplicate: isDup,
+            transactionType: scannable.targetType,
+          );
 
-          // Mark this asset as processed regardless of whether it's a slip
           processedAssetIds.add(asset.id);
         } catch (e) {
           errorCount++;
           lastError = e.toString();
-          // Still mark as processed so we don't re-attempt a broken image next time
           processedAssetIds.add(asset.id);
         } finally {
           completed++;
@@ -412,16 +490,38 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final List<TransactionModel> newTransactions = [];
 
     for (final slip in selectedSlips) {
-      final isTransfer = isSelfTransfer(slip.senderName, slip.recipientName);
+      final isSelf = isSelfTransfer(slip.senderName, slip.recipientName);
+      final txType = isSelf ? TransactionType.transfer : slip.transactionType;
+
+      String note;
+      String categoryId;
+      List<String> tags;
+
+      if (txType == TransactionType.income) {
+        final sender = (slip.senderName != null && slip.senderName!.isNotEmpty)
+            ? slip.senderName!
+            : null;
+        note = sender != null ? 'รับเงินจาก: $sender' : 'รายรับ (${slip.recipientName})';
+        categoryId = slip.suggestedCategoryId ?? 'cat_other_income';
+        tags = [slip.bank.shortCode, 'รายรับ'];
+      } else if (txType == TransactionType.transfer) {
+        note = 'ย้ายเงิน: ${slip.recipientName}';
+        categoryId = 'cat_transfer';
+        tags = [slip.bank.shortCode, 'ย้ายเงิน'];
+      } else {
+        note = slip.recipientName;
+        categoryId = slip.suggestedCategoryId ?? 'cat_food';
+        tags = [slip.bank.shortCode];
+      }
 
       newTransactions.add(TransactionModel(
         id: 'tx_${_uuid.v4()}',
-        type: isTransfer ? TransactionType.transfer : TransactionType.expense,
+        type: txType,
         amount: slip.amount,
         dateTime: slip.dateTime,
-        categoryId: isTransfer ? 'cat_transfer' : (slip.suggestedCategoryId ?? 'cat_food'),
-        note: isTransfer ? 'ย้ายเงิน: ${slip.recipientName}' : slip.recipientName,
-        tags: isTransfer ? [slip.bank.shortCode, 'ย้ายเงิน'] : [slip.bank.shortCode],
+        categoryId: categoryId,
+        note: note,
+        tags: tags,
         bankSource: slip.bank,
         slipImagePath: slip.imagePath,
         slipImageHash: slip.imageHash,
@@ -449,7 +549,6 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       }
 
       if (hasEnqueued) {
-        // Silently drain queue in background if network is available
         Future(() => _syncQueue.drainQueue()).catchError((_) {});
       }
     }
@@ -485,19 +584,25 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
       await loadAlbums();
       await _notif.requestPermission();
-      final selectedAlbumIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+      final selectedExpenseIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
+      final selectedIncomeIds = state.isIncomeScanEnabled
+          ? state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList()
+          : <String>[];
+
       final scanLimit = await _storage.getScanHistoryLimit();
-      final assets = await _albumService.fetchAssetsFromTargetedAlbums(
-        selectedAlbumIds: selectedAlbumIds.isNotEmpty ? selectedAlbumIds : null,
+      final scannables = await _albumService.fetchAssetsToScan(
+        selectedExpenseAlbumIds: selectedExpenseIds.isNotEmpty ? selectedExpenseIds : null,
+        selectedIncomeAlbumIds: selectedIncomeIds.isNotEmpty ? selectedIncomeIds : null,
+        scanIncome: state.isIncomeScanEnabled,
         maxCount: scanLimit,
       );
 
-      if (assets.isEmpty) {
+      if (scannables.isEmpty) {
         state = state.copyWith(isScanning: false, statusMessage: '');
         return 0;
       }
 
-      await _processAssets(assets);
+      await _processScannableAssets(scannables);
 
       // Auto-import all non-duplicate slips found (do not wait for user confirmation)
       final autoImportCount = await importSelectedSlips();

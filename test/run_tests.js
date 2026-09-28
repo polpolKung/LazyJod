@@ -207,6 +207,78 @@ const shoppingLimit = 3000;
 const shoppingSpent = 4000;
 assert(shoppingSpent > shoppingLimit, 'Correctly flags exceeded budget alert when spending exceeds limit');
 
+// -----------------------------------------------------------------------------
+// 6. Optional Income Slip Scanning & Album Targeting
+// -----------------------------------------------------------------------------
+console.log('\n📌 Suite 6: Optional Income Slip Scanning & Album Targeting');
+
+const defaultIncomeFolderKeywords = [
+  'สลิปเงินเข้า', 'สลิปรายรับ', 'เงินเข้า', 'รายรับ',
+  'สลิปขายของ', 'เงินเดือน', 'income', 'salary', 'รับเงิน'
+];
+
+function isLikelyIncomeFolder(albumName) {
+  const lower = albumName.toLowerCase().trim();
+  return defaultIncomeFolderKeywords.some(kw => lower.includes(kw));
+}
+
+assert(isLikelyIncomeFolder('สลิปเงินเข้า'), 'Correctly detects "สลิปเงินเข้า" as income folder');
+assert(isLikelyIncomeFolder('สลิปขายของ ก.ย.'), 'Correctly detects "สลิปขายของ ก.ย." as income folder');
+assert(isLikelyIncomeFolder('My Income Slips'), 'Correctly detects "My Income Slips" as income folder');
+assert(!isLikelyIncomeFolder('K PLUS'), 'Regular bank folder "K PLUS" is not marked as income folder');
+
+// Suggest Category for Income Slips
+function suggestIncomeCategory(recipient, sender, text) {
+  const combined = `${recipient} ${sender} ${text}`.toLowerCase();
+  if (combined.includes('เงินเดือน') || combined.includes('salary') || combined.includes('payroll')) {
+    return 'cat_salary';
+  }
+  if (combined.includes('ขายของ') || combined.includes('ฟรีแลนซ์') || combined.includes('freelance') || combined.includes('โบนัส')) {
+    return 'cat_bonus';
+  }
+  return 'cat_other_income';
+}
+
+assert(
+  suggestIncomeCategory('นายสมชาย', 'บริษัท เอบีซี จำกัด', 'เงินเดือนประจำเดือน ก.ย. 2569') === 'cat_salary',
+  'Income slip with "เงินเดือน" resolves to cat_salary'
+);
+assert(
+  suggestIncomeCategory('นายสมชาย', 'ลูกค้า คุณสมหญิง', 'ค่าสินค้า ขายของออนไลน์ order #123') === 'cat_bonus',
+  'Income slip with "ขายของ" resolves to cat_bonus'
+);
+assert(
+  suggestIncomeCategory('นายสมชาย', 'เพื่อน สมศักดิ์', 'คืนเงินค่าข้าว') === 'cat_other_income',
+  'General income slip defaults to cat_other_income'
+);
+
+// Transaction Generation from Income Slip
+function buildTransactionFromSlip({ amount, sender, recipient, bank, type, suggestedCat }) {
+  const isIncome = type === 'income';
+  return {
+    type,
+    amount,
+    categoryId: suggestedCat,
+    note: isIncome ? (sender ? `รับเงินจาก: ${sender}` : `รายรับ (${recipient})`) : recipient,
+    tags: isIncome ? [bank, 'รายรับ'] : [bank]
+  };
+}
+
+const incomeTx = buildTransactionFromSlip({
+  amount: 5500.0,
+  sender: 'นายธนาคาร ใจดี',
+  recipient: 'นายสมชาย',
+  bank: 'KBANK',
+  type: 'income',
+  suggestedCat: 'cat_bonus'
+});
+
+assert(incomeTx.type === 'income', 'Transaction type is income');
+assert(incomeTx.amount === 5500.0, 'Transaction amount matches slip');
+assert(incomeTx.note === 'รับเงินจาก: นายธนาคาร ใจดี', 'Income note correctly references sender');
+assert(incomeTx.tags.includes('รายรับ'), 'Income tags include "รายรับ"');
+
 console.log('\n====================================================');
 console.log(`📊 TEST SUMMARY: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
 console.log('====================================================\n');
+

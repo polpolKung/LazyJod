@@ -195,7 +195,7 @@ class CategoryModel {
       colorValue: 0xFF52C41A,
       type: CategoryType.income,
       isDefault: true,
-      autoKeywords: ['เงินเดือน', 'salary', 'payroll'],
+      autoKeywords: ['เงินเดือน', 'salary', 'payroll', 'ค่าจ้างรายเดือน', 'wages'],
     ),
     const CategoryModel(
       id: 'cat_bonus',
@@ -205,7 +205,10 @@ class CategoryModel {
       colorValue: 0xFF1890FF,
       type: CategoryType.income,
       isDefault: true,
-      autoKeywords: ['freelance', 'ฟรีแลนซ์', 'โบนัส', 'คอมมิชชั่น', 'เงินปันผล', 'ดอกเบี้ย'],
+      autoKeywords: [
+        'freelance', 'ฟรีแลนซ์', 'โบนัส', 'คอมมิชชั่น', 'เงินปันผล', 'ดอกเบี้ย',
+        'ขายของ', 'ค่าสินค้า', 'รายได้เสริม', 'ค่าสอน', 'commission', 'bonus', 'dividend'
+      ],
     ),
     const CategoryModel(
       id: 'cat_other_income',
@@ -215,7 +218,7 @@ class CategoryModel {
       colorValue: 0xFF13C2C2,
       type: CategoryType.income,
       isDefault: true,
-      autoKeywords: [],
+      autoKeywords: ['รายรับ', 'เงินเข้า', 'โอนเข้า', 'คืนเงิน', 'รับเงิน'],
     ),
   ];
 }

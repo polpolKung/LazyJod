@@ -5,6 +5,7 @@ import '../../features/transactions/models/transaction_model.dart';
 import '../../features/categories/models/category_model.dart';
 import '../../features/transactions/models/recurring_schedule.dart';
 import '../../features/analytics/models/budget_model.dart';
+import '../constants/app_constants.dart';
 
 class LocalStorageService {
   static const String _prefTransactionsKey = 'lazyjod_transactions';
@@ -12,6 +13,11 @@ class LocalStorageService {
   static const String _prefBudgetsKey = 'lazyjod_budgets';
   static const String _prefRecurringKey = 'lazyjod_recurring';
   static const String _prefScannedAssetIdsKey = 'lazyjod_scanned_asset_ids';
+  static const String _prefEnableIncomeScanKey = 'lazyjod_enable_income_scan';
+  static const String _prefIncomeFolderNamesKey = 'lazyjod_income_folder_names';
+  static const String _prefExpenseFolderNamesKey = 'lazyjod_expense_folder_names';
+  static const String _prefSelectedIncomeAlbumIdsKey = 'lazyjod_selected_income_album_ids';
+  static const String _prefSelectedExpenseAlbumIdsKey = 'lazyjod_selected_expense_album_ids';
 
   SharedPreferences? _prefs;
 
@@ -174,6 +180,63 @@ class LocalStorageService {
     if (_prefs == null) await init();
     final list = queue.map((e) => e.toMap()).toList();
     await _prefs?.setString(_prefSyncQueueKey, jsonEncode(list));
+  }
+
+  // ── Income Slip Scanning (Optional) ──────────────────────────────────────
+  Future<bool> isIncomeScanEnabled() async {
+    if (_prefs == null) await init();
+    return _prefs?.getBool(_prefEnableIncomeScanKey) ?? false;
+  }
+
+  Future<void> setIncomeScanEnabled(bool enabled) async {
+    if (_prefs == null) await init();
+    await _prefs?.setBool(_prefEnableIncomeScanKey, enabled);
+  }
+
+  // Expense & Income Folder Names
+  Future<List<String>> getExpenseFolderNames() async {
+    if (_prefs == null) await init();
+    final list = _prefs?.getStringList(_prefExpenseFolderNamesKey);
+    return list ?? List.from(AppConstants.defaultBankingFolders);
+  }
+
+  Future<void> setExpenseFolderNames(List<String> names) async {
+    if (_prefs == null) await init();
+    await _prefs?.setStringList(_prefExpenseFolderNamesKey, names);
+  }
+
+  Future<List<String>> getIncomeFolderNames() async {
+    if (_prefs == null) await init();
+    final list = _prefs?.getStringList(_prefIncomeFolderNamesKey);
+    return list ?? List.from(AppConstants.defaultIncomeFolders);
+  }
+
+  Future<void> setIncomeFolderNames(List<String> names) async {
+    if (_prefs == null) await init();
+    await _prefs?.setStringList(_prefIncomeFolderNamesKey, names);
+  }
+
+  // Persisted Selected Album IDs for Expense and Income
+  Future<Set<String>> getSelectedExpenseAlbumIds() async {
+    if (_prefs == null) await init();
+    final list = _prefs?.getStringList(_prefSelectedExpenseAlbumIdsKey);
+    return list?.toSet() ?? {};
+  }
+
+  Future<void> setSelectedExpenseAlbumIds(Set<String> ids) async {
+    if (_prefs == null) await init();
+    await _prefs?.setStringList(_prefSelectedExpenseAlbumIdsKey, ids.toList());
+  }
+
+  Future<Set<String>> getSelectedIncomeAlbumIds() async {
+    if (_prefs == null) await init();
+    final list = _prefs?.getStringList(_prefSelectedIncomeAlbumIdsKey);
+    return list?.toSet() ?? {};
+  }
+
+  Future<void> setSelectedIncomeAlbumIds(Set<String> ids) async {
+    if (_prefs == null) await init();
+    await _prefs?.setStringList(_prefSelectedIncomeAlbumIdsKey, ids.toList());
   }
 }
 

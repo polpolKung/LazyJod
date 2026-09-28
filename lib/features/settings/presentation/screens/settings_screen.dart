@@ -12,6 +12,7 @@ import '../../../ingestion/presentation/screens/album_picker_screen.dart';
 import '../../../transactions/providers/transaction_provider.dart';
 import '../../../transactions/services/csv_export_service.dart';
 import '../../../analytics/presentation/screens/budget_setting_screen.dart';
+import '../../../ingestion/providers/ingestion_provider.dart';
 import '../../../../core/theme/theme_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -211,11 +212,51 @@ class SettingsScreen extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.folder_outlined, color: AppColors.secondary),
-                  title: const Text('เลือกโฟลเดอร์รูปภาพสลิป', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  title: const Text('เลือกโฟลเดอร์รูปภาพสลิปรายจ่าย', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                   subtitle: const Text('กำหนดโฟลเดอร์ธนาคารเป้าหมายเพื่อความเป็นส่วนตัว', style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlbumPickerScreen()));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlbumPickerScreen(initialTabIndex: 0)));
+                  },
+                ),
+                const Divider(height: 1),
+                Builder(
+                  builder: (ctx) {
+                    final ingestion = ref.watch(ingestionProvider);
+                    final incomeCount = ingestion.albums.where((a) => a.isIncomeSelected).length;
+                    return ListTile(
+                      leading: const Icon(Icons.savings_outlined, color: AppColors.income),
+                      title: Row(
+                        children: [
+                          const Text('สแกนสลิปรายรับ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: AppColors.income.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('Optional', style: TextStyle(fontSize: 10, color: AppColors.income, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text(
+                        ingestion.isIncomeScanEnabled
+                            ? 'เปิดใช้งานอยู่ ($incomeCount โฟลเดอร์ที่เลือก)'
+                            : 'ปิดใช้งาน (เปิดเมื่อมีโฟลเดอร์เก็บสลิปเงินเข้า)',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: Switch(
+                        value: ingestion.isIncomeScanEnabled,
+                        activeColor: AppColors.income,
+                        onChanged: (val) {
+                          ref.read(ingestionProvider.notifier).toggleIncomeScan(val);
+                        },
+                      ),
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlbumPickerScreen(initialTabIndex: 1)));
+                      },
+                    );
                   },
                 ),
                 const Divider(height: 1),

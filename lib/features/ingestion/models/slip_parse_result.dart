@@ -1,3 +1,4 @@
+import '../../transactions/models/transaction_type.dart';
 import 'thai_bank.dart';
 
 class SlipParseResult {
@@ -15,6 +16,7 @@ class SlipParseResult {
   final String rawOcrText;
   final bool isDuplicate;
   final String? qrPayload;
+  final TransactionType transactionType;
 
   const SlipParseResult({
     this.id,
@@ -31,6 +33,7 @@ class SlipParseResult {
     required this.rawOcrText,
     this.isDuplicate = false,
     this.qrPayload,
+    this.transactionType = TransactionType.expense,
   });
 
   SlipParseResult copyWith({
@@ -48,6 +51,7 @@ class SlipParseResult {
     String? rawOcrText,
     bool? isDuplicate,
     String? qrPayload,
+    TransactionType? transactionType,
   }) {
     return SlipParseResult(
       id: id ?? this.id,
@@ -64,6 +68,7 @@ class SlipParseResult {
       rawOcrText: rawOcrText ?? this.rawOcrText,
       isDuplicate: isDuplicate ?? this.isDuplicate,
       qrPayload: qrPayload ?? this.qrPayload,
+      transactionType: transactionType ?? this.transactionType,
     );
   }
 
@@ -82,6 +87,7 @@ class SlipParseResult {
       'imageHash': imageHash,
       'isDuplicate': isDuplicate,
       'qrPayload': qrPayload,
+      'transactionType': transactionType.name,
     };
   }
 }

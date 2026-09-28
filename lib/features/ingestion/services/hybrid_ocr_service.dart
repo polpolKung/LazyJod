@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import '../../transactions/models/transaction_type.dart';
 import '../models/slip_parse_result.dart';
 import 'gemini_vision_proxy_service.dart';
 import 'ocr_sync_queue_service.dart';
@@ -33,6 +34,7 @@ class HybridOcrService {
     String? imagePath,
     String? imageHash,
     DateTime? fallbackDateTime,
+    TransactionType transactionType = TransactionType.expense,
   }) async {
     final barcodeFuture = _barcodes.scanFile(imageFile);
     final ocrFuture = _runLocalOcr(
@@ -40,6 +42,7 @@ class HybridOcrService {
       imagePath: imagePath,
       imageHash: imageHash,
       fallbackDateTime: fallbackDateTime,
+      transactionType: transactionType,
     );
 
     final barcodePayloads = await barcodeFuture;
@@ -82,6 +85,7 @@ class HybridOcrService {
     String? imagePath,
     String? imageHash,
     DateTime? fallbackDateTime,
+    TransactionType transactionType = TransactionType.expense,
   }) async {
     final inputImage = InputImage.fromFile(imageFile);
     final recognized = await _mlKit.processImage(inputImage);
@@ -90,6 +94,7 @@ class HybridOcrService {
       imagePath: imagePath,
       imageHash: imageHash,
       fallbackDateTime: fallbackDateTime,
+      transactionType: transactionType,
     );
   }
 

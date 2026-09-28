@@ -61,4 +61,23 @@ class AppConstants {
     'สลิปโอนเงิน',
     'ธนาคาร',
   ];
+
+  // Default Targeted Thai Income / Money-in Photo Folder Names (Optional feature)
+  static const List<String> defaultIncomeFolders = [
+    'สลิปเงินเข้า',
+    'สลิปรายรับ',
+    'เงินเข้า',
+    'รายรับ',
+    'สลิปขายของ',
+    'เงินเดือน',
+    'Income',
+    'Incomes',
+    'Salary',
+    'Revenue',
+    'รับเงิน',
+    'โอนเข้า',
+    'เงินโอนเข้า',
+    'ยอดเข้า',
+    'ขายของ',
+  ];
 }

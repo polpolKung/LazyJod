@@ -1,12 +1,19 @@
 import 'package:flutter/foundation.dart';
 import '../../categories/models/category_model.dart';
+import '../../transactions/models/transaction_type.dart';
 import '../models/slip_parse_result.dart';
 import '../models/thai_bank.dart';
 import '../../../core/utils/date_formatter.dart';
 
 class ThaiBankSlipParser {
   /// Main entrypoint to parse raw OCR text extracted from a slip
-  static SlipParseResult parse(String rawText, {String? imagePath, String? imageHash, DateTime? fallbackDateTime}) {
+  static SlipParseResult parse(
+    String rawText, {
+    String? imagePath,
+    String? imageHash,
+    DateTime? fallbackDateTime,
+    TransactionType transactionType = TransactionType.expense,
+  }) {
     final cleanText = _normalizeText(rawText);
 
     final bank = detectBank(cleanText);
@@ -15,7 +22,12 @@ class ThaiBankSlipParser {
     final recipient = extractRecipient(cleanText, bank: bank);
     final sender = extractSender(cleanText, bank: bank);
     final refId = extractRefId(cleanText, bank: bank);
-    final suggestedCategory = suggestCategory(recipient, cleanText);
+    final suggestedCategory = suggestCategory(
+      recipient,
+      cleanText,
+      transactionType: transactionType,
+      sender: sender,
+    );
 
     // Calculate heuristic confidence score
     double score = 0.2;
@@ -37,6 +49,7 @@ class ThaiBankSlipParser {
       imagePath: imagePath,
       imageHash: imageHash,
       rawOcrText: rawText,
+      transactionType: transactionType,
     );
   }
 
@@ -411,11 +424,29 @@ class ThaiBankSlipParser {
   }
 
   /// 7. Auto-suggest Category from Recipient or full Slip text
-  static String suggestCategory(String recipient, String fullText) {
-    final combined = '$recipient $fullText'.toLowerCase();
+  static String suggestCategory(
+    String recipient,
+    String fullText, {
+    TransactionType transactionType = TransactionType.expense,
+    String? sender,
+  }) {
+    final combined = '$recipient ${sender ?? ''} $fullText'.toLowerCase();
+
+    if (transactionType == TransactionType.income) {
+      // 1. Specific income categories first (Salary, Bonus, Freelance, Side Hustle)
+      for (final category in CategoryModel.defaultCategories.where((c) => c.type == CategoryType.income)) {
+        if (category.id == 'cat_other_income') continue;
+        for (final kw in category.autoKeywords) {
+          if (combined.contains(kw.toLowerCase())) {
+            return category.id;
+          }
+        }
+      }
+      return 'cat_other_income';
+    }
 
     // 1. Specific merchant & spending categories first (Food, Shopping, Transport, Bills, Health)
-    for (final category in CategoryModel.defaultCategories) {
+    for (final category in CategoryModel.defaultCategories.where((c) => c.type == CategoryType.expense)) {
       if (category.id == 'cat_transfer' || category.id == 'cat_uncategorized' || category.id == 'cat_other_expense') continue;
       for (final kw in category.autoKeywords) {
         if (combined.contains(kw.toLowerCase())) {
