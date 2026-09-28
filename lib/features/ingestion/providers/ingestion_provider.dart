@@ -91,9 +91,13 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final savedExpenseIds = await _storage.getSelectedExpenseAlbumIds();
     final savedIncomeIds = await _storage.getSelectedIncomeAlbumIds();
 
+    // Check if user has ever explicitly configured albums.
+    // null  → first launch → getAvailableAlbums uses conservative auto-select.
+    // Set   → configured  → getAvailableAlbums uses ONLY those IDs (explicit-only).
+    final isConfigured = await _storage.isScanAlbumsConfigured();
     final albums = await _albumService.getAvailableAlbums(
-      savedExpenseIds: savedExpenseIds.isNotEmpty ? savedExpenseIds : null,
-      savedIncomeIds: savedIncomeIds.isNotEmpty ? savedIncomeIds : null,
+      savedExpenseIds: isConfigured ? savedExpenseIds : null,
+      savedIncomeIds: isConfigured ? savedIncomeIds : null,
     );
     state = state.copyWith(albums: albums);
   }
@@ -127,6 +131,8 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final selectedExpense = updated.where((a) => a.isSelected).map((a) => a.id).toSet();
     await _storage.setSelectedIncomeAlbumIds(selectedIncome);
     await _storage.setSelectedExpenseAlbumIds(selectedExpense);
+    // Mark as explicitly configured — from now on, ONLY explicit IDs are used (even if empty)
+    await _storage.setScanAlbumsConfigured(true);
   }
 
   Future<void> addCustomFolderName(String name, {bool isIncome = false}) async {

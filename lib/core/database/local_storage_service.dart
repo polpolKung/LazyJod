@@ -18,6 +18,7 @@ class LocalStorageService {
   static const String _prefExpenseFolderNamesKey = 'lazyjod_expense_folder_names';
   static const String _prefSelectedIncomeAlbumIdsKey = 'lazyjod_selected_income_album_ids';
   static const String _prefSelectedExpenseAlbumIdsKey = 'lazyjod_selected_expense_album_ids';
+  static const String _prefScanAlbumsConfiguredKey = 'lazyjod_scan_albums_configured';
 
   SharedPreferences? _prefs;
 
@@ -237,6 +238,19 @@ class LocalStorageService {
   Future<void> setSelectedIncomeAlbumIds(Set<String> ids) async {
     if (_prefs == null) await init();
     await _prefs?.setStringList(_prefSelectedIncomeAlbumIdsKey, ids.toList());
+  }
+
+  /// Whether the user has explicitly configured scan albums at least once.
+  /// false = first launch (use smart keyword defaults).
+  /// true  = user has configured — use ONLY explicit IDs, even if empty.
+  Future<bool> isScanAlbumsConfigured() async {
+    if (_prefs == null) await init();
+    return _prefs?.getBool(_prefScanAlbumsConfiguredKey) ?? false;
+  }
+
+  Future<void> setScanAlbumsConfigured(bool configured) async {
+    if (_prefs == null) await init();
+    await _prefs?.setBool(_prefScanAlbumsConfiguredKey, configured);
   }
 }
 
