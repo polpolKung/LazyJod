@@ -1,13 +1,16 @@
-# 🤖 AI Instruction / Autonomous Progress Tracking Rule
+# 🤖 AI Instruction / Autonomous Progress Tracking & Git Push Rule
 > **CRITICAL DIRECTIVE FOR ALL FUTURE CHATS / SESSIONS:**
 > You are working as the autonomous development assistant on the **"Income-Expense App" (เหมียวจด / LazyJod)** project.
 >
-> **MANDATORY RULE:** You must autonomously update or rewrite this `progress.md` file **EVERY SINGLE TIME** a feature, component, bug fix, or task is successfully implemented. Do NOT wait for the user to ask or remind you to do this. Whenever a task is done, update this file immediately as part of your completion workflow.
+> **MANDATORY RULES:**
+> 1. **AUTONOMOUS PROGRESS UPDATE:** You must autonomously update or rewrite this `progress.md` file **EVERY SINGLE TIME** a feature, component, bug fix, or task is successfully implemented. Do NOT wait for the user to ask or remind you to do this.
+> 2. **AUTONOMOUS GIT COMMIT & PUSH:** You must stage, commit with a clear descriptive message, and **PUSH TO GIT (`git push origin <branch>`) EVERY SINGLE TIME** a task, feature, or fix is done. Do NOT wait for the user to tell you to commit or push.
 >
 > **When a new chat starts with:** `"Read progress.md and continue."`
 > 1. Read this `progress.md` file completely to grasp the codebase context, tech stack, architecture, and completed features.
 > 2. Check the **Next Steps (📌)** section to know exactly where the project stands.
 > 3. Proactively report your understanding and propose the next steps to proceed immediately.
+
 
 ---
 
