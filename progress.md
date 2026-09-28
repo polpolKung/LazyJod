@@ -44,7 +44,7 @@
 ## 2. Current Phase
 - **Phase:** Feature-Complete Core & Advanced Ingestion (Zero-Click Auto-Accounting)
 - **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
-- **Recent Milestone:** Fixed Income Album Isolation, Direct Gallery Type Selector, and Navigation Black Screen Bug.
+- **Recent Milestone:** UX Redesign — Explicit-Only Album Selection with 3-State Single-List Picker. Fixed root cause of "untick album but still scans it" bug.
 
 ---
 
@@ -69,8 +69,17 @@
 - ✅ **Targeted Album Service (`targeted_album_service.dart`):**
   - Privacy-first folder targeting for both banking expense folders and custom income albums.
   - **Album Isolation Fix:** Albums matching income keywords or selected for income are strictly excluded from banking expense classification.
-  - **Album ID Mismatch Fix (Bug 3):** Android may re-issue album IDs after permission changes. Now uses dual-check: ID match first, then name-keyword match as fallback. This ensures albums added by the user always scan correctly as income.
-  - Income folders are NEVER scanned as expense (dual-guard: keyword isolation + explicit exclusion in `fetchAssetsToScan`).
+  - **Explicit-Only Scan Mode (UX Redesign):**
+    - `fetchAssetsToScan` now scans **ONLY albums with IDs explicitly selected** by the user — zero keyword fallback. Unticking an album = not scanned, guaranteed.
+    - `getAvailableAlbums`: On first launch (never configured), auto-selects known banking app albums (K PLUS, SCB EASY, Krungthai NEXT, etc.) as a sensible starting point. After user opens the picker and toggles anything, the system switches to **explicit-only mode** permanently.
+    - `LocalStorageService.isScanAlbumsConfigured()` tracks whether user has ever explicitly configured albums.
+  - Income folders NEVER auto-selected — user must explicitly choose.
+- ✅ **Album Picker Screen UX Redesign (`album_picker_screen.dart`):**
+  - **Replaced confusing 2-tab layout** (โฟลเดอร์รายจ่าย / โฟลเดอร์รายรับ) with a **single unified list**.
+  - Each album now has a **3-state inline toggle**: `[ ไม่เลือก ] [ ↑ รายจ่าย ] [ ↓ รายรับ ]`.
+  - Keyword-based badges (`🏦 ธนาคาร`, `💰 เงินเข้า`) are **display-only hints** — they never drive scanning.
+  - Removed confusing custom folder keyword text input.
+  - Clean bottom bar shows live count: "รายจ่าย X โฟลเดอร์ · รายรับ Y โฟลเดอร์" + "ยืนยัน" button.
 - ✅ **Gallery Pick Type Selector (`slip_scanner_screen.dart`):**
   - Direct gallery picking now prompts the user via BottomSheet:
     - 🟢 **สลิปรายรับ (Income)** — processes all chosen images as income.
