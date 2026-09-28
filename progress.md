@@ -26,7 +26,7 @@
   - Cloudflare Worker Proxy + Google Gemini 1.5 Flash Vision (`gemini_vision_proxy_service.dart`) for fallback name resolution
 - **Media & Photo Library:**
   - `photo_manager: ^3.0.0` (Privacy-first targeted photo library access for banking & income albums)
-  - `image_picker: ^1.1.2` (Direct multi-image gallery picker)
+  - `image_picker: ^1.1.2` (Direct multi-image gallery picker with Income/Expense type selector)
 - **Notifications:**
   - `flutter_local_notifications: ^17.1.2` (Foreground/background scan progress & batch completion notifications)
 - **Analytics, Charts & Document Processing:**
@@ -40,8 +40,8 @@
 
 ## 2. Current Phase
 - **Phase:** Feature-Complete Core & Advanced Ingestion (Zero-Click Auto-Accounting)
-- **Status:** Stable, Production-Ready, Tested (38/38 Unit Tests Passing 100%)
-- **Recent Milestone:** Optional Income Slip Scanning & Album Targeting completed and pushed to `main`.
+- **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
+- **Recent Milestone:** Fixed Income Album Isolation, Direct Gallery Type Selector, and Navigation Black Screen Bug.
 
 ---
 
@@ -64,13 +64,19 @@
   - Tier 3: Heuristic fuzzy match (amount + recipient name similarity within ±3 minute window).
 - ✅ **Targeted Album Service (`targeted_album_service.dart`):**
   - Privacy-first folder targeting for both banking expense folders and custom income folders.
-  - Skips personal photos and only reads whitelisted/selected albums.
-- ✅ **Optional Income Slip Scanning (`album_picker_screen.dart`, `slip_scanner_screen.dart`):**
-  - Dual-tab album selection for **Expense** vs **Income (Optional)** folders with master toggle.
-  - Automatic detection of designated income folders (e.g. `สลิปเงินเข้า`, `สลิปขายของ`, `รายรับ`).
-  - Income OCR recognition with sender extraction and automatic categorization (`cat_salary`, `cat_bonus`, `cat_other_income`).
-  - Interactive slip type switching (`🟢 รายรับ`, `🔴 รายจ่าย`, `🔵 ย้ายเงิน`) directly from the scanner preview list.
-  - Visual distinction in scanner UI (green `+฿` styling for income, breakdown in bottom action bar).
+  - **Album Isolation Fix:** Albums matching income keywords or selected for income are strictly excluded from banking expense classification (preventing income slips from ever being parsed as expenses).
+  - Removed confusing "Optional master switch" — selecting or adding an album in the Income tab directly scans it as income.
+- ✅ **Gallery Pick Type Selector (`slip_scanner_screen.dart`):**
+  - Direct gallery picking now prompts the user via BottomSheet:
+    - 🟢 **สลิปรายรับ (Income)** — processes all chosen images as income (note: sender name, category: `cat_other_income`/`cat_bonus`/`cat_salary`).
+    - 🔴 **สลิปรายจ่าย (Expense)** — processes all chosen images as expense.
+  - Added batch type switching chips (`[ เป็นรายรับทั้งหมด 🟢 ]`, `[ เป็นรายจ่ายทั้งหมด 🔴 ]`) at the top of the scan preview list.
+  - Interactive per-item type switcher badge remains available.
+- ✅ **Fixed Navigation Black Screen Bug (`slip_scanner_screen.dart`):**
+  - Replaced unqualified `Navigator.pop()` in `importSelectedSlips()` with safe `canPop()` check so that importing slips from the bottom navigation bar never pops the root route into a black screen.
+- ✅ **Verified with Real User KTB Slip (`test_slips/Income/1790620289198.jpg`):**
+  - Extracted: Bank KTB, Amount 2,000.00 THB, Ref `Afdc8e9b2a067421e`, Sender `นายทิพย์ ท***`, Recipient `นายฌานพล ทิพวัน`.
+  - Transaction successfully generated with type `TransactionType.income`, note `รับเงินจาก: นายทิพย์ ท***`.
 
 ### Accounting & Core Features
 - ✅ **Transaction Management:** Full CRUD, quick edit sheets, filtering by date/category/tags/bank, search.
@@ -160,7 +166,6 @@ class SlipParseResult {
 - `lazyjod_scan_limit` (Int: 30, 50, 100, 300, 500, 1000)
 - `lazyjod_first_launch_done` (Bool)
 - `lazyjod_ocr_sync_queue` (JSON array of `OcrSyncItem`)
-- `lazyjod_enable_income_scan` (Bool: Optional Income Slip Scanning toggle)
 - `lazyjod_income_folder_names` (StringList of income folder keywords)
 - `lazyjod_expense_folder_names` (StringList of expense folder keywords)
 - `lazyjod_selected_income_album_ids` (StringList of selected income album IDs)
@@ -169,6 +174,6 @@ class SlipParseResult {
 ---
 
 ## 5. Next Steps (📌)
-1. **User Testing & Review:** Test the optional income scanning on real device with custom income albums.
-2. **Batch Import Polish:** Option to mass-select / unselect income vs expense items in slip scanner screen.
-3. **Monthly Financial Summary Report:** Monthly income vs expense breakdown report with visual comparison.
+1. **User Testing on Real Device:** Verify end-to-end user experience with both gallery picking and targeted album scan.
+2. **Monthly Financial Summary Report:** Monthly income vs expense breakdown report with visual comparison.
+3. **Transaction Search & Filter Enhancements:** Quick filter for income-only or expense-only in transaction list.

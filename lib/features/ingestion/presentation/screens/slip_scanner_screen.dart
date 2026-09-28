@@ -11,6 +11,81 @@ import 'statement_import_screen.dart';
 class SlipScannerScreen extends ConsumerWidget {
   const SlipScannerScreen({super.key});
 
+  void _showGalleryPickerSheet(BuildContext context, IngestionNotifier notifier) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.photo_library_outlined, color: AppColors.primary, size: 22),
+                      const SizedBox(width: 10),
+                      Text(
+                        'เลือกรูปสลิปจากแกลเลอรี',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.expense.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_upward_rounded, color: AppColors.expense, size: 22),
+                  ),
+                  title: const Text('สลิปรายจ่าย (Expense)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  subtitle: const Text('สลิปโอนออก / ชำระค่าสินค้า / บิล', style: TextStyle(fontSize: 12)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    notifier.pickAndScanGallerySlips(transactionType: TransactionType.expense);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.income.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_downward_rounded, color: AppColors.income, size: 22),
+                  ),
+                  title: const Text('สลิปรายรับ (Income)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  subtitle: const Text('สลิปเงินโอนเข้า / เงินเดือน / ขายของ / ได้รับเงิน', style: TextStyle(fontSize: 12)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    notifier.pickAndScanGallerySlips(transactionType: TransactionType.income);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(ingestionProvider);
@@ -27,7 +102,7 @@ class SlipScannerScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.photo_library_outlined),
             tooltip: 'เลือกรูปจากแกลเลอรี',
-            onPressed: state.isScanning ? null : () => notifier.pickAndScanGallerySlips(),
+            onPressed: state.isScanning ? null : () => _showGalleryPickerSheet(context, notifier),
           ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),
@@ -68,9 +143,7 @@ class SlipScannerScreen extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    state.isIncomeScanEnabled
-                        ? 'สแกนโฟลเดอร์รายจ่ายและรายรับ (Privacy-First) ประมวลผลบนเครื่อง 100%'
-                        : 'สแกนเฉพาะโฟลเดอร์สลิปธนาคาร (Privacy-First) ประมวลผล OCR บนเครื่อง',
+                    'สแกนเฉพาะอัลบั้มที่เลือก (Privacy-First) ประมวลผลบนเครื่อง ไม่ส่งภาพออกภายนอก',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.textPrimary,
@@ -230,7 +303,7 @@ class SlipScannerScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // Active folders chip
+                          // Active folders card
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
@@ -257,48 +330,26 @@ class SlipScannerScreen extends ConsumerWidget {
                                     ),
                                   ],
                                 ),
-                                if (state.isIncomeScanEnabled) ...[
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.savings_outlined, size: 16, color: AppColors.income),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        selectedIncomeAlbums.isNotEmpty
-                                            ? 'รายรับ: ${selectedIncomeAlbums.length} โฟลเดอร์ (${selectedIncomeAlbums.take(2).map((a) => a.name).join(", ")}${selectedIncomeAlbums.length > 2 ? "..." : ""})'
-                                            : 'รายรับ: ยังไม่ได้เลือกอัลบั้มรายรับ',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                                        ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.savings_outlined, size: 16, color: AppColors.income),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      selectedIncomeAlbums.isNotEmpty
+                                          ? 'รายรับ: ${selectedIncomeAlbums.length} โฟลเดอร์ (${selectedIncomeAlbums.take(2).map((a) => a.name).join(", ")}${selectedIncomeAlbums.length > 2 ? "..." : ""})'
+                                          : 'รายรับ: ยังไม่ได้เลือกโฟลเดอร์ (แตะเพื่อเพิ่ม)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: selectedIncomeAlbums.isNotEmpty
+                                            ? (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)
+                                            : AppColors.income,
                                       ),
-                                    ],
-                                  ),
-                                ] else ...[
-                                  const SizedBox(height: 6),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => const AlbumPickerScreen(initialTabIndex: 1),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(Icons.add_circle_outline, size: 14, color: AppColors.income),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          '+ มีอัลบั้มสลิปรายรับ? กดเปิดสแกนรายรับได้',
-                                          style: TextStyle(fontSize: 11, color: AppColors.income, fontWeight: FontWeight.w600),
-                                        ),
-                                      ],
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -310,11 +361,7 @@ class SlipScannerScreen extends ConsumerWidget {
                             child: ElevatedButton.icon(
                               onPressed: () => notifier.scanTargetedAlbums(),
                               icon: const Icon(Icons.sync),
-                              label: Text(
-                                state.isIncomeScanEnabled
-                                    ? 'เริ่มสแกนโฟลเดอร์ (รายจ่าย + รายรับ)'
-                                    : 'เริ่มสแกนโฟลเดอร์ธนาคาร',
-                              ),
+                              label: const Text('เริ่มสแกนโฟลเดอร์สลิป'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.black,
@@ -325,11 +372,11 @@ class SlipScannerScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 12),
 
-                          // Button 2: Pick from Gallery directly
+                          // Button 2: Pick from Gallery directly with type selector
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: () => notifier.pickAndScanGallerySlips(),
+                              onPressed: () => _showGalleryPickerSheet(context, notifier),
                               icon: const Icon(Icons.photo_library_outlined),
                               label: const Text('เลือกรูปสลิปจากแกลเลอรีโดยตรง'),
                               style: OutlinedButton.styleFrom(
@@ -344,189 +391,238 @@ class SlipScannerScreen extends ConsumerWidget {
                       ),
                     ),
                   )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: state.parsedSlips.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final slip = state.parsedSlips[index];
-                      final isSelected = state.selectedSlipIds.contains(slip.id);
-                      final isSelfTransfer = IngestionNotifier.isSelfTransfer(slip.senderName, slip.recipientName);
-                      final isIncome = slip.transactionType == TransactionType.income;
-                      final isTransfer = slip.transactionType == TransactionType.transfer ||
-                          (!isIncome && isSelfTransfer);
-
-                      // Colors & Labels depending on transaction type
-                      final Color typeColor = isIncome
-                          ? AppColors.income
-                          : (isTransfer ? AppColors.transfer : AppColors.expense);
-
-                      final String typePrefix = isIncome ? '+' : (isTransfer ? '⇄ ' : '-');
-
-                      return Opacity(
-                        opacity: slip.isDuplicate ? 0.6 : 1.0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isSelected ? typeColor : (isDark ? AppColors.darkBorder : AppColors.border),
-                              width: isSelected ? 2 : 1,
-                            ),
-                          ),
-                          child: CheckboxListTile(
-                            value: isSelected,
-                            activeColor: typeColor,
-                            checkColor: isIncome ? Colors.white : Colors.black,
-                            onChanged: slip.isDuplicate
-                                ? null
-                                : (_) => notifier.toggleSlipSelection(slip.id!),
-                            title: Row(
-                              children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: slip.bank.brandColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    slip.bank.displayNameThai,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                                // Transaction Type Switcher Badge (User can tap to toggle type)
-                                PopupMenuButton<TransactionType>(
-                                  tooltip: 'เปลี่ยนประเภทรายการ',
-                                  padding: EdgeInsets.zero,
-                                  onSelected: (newType) {
-                                    notifier.setSlipTransactionType(slip.id!, newType);
-                                  },
-                                  itemBuilder: (ctx) => [
-                                    const PopupMenuItem(
-                                      value: TransactionType.income,
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.arrow_downward_rounded, color: AppColors.income, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('รายรับ (Income)'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: TransactionType.expense,
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.arrow_upward_rounded, color: AppColors.expense, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('รายจ่าย (Expense)'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: TransactionType.transfer,
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.swap_horiz_rounded, color: AppColors.transfer, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('ย้ายเงิน (Transfer)'),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: typeColor.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: typeColor.withOpacity(0.3)),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          isIncome ? 'รายรับ' : (isTransfer ? 'ย้ายเงิน' : 'รายจ่าย'),
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: typeColor,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 2),
-                                        Icon(Icons.arrow_drop_down, size: 14, color: typeColor),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                if (slip.isDuplicate) ...[
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.warning.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Text(
-                                      'สลิปซ้ำ',
-                                      style: TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 4),
-                                Text(
-                                  isIncome
-                                      ? 'ผู้โอน: ${slip.senderName ?? 'ไม่ระบุชื่อผู้โอน'}'
-                                      : 'ผู้รับ: ${slip.recipientName}',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  DateFormatter.formatThaiDateTime(slip.dateTime),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
-                                  ),
-                                ),
-                                if (slip.refId != null) ...[
-                                  Text(
-                                    'รหัส: ${slip.refId}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            secondary: Text(
-                              '$typePrefix${CurrencyFormatter.format(slip.amount)}',
+                : Column(
+                    children: [
+                      // Quick batch switcher bar
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        color: isDark ? AppColors.darkSurface : Colors.grey.shade100,
+                        child: Row(
+                          children: [
+                            Text(
+                              'ปรับประเภททั้งหมด:',
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: typeColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                               ),
                             ),
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
+                            const Spacer(),
+                            ActionChip(
+                              avatar: const Icon(Icons.arrow_downward_rounded, size: 14, color: AppColors.income),
+                              label: const Text('เป็นรายรับทั้งหมด', style: TextStyle(fontSize: 11, color: AppColors.income)),
+                              backgroundColor: AppColors.income.withOpacity(0.12),
+                              side: BorderSide(color: AppColors.income.withOpacity(0.3)),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () {
+                                notifier.setAllSlipsTransactionType(TransactionType.income);
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            ActionChip(
+                              avatar: const Icon(Icons.arrow_upward_rounded, size: 14, color: AppColors.expense),
+                              label: const Text('เป็นรายจ่ายทั้งหมด', style: TextStyle(fontSize: 11, color: AppColors.expense)),
+                              backgroundColor: AppColors.expense.withOpacity(0.12),
+                              side: BorderSide(color: AppColors.expense.withOpacity(0.3)),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () {
+                                notifier.setAllSlipsTransactionType(TransactionType.expense);
+                              },
+                            ),
+                          ],
                         ),
-                      );
-                    },
+                      ),
+
+                      // Parsed slips list
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: state.parsedSlips.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final slip = state.parsedSlips[index];
+                            final isSelected = state.selectedSlipIds.contains(slip.id);
+                            final isSelfTransfer = IngestionNotifier.isSelfTransfer(slip.senderName, slip.recipientName);
+                            final isIncome = slip.transactionType == TransactionType.income;
+                            final isTransfer = slip.transactionType == TransactionType.transfer ||
+                                (!isIncome && isSelfTransfer);
+
+                            // Colors & Labels depending on transaction type
+                            final Color typeColor = isIncome
+                                ? AppColors.income
+                                : (isTransfer ? AppColors.transfer : AppColors.expense);
+
+                            final String typePrefix = isIncome ? '+' : (isTransfer ? '⇄ ' : '-');
+
+                            return Opacity(
+                              opacity: slip.isDuplicate ? 0.6 : 1.0,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isSelected ? typeColor : (isDark ? AppColors.darkBorder : AppColors.border),
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: CheckboxListTile(
+                                  value: isSelected,
+                                  activeColor: typeColor,
+                                  checkColor: isIncome ? Colors.white : Colors.black,
+                                  onChanged: slip.isDuplicate
+                                      ? null
+                                      : (_) => notifier.toggleSlipSelection(slip.id!),
+                                  title: Row(
+                                    children: [
+                                      Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          color: slip.bank.brandColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          slip.bank.displayNameThai,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      // Transaction Type Switcher Badge (User can tap to toggle type)
+                                      PopupMenuButton<TransactionType>(
+                                        tooltip: 'แตะเพื่อเปลี่ยนประเภทรายการ',
+                                        padding: EdgeInsets.zero,
+                                        onSelected: (newType) {
+                                          notifier.setSlipTransactionType(slip.id!, newType);
+                                        },
+                                        itemBuilder: (ctx) => [
+                                          const PopupMenuItem(
+                                            value: TransactionType.income,
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.arrow_downward_rounded, color: AppColors.income, size: 18),
+                                                SizedBox(width: 8),
+                                                Text('รายรับ (Income)'),
+                                              ],
+                                            ),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: TransactionType.expense,
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.arrow_upward_rounded, color: AppColors.expense, size: 18),
+                                                SizedBox(width: 8),
+                                                Text('รายจ่าย (Expense)'),
+                                              ],
+                                            ),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: TransactionType.transfer,
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.swap_horiz_rounded, color: AppColors.transfer, size: 18),
+                                                SizedBox(width: 8),
+                                                Text('ย้ายเงิน (Transfer)'),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: typeColor.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: typeColor.withOpacity(0.3)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                isIncome ? 'รายรับ' : (isTransfer ? 'ย้ายเงิน' : 'รายจ่าย'),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: typeColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 2),
+                                              Icon(Icons.arrow_drop_down, size: 14, color: typeColor),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      if (slip.isDuplicate) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.warning.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'สลิปซ้ำ',
+                                            style: TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        isIncome
+                                            ? 'ผู้โอน: ${slip.senderName ?? 'ไม่ระบุชื่อผู้โอน'}'
+                                            : 'ผู้รับ: ${slip.recipientName}',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        DateFormatter.formatThaiDateTime(slip.dateTime),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                                        ),
+                                      ),
+                                      if (slip.refId != null) ...[
+                                        Text(
+                                          'รหัส: ${slip.refId}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  secondary: Text(
+                                    '$typePrefix${CurrencyFormatter.format(slip.amount)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: typeColor,
+                                    ),
+                                  ),
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
           ),
 
@@ -588,9 +684,17 @@ class SlipScannerScreen extends ConsumerWidget {
                       final count = await notifier.importSelectedSlips();
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('นำเข้าสลิปสำเร็จ $count รายการ!')),
+                          SnackBar(
+                            content: Text('นำเข้าสลิปสำเร็จ $count รายการ! ✨'),
+                            backgroundColor: AppColors.income,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 3),
+                          ),
                         );
-                        Navigator.of(context).pop();
+                        // Prevent black screen: Only pop if there is a parent route to pop back to
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        }
                       }
                     },
               style: ElevatedButton.styleFrom(

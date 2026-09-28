@@ -210,51 +210,21 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => _exportCsv(context, ref),
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.folder_outlined, color: AppColors.secondary),
-                  title: const Text('เลือกโฟลเดอร์รูปภาพสลิปรายจ่าย', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('กำหนดโฟลเดอร์ธนาคารเป้าหมายเพื่อความเป็นส่วนตัว', style: TextStyle(fontSize: 12)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlbumPickerScreen(initialTabIndex: 0)));
-                  },
-                ),
-                const Divider(height: 1),
                 Builder(
                   builder: (ctx) {
                     final ingestion = ref.watch(ingestionProvider);
+                    final expenseCount = ingestion.albums.where((a) => a.isSelected).length;
                     final incomeCount = ingestion.albums.where((a) => a.isIncomeSelected).length;
                     return ListTile(
-                      leading: const Icon(Icons.savings_outlined, color: AppColors.income),
-                      title: Row(
-                        children: [
-                          const Text('สแกนสลิปรายรับ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: AppColors.income.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('Optional', style: TextStyle(fontSize: 10, color: AppColors.income, fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
+                      leading: const Icon(Icons.folder_special_outlined, color: AppColors.primary),
+                      title: const Text('ตั้งค่าโฟลเดอร์สลิป (รายจ่าย & รายรับ)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                       subtitle: Text(
-                        ingestion.isIncomeScanEnabled
-                            ? 'เปิดใช้งานอยู่ ($incomeCount โฟลเดอร์ที่เลือก)'
-                            : 'ปิดใช้งาน (เปิดเมื่อมีโฟลเดอร์เก็บสลิปเงินเข้า)',
+                        'รายจ่าย: $expenseCount โฟลเดอร์ • รายรับ: $incomeCount โฟลเดอร์',
                         style: const TextStyle(fontSize: 12),
                       ),
-                      trailing: Switch(
-                        value: ingestion.isIncomeScanEnabled,
-                        activeColor: AppColors.income,
-                        onChanged: (val) {
-                          ref.read(ingestionProvider.notifier).toggleIncomeScan(val);
-                        },
-                      ),
+                      trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlbumPickerScreen(initialTabIndex: 1)));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlbumPickerScreen()));
                       },
                     );
                   },

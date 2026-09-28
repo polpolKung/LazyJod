@@ -107,16 +107,19 @@ class TargetedAlbumService {
       for (final path in paths) {
         final count = await path.assetCountAsync;
         final name = path.name;
-        final isBanking = isLikelyBankingAlbum(name);
         final isIncome = isLikelyIncomeAlbum(name);
-
-        final isSelected = savedExpenseIds != null && savedExpenseIds.isNotEmpty
-            ? savedExpenseIds.contains(path.id)
-            : isBanking;
+        final isBanking = !isIncome && isLikelyBankingAlbum(name);
 
         final isIncomeSelected = savedIncomeIds != null && savedIncomeIds.isNotEmpty
             ? savedIncomeIds.contains(path.id)
             : isIncome;
+
+        // An album selected for income must NEVER be selected for expense
+        final isSelected = isIncomeSelected
+            ? false
+            : (savedExpenseIds != null && savedExpenseIds.isNotEmpty
+                ? savedExpenseIds.contains(path.id)
+                : isBanking);
 
         results.add(TargetedAlbumInfo(
           id: path.id,
@@ -129,10 +132,10 @@ class TargetedAlbumService {
         ));
       }
 
-      // Sort: Banking & Income folders first, then alphabetically
+      // Sort: Income folders first, then Banking folders, then alphabetically
       results.sort((a, b) {
-        final aPriority = (a.isBankingFolder || a.isIncomeFolder) ? 0 : 1;
-        final bPriority = (b.isBankingFolder || b.isIncomeFolder) ? 0 : 1;
+        final aPriority = a.isIncomeFolder ? 0 : (a.isBankingFolder ? 1 : 2);
+        final bPriority = b.isIncomeFolder ? 0 : (b.isBankingFolder ? 1 : 2);
         if (aPriority != bPriority) return aPriority.compareTo(bPriority);
         return a.name.compareTo(b.name);
       });
@@ -144,8 +147,10 @@ class TargetedAlbumService {
     }
   }
 
-  /// Checks if album name matches privacy whitelist for Thai banks (Expense)
+  /// Checks if album name matches privacy whitelist for Thai banks (Expense).
+  /// Excludes any album that matches Income keywords so Income is never swallowed.
   bool isLikelyBankingAlbum(String albumName) {
+    if (isLikelyIncomeAlbum(albumName)) return false;
     final lower = albumName.toLowerCase().trim();
     for (final target in _userExpenseFolderNames) {
       if (lower.contains(target.toLowerCase())) {
@@ -170,7 +175,6 @@ class TargetedAlbumService {
   Future<List<ScannableAsset>> fetchAssetsToScan({
     List<String>? selectedExpenseAlbumIds,
     List<String>? selectedIncomeAlbumIds,
-    bool scanIncome = false,
     int maxCount = 1000,
   }) async {
     try {
@@ -192,16 +196,10 @@ class TargetedAlbumService {
       final Set<String> seenAssetIds = {};
 
       for (final path in paths) {
-        // Check if path is selected for income
-        final isIncomeTarget = scanIncome &&
-            (selectedIncomeAlbumIds != null && selectedIncomeAlbumIds.isNotEmpty
-                ? selectedIncomeAlbumIds.contains(path.id)
-                : isLikelyIncomeAlbum(path.name));
-
-        // Check if path is selected for expense
-        final isExpenseTarget = selectedExpenseAlbumIds != null && selectedExpenseAlbumIds.isNotEmpty
-            ? selectedExpenseAlbumIds.contains(path.id)
-            : isLikelyBankingAlbum(path.name);
+        // Check if path is selected for income (Priority 1)
+        final isIncomeTarget = selectedIncomeAlbumIds != null && selectedIncomeAlbumIds.isNotEmpty
+            ? selectedIncomeAlbumIds.contains(path.id)
+            : isLikelyIncomeAlbum(path.name);
 
         if (isIncomeTarget) {
           final assets = await path.getAssetListRange(start: 0, end: maxCount);
@@ -214,7 +212,13 @@ class TargetedAlbumService {
               ));
             }
           }
+          continue; // Already processed as income, skip expense check
         }
+
+        // Check if path is selected for expense (Priority 2)
+        final isExpenseTarget = selectedExpenseAlbumIds != null && selectedExpenseAlbumIds.isNotEmpty
+            ? selectedExpenseAlbumIds.contains(path.id)
+            : isLikelyBankingAlbum(path.name);
 
         if (isExpenseTarget) {
           final assets = await path.getAssetListRange(start: 0, end: maxCount);
@@ -246,7 +250,6 @@ class TargetedAlbumService {
   }) async {
     final scannables = await fetchAssetsToScan(
       selectedExpenseAlbumIds: selectedAlbumIds,
-      scanIncome: false,
       maxCount: maxCount,
     );
     return scannables.map((s) => s.asset).toList();

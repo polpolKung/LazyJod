@@ -29,7 +29,6 @@ class IngestionState {
   final List<SlipParseResult> parsedSlips;
   final List<String> selectedSlipIds;
   final int totalScannedAssets;
-  final bool isIncomeScanEnabled;
 
   const IngestionState({
     this.isScanning = false,
@@ -40,7 +39,6 @@ class IngestionState {
     this.parsedSlips = const [],
     this.selectedSlipIds = const [],
     this.totalScannedAssets = 0,
-    this.isIncomeScanEnabled = false,
   });
 
   IngestionState copyWith({
@@ -52,7 +50,6 @@ class IngestionState {
     List<SlipParseResult>? parsedSlips,
     List<String>? selectedSlipIds,
     int? totalScannedAssets,
-    bool? isIncomeScanEnabled,
   }) {
     return IngestionState(
       isScanning: isScanning ?? this.isScanning,
@@ -63,7 +60,6 @@ class IngestionState {
       parsedSlips: parsedSlips ?? this.parsedSlips,
       selectedSlipIds: selectedSlipIds ?? this.selectedSlipIds,
       totalScannedAssets: totalScannedAssets ?? this.totalScannedAssets,
-      isIncomeScanEnabled: isIncomeScanEnabled ?? this.isIncomeScanEnabled,
     );
   }
 }
@@ -87,7 +83,6 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   }
 
   Future<void> loadAlbums() async {
-    final isIncomeEnabled = await _storage.isIncomeScanEnabled();
     final expenseFolders = await _storage.getExpenseFolderNames();
     final incomeFolders = await _storage.getIncomeFolderNames();
     _albumService.setExpenseFolderNames(expenseFolders);
@@ -100,23 +95,27 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       savedExpenseIds: savedExpenseIds.isNotEmpty ? savedExpenseIds : null,
       savedIncomeIds: savedIncomeIds.isNotEmpty ? savedIncomeIds : null,
     );
-    state = state.copyWith(
-      albums: albums,
-      isIncomeScanEnabled: isIncomeEnabled,
-    );
-  }
-
-  Future<void> toggleIncomeScan(bool enabled) async {
-    await _storage.setIncomeScanEnabled(enabled);
-    state = state.copyWith(isIncomeScanEnabled: enabled);
+    state = state.copyWith(albums: albums);
   }
 
   Future<void> toggleAlbumSelection(String albumId, {bool isIncome = false}) async {
     final updated = state.albums.map((a) {
       if (a.id == albumId) {
-        return isIncome
-            ? a.copyWith(isIncomeSelected: !a.isIncomeSelected)
-            : a.copyWith(isSelected: !a.isSelected);
+        if (isIncome) {
+          final newIncomeVal = !a.isIncomeSelected;
+          // If selected for income, deselect from expense
+          return a.copyWith(
+            isIncomeSelected: newIncomeVal,
+            isSelected: newIncomeVal ? false : a.isSelected,
+          );
+        } else {
+          final newExpenseVal = !a.isSelected;
+          // If selected for expense, deselect from income
+          return a.copyWith(
+            isSelected: newExpenseVal,
+            isIncomeSelected: newExpenseVal ? false : a.isIncomeSelected,
+          );
+        }
       }
       return a;
     }).toList();
@@ -124,13 +123,10 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(albums: updated);
 
     // Persist selections
-    if (isIncome) {
-      final selectedIncome = updated.where((a) => a.isIncomeSelected).map((a) => a.id).toSet();
-      await _storage.setSelectedIncomeAlbumIds(selectedIncome);
-    } else {
-      final selectedExpense = updated.where((a) => a.isSelected).map((a) => a.id).toSet();
-      await _storage.setSelectedExpenseAlbumIds(selectedExpense);
-    }
+    final selectedIncome = updated.where((a) => a.isIncomeSelected).map((a) => a.id).toSet();
+    final selectedExpense = updated.where((a) => a.isSelected).map((a) => a.id).toSet();
+    await _storage.setSelectedIncomeAlbumIds(selectedIncome);
+    await _storage.setSelectedExpenseAlbumIds(selectedExpense);
   }
 
   Future<void> addCustomFolderName(String name, {bool isIncome = false}) async {
@@ -165,7 +161,25 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(parsedSlips: updated);
   }
 
-  /// 1. Scan targeted albums for slips (both Expense and optional Income),
+  /// Batch update all parsed slips to a specific transaction type
+  void setAllSlipsTransactionType(TransactionType newType) {
+    final updated = state.parsedSlips.map((slip) {
+      final newCategory = ThaiBankSlipParser.suggestCategory(
+        slip.recipientName,
+        slip.rawOcrText,
+        transactionType: newType,
+        sender: slip.senderName,
+      );
+      return slip.copyWith(
+        transactionType: newType,
+        suggestedCategoryId: newCategory,
+      );
+    }).toList();
+
+    state = state.copyWith(parsedSlips: updated);
+  }
+
+  /// 1. Scan targeted albums for slips (both Expense and Income),
   /// perform on-device OCR, and check duplicates
   Future<void> scanTargetedAlbums() async {
     state = state.copyWith(
@@ -191,15 +205,12 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     state = state.copyWith(statusMessage: 'กำลังค้นหาภาพในโฟลเดอร์ที่เลือก...');
 
     final selectedExpenseIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
-    final selectedIncomeIds = state.isIncomeScanEnabled
-        ? state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList()
-        : <String>[];
+    final selectedIncomeIds = state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList();
 
     final scanLimit = await _storage.getScanHistoryLimit();
     final scannables = await _albumService.fetchAssetsToScan(
       selectedExpenseAlbumIds: selectedExpenseIds.isNotEmpty ? selectedExpenseIds : null,
       selectedIncomeAlbumIds: selectedIncomeIds.isNotEmpty ? selectedIncomeIds : null,
-      scanIncome: state.isIncomeScanEnabled,
       maxCount: scanLimit,
     );
 
@@ -217,18 +228,20 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     await _processScannableAssets(scannables, skipSeenAssets: false);
   }
 
-  /// 2. Pick slip images directly from device gallery
-  Future<void> pickAndScanGallerySlips() async {
+  /// 2. Pick slip images directly from device gallery with intentional transaction type
+  Future<void> pickAndScanGallerySlips({TransactionType transactionType = TransactionType.expense}) async {
     try {
       final List<XFile> pickedFiles = await _imagePicker.pickMultiImage();
       if (pickedFiles.isEmpty) return;
 
       await _notif.requestPermission();
 
+      final typeLabel = transactionType == TransactionType.income ? 'รายรับ' : 'รายจ่าย';
+
       state = state.copyWith(
         isScanning: true,
         scanProgress: 0.0,
-        statusMessage: 'กำลังเตรียมรูปที่เลือก ${pickedFiles.length} รูป...',
+        statusMessage: 'กำลังเตรียมรูปสลิป$typeLabel ${pickedFiles.length} รูป...',
         lastError: null,
       );
 
@@ -258,12 +271,16 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
               imageFile: file,
               imagePath: file.path,
               imageHash: imageHash,
-              transactionType: TransactionType.expense,
+              transactionType: transactionType,
             );
 
             final slipId = 'slip_${_uuid.v4()}';
             final isDup = _dupService.isDuplicate(slipResult, existingTransactions);
-            results[i] = slipResult.copyWith(id: slipId, isDuplicate: isDup);
+            results[i] = slipResult.copyWith(
+              id: slipId,
+              isDuplicate: isDup,
+              transactionType: transactionType,
+            );
           } catch (e) {
             errorCount++;
             caughtError = e.toString();
@@ -585,15 +602,12 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       await loadAlbums();
       await _notif.requestPermission();
       final selectedExpenseIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
-      final selectedIncomeIds = state.isIncomeScanEnabled
-          ? state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList()
-          : <String>[];
+      final selectedIncomeIds = state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList();
 
       final scanLimit = await _storage.getScanHistoryLimit();
       final scannables = await _albumService.fetchAssetsToScan(
         selectedExpenseAlbumIds: selectedExpenseIds.isNotEmpty ? selectedExpenseIds : null,
         selectedIncomeAlbumIds: selectedIncomeIds.isNotEmpty ? selectedIncomeIds : null,
-        scanIncome: state.isIncomeScanEnabled,
         maxCount: scanLimit,
       );
 

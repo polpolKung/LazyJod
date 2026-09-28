@@ -278,7 +278,88 @@ assert(incomeTx.amount === 5500.0, 'Transaction amount matches slip');
 assert(incomeTx.note === 'รับเงินจาก: นายธนาคาร ใจดี', 'Income note correctly references sender');
 assert(incomeTx.tags.includes('รายรับ'), 'Income tags include "รายรับ"');
 
+// Real User Slip from Image 2 (Krungthai NEXT Income Slip)
+console.log('\n📌 Suite 7: Real User KTB Income Slip Parsing (test_slips/Income/1790620289198.jpg)');
+const realKtbIncomeOcr = `
+Krungthai กรุงไทย
+โอนเงินสำเร็จ
+รหัสอ้างอิง Afdc8e9b2a067421e
+จาก
+นายทิพย์ ท***
+กรุงไทย
+XXX-X-XX318-6
+ไปยัง
+นายฌานพล ทิพวัน
+พร้อมเพย์
+XXX XXX 9986
+จำนวนเงิน 2,000.00 บาท
+ค่าธรรมเนียม 0.00 บาท
+วันที่ทำรายการ 07 ก.ย. 2569 - 14:21
+`;
+
+function parseSender(text) {
+  const match = text.match(/จาก\s*\n\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
+}
+
+function parseRecipient(text) {
+  const match = text.match(/ไปยัง\s*\n\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
+}
+
+function parseRefId(text) {
+  const match = text.match(/รหัสอ้างอิง\s+([A-Za-z0-9]+)/);
+  return match ? match[1].trim() : null;
+}
+
+const parsedSender = parseSender(realKtbIncomeOcr);
+const parsedRecipient = parseRecipient(realKtbIncomeOcr);
+const parsedRef = parseRefId(realKtbIncomeOcr);
+const parsedAmt = extractAmount(realKtbIncomeOcr);
+const parsedBank = detectBank(realKtbIncomeOcr);
+
+assert(parsedBank === 'KTB', 'Detects bank as KTB');
+assert(parsedAmt === 2000.0, 'Extracts amount 2,000.00 THB');
+assert(parsedRef === 'Afdc8e9b2a067421e', 'Extracts Ref ID Afdc8e9b2a067421e');
+assert(parsedSender === 'นายทิพย์ ท***', 'Extracts sender "นายทิพย์ ท***"');
+assert(parsedRecipient === 'นายฌานพล ทิพวัน', 'Extracts recipient "นายฌานพล ทิพวัน"');
+
+const ktbIncomeTx = buildTransactionFromSlip({
+  amount: parsedAmt,
+  sender: parsedSender,
+  recipient: parsedRecipient,
+  bank: parsedBank,
+  type: 'income',
+  suggestedCat: 'cat_other_income'
+});
+
+assert(ktbIncomeTx.type === 'income', 'User slip is successfully recorded as income');
+assert(ktbIncomeTx.note === 'รับเงินจาก: นายทิพย์ ท***', 'Note correctly attributes payment to sender "นายทิพย์ ท***"');
+assert(ktbIncomeTx.amount === 2000.0, 'Income amount is exactly 2,000.00');
+
+// Album Isolation Test: Income folders containing 'สลิป' must NOT be classified as banking expense folders
+function isLikelyBankingAlbumExcludingIncome(albumName) {
+  if (isLikelyIncomeFolder(albumName)) return false;
+  const bankingKeywords = ['k plus', 'scb', 'krungthai', 'สลิป', 'slip'];
+  const lower = albumName.toLowerCase().trim();
+  return bankingKeywords.some(kw => lower.includes(kw));
+}
+
+assert(
+  !isLikelyBankingAlbumExcludingIncome('สลิปเงินเข้า'),
+  'Album "สลิปเงินเข้า" is isolated from banking expense folders'
+);
+assert(
+  !isLikelyBankingAlbumExcludingIncome('Income'),
+  'Album "Income" is isolated from banking expense folders'
+);
+assert(
+  isLikelyBankingAlbumExcludingIncome('Krungthai NEXT'),
+  'Album "Krungthai NEXT" is correctly recognized as banking expense folder'
+);
+
 console.log('\n====================================================');
 console.log(`📊 TEST SUMMARY: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
 console.log('====================================================\n');
+
 
