@@ -14,6 +14,7 @@ import '../../../transactions/services/csv_export_service.dart';
 import '../../../analytics/presentation/screens/budget_setting_screen.dart';
 import '../../../ingestion/providers/ingestion_provider.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/widgets/jod_mascot.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -90,12 +91,12 @@ class SettingsScreen extends ConsumerWidget {
       );
 
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/meow_jot_transactions_${DateTime.now().millisecondsSinceEpoch}.csv');
+      final file = File('${tempDir.path}/lazy_jod_transactions_${DateTime.now().millisecondsSinceEpoch}.csv');
       await file.writeAsString(csvData);
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'ประวัติรายการเงินจากแอป เหมียวจด (Lazy Jod)',
+        text: 'ประวัติรายการเงินจากแอป Lazy Jod (เลซี่จด)',
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -271,14 +272,14 @@ class SettingsScreen extends ConsumerWidget {
               border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             child: Column(
-              children: const [
+              children: [
                 ListTile(
-                  leading: Icon(Icons.bolt_rounded, color: AppColors.primary, size: 28),
-                  title: Text('เหมียวจด (Lazy Jod)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: Text('เวอร์ชัน 1.1.0 (Zero-Click Auto-Accounting)'),
+                  leading: const JodMascotAvatar(size: 38),
+                  title: const Text('Lazy Jod (เลซี่จด)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  subtitle: const Text('เวอร์ชัน 1.2.0 • มาสคอตประจำแอป "จ้อด" (Jod) 🦥'),
                 ),
-                Divider(height: 1),
-                ListTile(
+                const Divider(height: 1),
+                const ListTile(
                   leading: Icon(Icons.info_outline, color: AppColors.textMuted),
                   title: Text('สถาปัตยกรรมระบบ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                   subtitle: Text('Flutter • Riverpod • ML Kit On-Device • Local Database'),
@@ -307,15 +308,15 @@ class _ThemeToggleCard extends ConsumerWidget {
         children: [
           ListTile(
             leading: Icon(
-              isDark ? Icons.dark_mode : Icons.light_mode,
+              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
               color: AppColors.primary,
             ),
             title: Text(
-              isDark ? 'โหมดมืด (Obsidian)' : 'โหมดสว่าง',
+              isDark ? 'โหมดมืด (Cozy Charcoal)' : 'โหมดสว่าง (Pastel Mint)',
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
-              isDark ? 'พื้นหลังดำ สีเน้น Mint #00E599' : 'พื้นหลังขาว แนะนำสำหรับกลางวัน',
+              isDark ? 'พื้นหลังชาร์โคลนุ่มตา สีพาสเทลมิ้นต์' : 'พื้นหลังสะอาด สบายตา แนะนำสำหรับกลางวัน',
               style: const TextStyle(fontSize: 12),
             ),
             trailing: Switch(

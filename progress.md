@@ -14,7 +14,7 @@
 
 ---
 
-# Project Progress — เหมียวจด (LazyJod)
+# Project Progress — Lazy Jod (เลซี่จด)
 
 ## 1. Tech Stack & Environment
 - **Framework:** Flutter (Channel stable, Dart 3.x)
@@ -42,13 +42,44 @@
 ---
 
 ## 2. Current Phase
-- **Phase:** Feature-Complete Core & Advanced Ingestion (Zero-Click Auto-Accounting)
+- **Phase:** Feature-Complete Core & Advanced Ingestion (Zero-Click Auto-Accounting) + Complete UI/UX Rework
 - **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
-- **Recent Milestone:** UX Redesign — Explicit-Only Album Selection with 3-State Single-List Picker. Fixed root cause of "untick album but still scans it" bug.
+- **Recent Milestone:** Major UI/UX Rework & Mascot Integration — Pastel Mint & Cheeky Sloth "จ้อด" (Lazy Jod) theme, 14 custom pastel category icons, launcher icons generated from user artwork, and automated APK naming.
 
 ---
 
 ## 3. Completed Tasks (✅)
+
+### UI/UX Rework & Brand Transformation
+- ✅ **Pastel Mint & Cheeky Sloth Theme (`app_colors.dart` & `app_theme.dart`):**
+  - Designed harmonic palette matching user mascot artwork: Pastel Mint (`#56C596`), Background Mint (`#9BEAC2`), Hoodie Charcoal (`#13171B`), Cyan Sunglasses (`#38BDF8`), and Tongue Pink (`#FF6B8B`).
+  - Warm, cozy rounded squircle design system (16-18px radii, subtle pastel gradients, high-legibility contrasts).
+- ✅ **14 Distinctive Pastel Category Icons & Bubble Widget (`category_model.dart`, `category_icon_bubble.dart`):**
+  - Replaced generic icons with expressive, semantically matching rounded icons and emoji metadata:
+    - 🍜 Food & Drinks: `Icons.ramen_dining_rounded` (Pastel Salmon `#FFA07A`)
+    - 🚊 Transportation: `Icons.commute_rounded` (Pastel Cyan `#48CAE4`)
+    - 🛍️ Shopping: `Icons.shopping_bag_rounded` (Pastel Blossom `#FF85A1`)
+    - 🦥 Uncategorized: `Icons.psychology_alt_rounded` (Pastel Sloth Honey `#FFB703`)
+    - 🔄 Transfer: `Icons.swap_horizontal_circle_rounded` (Pastel Azure `#5AA9E6`)
+    - ⚡ Bills & Utilities: `Icons.electric_bolt_rounded` (Pastel Amber `#F4A261`)
+    - 🏡 Housing & Rent: `Icons.cottage_rounded` (Pastel Lavender `#A29BFE`)
+    - 🎮 Entertainment: `Icons.sports_esports_rounded` (Pastel Lilac `#C77DFF`)
+    - 🧴 Health & Beauty: `Icons.spa_rounded` (Pastel Spa Mint `#70C1B3`)
+    - 🐾 Pets: `Icons.cruelty_free_rounded` (Pastel Caramel `#E0A96D`)
+    - 💬 Other Expense: `Icons.bubble_chart_rounded` (Pastel Slate `#8E9AAF`)
+    - 💵 Salary & Wages: `Icons.payments_rounded` (Pastel Emerald `#52B788`)
+    - ✨ Bonus & Side Hustle: `Icons.auto_awesome_rounded` (Pastel Sunshine `#FEE440`)
+    - 💰 Other Income: `Icons.price_check_rounded` (Pastel Ocean Mint `#56CFE1`)
+  - Auto-migration versioning in `LocalStorageService` so returning users seamlessly receive the new pastel icons.
+- ✅ **App Launcher Icon Automation:**
+  - Automated generation from `assets/icons/iconApp.png` across all Android mipmap densities (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`).
+  - Configured adaptive icon with mint `#9BEAC2` background and centered mascot foreground.
+- ✅ **App Renaming & APK Output Configuration:**
+  - Renamed from "เหมียวจด" to **"Lazy Jod (เลซี่จด)"** across `AndroidManifest.xml`, `AppConstants`, navigation, dashboard, and settings.
+  - Configured `android/app/build.gradle` `applicationVariants` to automatically output `LazyJod.apk`.
+- ✅ **Cheeky Mascot "จ้อด" (Lazy Jod) Integration (`jod_mascot.dart`):**
+  - Created `JodMascotAvatar` and `JodMascotCard` with situational humorous / lazy commentary.
+  - Embedded Jod into `EmptyStateWidget`, Dashboard Header, Scan Screen, and Onboarding Welcome Sheet.
 
 ### Ingestion & OCR Engine
 - ✅ **16 Thai Banks & PromptPay Parser (`thai_bank_slip_parser.dart`):**

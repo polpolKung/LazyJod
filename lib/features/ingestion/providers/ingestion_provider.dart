@@ -595,7 +595,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     try {
       state = state.copyWith(
         isScanning: true,
-        statusMessage: 'เหมียวจดกำลังตรวจสลิปใหม่...',
+        statusMessage: 'จ้อดกำลังช่วยตรวจสลิปใหม่อยู่... 🦥',
         lastError: null,
       );
 

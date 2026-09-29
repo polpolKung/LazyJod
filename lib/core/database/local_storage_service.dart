@@ -50,16 +50,52 @@ class LocalStorageService {
     await _prefs?.setString(_prefTransactionsKey, jsonEncode(list));
   }
 
+  static const String _prefCategoriesVersionKey = 'lazyjod_categories_version';
+  static const int _currentCategoriesVersion = 2; // v2: Pastel theme with cute rounded icons & emoji
+
   // Categories
   Future<List<CategoryModel>> loadCategories() async {
     if (_prefs == null) await init();
     final jsonStr = _prefs?.getString(_prefCategoriesKey);
+    final version = _prefs?.getInt(_prefCategoriesVersionKey) ?? 1;
+
     if (jsonStr == null || jsonStr.isEmpty) {
+      await saveCategories(CategoryModel.defaultCategories);
+      await _prefs?.setInt(_prefCategoriesVersionKey, _currentCategoriesVersion);
       return CategoryModel.defaultCategories;
     }
+
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
-      return list.map((e) => CategoryModel.fromMap(Map<String, dynamic>.from(e))).toList();
+      final loaded = list.map((e) => CategoryModel.fromMap(Map<String, dynamic>.from(e))).toList();
+
+      // Migrate default categories to new pastel icons and colors
+      if (version < _currentCategoriesVersion) {
+        final defaultMap = {for (var c in CategoryModel.defaultCategories) c.id: c};
+        final migrated = loaded.map((c) {
+          if (c.isDefault && defaultMap.containsKey(c.id)) {
+            final fresh = defaultMap[c.id]!;
+            return CategoryModel(
+              id: c.id,
+              nameThai: fresh.nameThai,
+              nameEnglish: fresh.nameEnglish,
+              iconCodePoint: fresh.iconCodePoint,
+              colorValue: fresh.colorValue,
+              type: fresh.type,
+              isDefault: true,
+              autoKeywords: fresh.autoKeywords,
+              emoji: fresh.emoji,
+            );
+          }
+          return c;
+        }).toList();
+
+        await saveCategories(migrated);
+        await _prefs?.setInt(_prefCategoriesVersionKey, _currentCategoriesVersion);
+        return migrated;
+      }
+
+      return loaded;
     } catch (e) {
       return CategoryModel.defaultCategories;
     }

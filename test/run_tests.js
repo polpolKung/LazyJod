@@ -1,10 +1,10 @@
-// Automated Verification Script for LazyJod (เหมียวจด)
+// Automated Verification Script for Lazy Jod (เลซี่จด)
 // Testing 16 Thai Banks Slip OCR Parser, Statement Parser, Duplicate Engine, Calculator & Analytics
 
 const crypto = require('crypto');
 
 console.log('====================================================');
-console.log('🧪 RUNNING AUTOMATED UNIT TESTS FOR MEOW JOT (เหมียวจด)');
+console.log('🧪 RUNNING AUTOMATED UNIT TESTS FOR LAZY JOD (เลซี่จด)');
 console.log('====================================================\n');
 
 let passedTests = 0;

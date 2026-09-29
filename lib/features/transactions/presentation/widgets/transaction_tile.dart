@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../categories/presentation/widgets/category_icon_bubble.dart';
 import '../../../categories/presentation/widgets/category_quick_picker_sheet.dart';
 import '../../../categories/providers/category_provider.dart';
 import '../../models/transaction_model.dart';
@@ -71,25 +72,12 @@ class TransactionTile extends ConsumerWidget {
                   }
                 }
               },
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: isTransfer
-                      ? const Color(0xFF38BDF8).withOpacity(0.15)
-                      : (isUncategorized
-                          ? AppColors.warning.withOpacity(0.15)
-                          : category.color.withOpacity(0.12)),
-                  shape: BoxShape.circle,
-                  border: isUncategorized
-                      ? Border.all(color: AppColors.warning, width: 1.5)
-                      : (isTransfer ? Border.all(color: const Color(0xFF38BDF8), width: 1.2) : null),
-                ),
-                child: Icon(
-                  isTransfer ? Icons.swap_horiz_rounded : (isUncategorized ? Icons.help_outline : category.icon),
-                  color: isTransfer ? const Color(0xFF38BDF8) : (isUncategorized ? AppColors.warning : category.color),
-                  size: 24,
-                ),
+              child: CategoryIconBubble(
+                category: category,
+                size: 46,
+                isTransfer: isTransfer,
+                isUncategorized: isUncategorized,
+                showEmojiBadge: true,
               ),
             ),
             const SizedBox(width: 14),

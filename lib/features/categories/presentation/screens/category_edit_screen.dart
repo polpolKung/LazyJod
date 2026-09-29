@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../models/category_model.dart';
 import '../../providers/category_provider.dart';
+import '../widgets/category_icon_bubble.dart';
 import '../widgets/icon_picker_dialog.dart';
 
 class CategoryEditScreen extends ConsumerStatefulWidget {
@@ -23,16 +24,18 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
   late int _colorValue;
 
   static const List<Color> _presetColors = [
-    Color(0xFFFF7A45),
-    Color(0xFF1890FF),
-    Color(0xFF52C41A),
-    Color(0xFFFAAD14),
-    Color(0xFFEB2F96),
-    Color(0xFF722ED1),
-    Color(0xFF13C2C2),
-    Color(0xFFF5222D),
-    Color(0xFF2F54EB),
-    Color(0xFFFA8C16),
+    Color(0xFF56C596), // Pastel Mint Green
+    Color(0xFF48CAE4), // Pastel Sky Cyan
+    Color(0xFFFF85A1), // Pastel Blossom Pink
+    Color(0xFFFFA07A), // Pastel Salmon Peach
+    Color(0xFFFFB703), // Pastel Honey Sloth Gold
+    Color(0xFFA29BFE), // Pastel Soft Lavender
+    Color(0xFFC77DFF), // Pastel Neon Lilac
+    Color(0xFF70C1B3), // Pastel Spa Mint
+    Color(0xFFF4A261), // Pastel Warm Amber
+    Color(0xFFE0A96D), // Pastel Warm Caramel Mocca
+    Color(0xFF52B788), // Pastel Fresh Emerald
+    Color(0xFF56CFE1), // Pastel Ocean Aqua
   ];
 
   @override
@@ -125,19 +128,11 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
                     setState(() => _iconCodePoint = icon.codePoint);
                   }
                 },
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Color(_colorValue).withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Color(_colorValue), width: 2),
-                  ),
-                  child: Icon(
-                    IconData(_iconCodePoint, fontFamily: 'MaterialIcons'),
-                    color: Color(_colorValue),
-                    size: 40,
-                  ),
+                child: CategoryIconBubble(
+                  overrideIcon: IconData(_iconCodePoint, fontFamily: 'MaterialIcons'),
+                  overrideColor: Color(_colorValue),
+                  size: 80,
+                  isSelected: true,
                 ),
               ),
             ),

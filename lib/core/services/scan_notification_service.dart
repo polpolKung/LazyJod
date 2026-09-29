@@ -82,7 +82,7 @@ class ScanNotificationService {
     final details = NotificationDetails(android: androidDetails);
     await _plugin.show(
       _progressId,
-      'เหมียวจดกำลังสแกนสลิป...',
+      'Lazy Jod กำลังสแกนสลิปให้...',
       'กำลังสแกน $current/$total  •  พบสลิปแล้ว $foundSoFar รายการ',
       details,
     );

@@ -1,5 +1,5 @@
 name: lazy_jod
-description: "Meow Jot (เหมียวจด) - Cross-platform personal finance mobile app with automated Thai banking slip parsing, targeted album ingestion, budgeting, and privacy-first local storage."
+description: "Lazy Jod (เลซี่จด) - Cross-platform personal finance mobile app with automated Thai banking slip parsing, targeted album ingestion, budgeting, and privacy-first local storage."
 publish_to: 'none'
 version: 1.0.0+1
 

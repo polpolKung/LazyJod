@@ -11,6 +11,7 @@ import '../../../transactions/presentation/screens/transaction_list_screen.dart'
 import '../../../transactions/presentation/widgets/transaction_quick_edit_sheet.dart';
 import '../../../transactions/presentation/widgets/transaction_tile.dart';
 import '../../../transactions/providers/transaction_provider.dart';
+import '../../../../core/widgets/jod_mascot.dart';
 import '../../providers/analytics_provider.dart';
 import '../widgets/budget_progress_card.dart';
 import '../widgets/category_pie_chart.dart';
@@ -44,18 +45,24 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.18),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.bolt_rounded, color: AppColors.primary, size: 22),
-            ),
+            const JodMascotAvatar(size: 34),
             const SizedBox(width: 10),
-            const Text(
-              'เหมียวจด',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Lazy Jod',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                ),
+                Text(
+                  'เลซี่จด • สล้อตช่วยจด',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -110,17 +117,29 @@ class DashboardScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
-              // Overview Cards (Balance, Income, Expense) - Theme Aware (Obsidian in dark, Clean card in light)
+              // Cheeky Mascot Status Card
+              JodMascotCard(
+                message: budgetStatuses.any((b) => b.isExceeded)
+                    ? 'ล้นงบแล้วนะเหวยยย! เดือนนี้พักช้อปก่อนมั้ย? 🛑💸'
+                    : (budgetStatuses.any((b) => b.isNearLimit)
+                        ? 'เห้ยๆ เบาได้เบา! ใช้ไปเยอะแล้วนะ กระเป๋าจะแฟบแล้ว 😜'
+                        : (summary.totalExpense == 0
+                            ? 'ยังไม่เสียเงินสักบาทในเดือนนี้! นอนต่อสบายใจ 🦥💤'
+                            : 'ขี้เกียจจดใช่มั้ยล่า... ส่งสลิปมา เดี๋ยวจ้อดตรวจให้เอง! 🦥')),
+              ),
+              const SizedBox(height: 10),
+
+              // Overview Cards (Balance, Income, Expense)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isDark
-                        ? const [Color(0xFF1E202B), Color(0xFF151620)]
-                        : const [Colors.white, Color(0xFFF8FAFC)],
+                        ? const [AppColors.darkCard, AppColors.darkSurface]
+                        : const [Colors.white, AppColors.background],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),

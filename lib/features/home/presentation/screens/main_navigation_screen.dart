@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/local_storage_service.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/jod_mascot.dart';
 import '../../../analytics/presentation/screens/dashboard_screen.dart';
 import '../../../categories/presentation/screens/category_management_screen.dart';
 import '../../../ingestion/presentation/screens/slip_scanner_screen.dart';
@@ -62,32 +63,25 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.flash_on_rounded, color: AppColors.primary, size: 24),
-                  ),
-                  const SizedBox(width: 12),
+                  const JodMascotAvatar(size: 48),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ยินดีต้อนรับสู่ เหมียวจด ✨',
+                          'ยินดีต้อนรับสู่ Lazy Jod (เลซี่จด) 🦥',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'เลือกจำนวนสลิปที่ต้องการให้ระบบตรวจจับครั้งแรก',
+                          'ขี้เกียจจดใช่มั้ย? ให้จ้อดตรวจสลิปจากอัลบั้มให้ทีเดียวนะ',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                           ),
                         ),

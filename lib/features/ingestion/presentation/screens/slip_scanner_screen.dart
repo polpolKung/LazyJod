@@ -5,6 +5,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../transactions/models/transaction_type.dart';
 import '../../providers/ingestion_provider.dart';
+import '../../../../core/widgets/jod_mascot.dart';
 import 'album_picker_screen.dart';
 import 'statement_import_screen.dart';
 
@@ -269,22 +270,10 @@ class SlipScannerScreen extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.qr_code_scanner_outlined,
-                              color: AppColors.primary,
-                              size: 40,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                          const JodMascotAvatar(size: 80, withBorder: true),
+                          const SizedBox(height: 18),
                           Text(
-                            'พร้อมสแกนสลิปอัตโนมัติ',
+                            'จ้อดพร้อมตรวจสลิปให้แล้ว! 🦥',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -293,7 +282,7 @@ class SlipScannerScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'ระบบจะตรวจจับสลิปจากอัลบั้มที่เลือก ตรวจสอบยอด วันที่ และป้องกันสลิปซ้ำให้อัตโนมัติ',
+                            'ขี้เกียจจดก็ปล่อยให้จ้อดดูแล... สแกนสลิปจากอัลบั้มที่เลือก ตรวจจับยอด วันที่ และป้องกันสลิปซ้ำให้อัตโนมัติ',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,

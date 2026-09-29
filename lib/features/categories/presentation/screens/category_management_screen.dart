@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../models/category_model.dart';
 import '../../providers/category_provider.dart';
+import '../widgets/category_icon_bubble.dart';
 import 'category_edit_screen.dart';
 
 class CategoryManagementScreen extends ConsumerWidget {
@@ -21,24 +22,20 @@ class CategoryManagementScreen extends ConsumerWidget {
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final cat = categories[index];
           return Container(
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             child: ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: cat.color.withOpacity(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(cat.icon, color: cat.color, size: 22),
+              leading: CategoryIconBubble(
+                category: cat,
+                size: 44,
+                showEmojiBadge: true,
               ),
               title: Text(
                 cat.nameThai,

@@ -1,6 +1,9 @@
 class AppConstants {
-  static const String appName = 'เหมียวจด (Lazy Jod)';
-  static const String appTagline = 'เหมียวจดให้ — บันทึกรายรับรายจ่ายอัตโนมัติจากสลิป';
+  static const String appName = 'Lazy Jod';
+  static const String appNameThai = 'เลซี่จด';
+  static const String appFullName = 'Lazy Jod (เลซี่จด)';
+  static const String appTagline = 'เลซี่จดให้ — บันทึกรายรับรายจ่ายอัตโนมัติ สบายๆ สไตล์สล้อต';
+  static const String mascotName = 'จ้อด (Jod)';
   static const String currencySymbol = '฿';
   static const String currencyCode = 'THB';
   static const String localeThai = 'th_TH';
