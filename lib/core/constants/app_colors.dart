@@ -1,47 +1,48 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // ─── Brand Mint (derived from Jod mascot logo background ~#76E0B1)
-  // Pastelized to soft mint pastel for UI — same hue as logo, reduced saturation
-  static const Color primary = Color(0xFF6ECFAA);      // Logo mint, pastelized
-  static const Color primaryLight = Color(0xFFCDF0E3); // Very soft mint tint
-  static const Color primaryDark = Color(0xFF3E9E7A);  // Deeper mint for text
-  static const Color primaryMint = Color(0xFFADE5CC);  // Mid mint
-  static const Color primarySoftBg = Color(0xFFE4F7F0); // Barely-there mint bg
+  // ─── Cute Sloth Brand Mint Palette (derived from logo ~#76E0B1)
+  // Soft, warm, pastel cartoon aesthetic (Pompompurin / Bakery Kawaii style)
+  static const Color primary = Color(0xFF62C29B);      // Cute brand logo mint
+  static const Color primaryLight = Color(0xFFD6F3E7); // Milky mint cream
+  static const Color primaryDark = Color(0xFF2C7D5D);  // Forest slate for text
+  static const Color primaryMint = Color(0xFFA6E5CA);  // Soft pastel mint
+  static const Color primarySoftBg = Color(0xFFE9F8F1); // Marshmallow mint
 
-  static const Color secondary = Color(0xFF88C5D8);   // Soft sky blue (sunglasses)
-  static const Color accent = Color(0xFFEDD898);       // Warm butter honey
-  static const Color tonguePink = Color(0xFFF0919B);   // Soft blush pink (tongue)
-  static const Color slothBrown = Color(0xFFA88060);   // Cozy sloth fur
+  static const Color secondary = Color(0xFF8CCDE0);   // Soft pastel sky (sunglasses)
+  static const Color accent = Color(0xFFFDE89C);       // Warm butter pudding yellow
+  static const Color tonguePink = Color(0xFFF8A8B2);   // Cute strawberry milk pink
+  static const Color slothBrown = Color(0xFFA58265);   // Cozy sloth mocca fur
 
-  // ─── Financial semantic (soft, no neon)
-  static const Color expense = Color(0xFFE8909A);  // Muted blush rose
-  static const Color income = Color(0xFF6ECFAA);   // Same as primary (mint)
-  static const Color transfer = Color(0xFF88C5D8); // Soft sky blue
-  static const Color warning = Color(0xFFE8C06A);  // Warm honey
+  // ─── Financial semantic (cute pastel, zero neon)
+  static const Color expense = Color(0xFFF39CA6);  // Soft strawberry milk rose
+  static const Color income = Color(0xFF5EBFA1);   // Cozy logo mint
+  static const Color transfer = Color(0xFF8CCDE0); // Soft baby sky
+  static const Color warning = Color(0xFFF6C870);  // Honey butter
 
-  // ─── Backgrounds — clean white with micro mint tint
-  static const Color background = Color(0xFFF4FDFB); // Near-white micro mint
-  static const Color surface = Color(0xFFFFFFFF);    // Pure white cards
+  // ─── Backgrounds — cozy warm milk cream & pure marshmallow white
+  static const Color background = Color(0xFFF3F8F4); // Warm milky matcha background
+  static const Color surface = Color(0xFFFFFFFF);    // Marshmallow white cards
   static const Color cardBg = Color(0xFFFFFFFF);     // Pure white
-  static const Color cardBorder = Color(0xFFD8F0E8); // Hairline mint border
-  static const Color border = Color(0xFFDAEFE5);
-  static const Color divider = Color(0xFFEBF7F2);
+  // Zero borders across the entire app — borderless cute cartoon style
+  static const Color cardBorder = Colors.transparent;
+  static const Color border = Colors.transparent;
+  static const Color divider = Color(0xFFE8F2EC);
 
-  // ─── Text — warm dark (not harsh black)
-  static const Color textPrimary = Color(0xFF283832);   // Deep forest slate
-  static const Color textSecondary = Color(0xFF5A7A6E); // Muted sage
-  static const Color textMuted = Color(0xFF94B5A8);     // Very muted
+  // ─── Text — friendly warm slate/mocca (no harsh black)
+  static const Color textPrimary = Color(0xFF2B3A33);   // Warm forest slate
+  static const Color textSecondary = Color(0xFF627B70); // Gentle matcha
+  static const Color textMuted = Color(0xFF9AB2A6);     // Soft pastel mute
 
-  // ─── Dark tokens (unified = same as light)
-  static const Color darkBackground = Color(0xFFF4FDFB);
+  // ─── Unified Mode tokens (seamless single-theme)
+  static const Color darkBackground = Color(0xFFF3F8F4);
   static const Color darkSurface = Color(0xFFFFFFFF);
   static const Color darkCard = Color(0xFFFFFFFF);
-  static const Color darkBorder = Color(0xFFD8F0E8);
-  static const Color darkDivider = Color(0xFFEBF7F2);
-  static const Color darkTextPrimary = Color(0xFF283832);
-  static const Color darkTextSecondary = Color(0xFF5A7A6E);
-  static const Color darkTextMuted = Color(0xFF94B5A8);
+  static const Color darkBorder = Colors.transparent;
+  static const Color darkDivider = Color(0xFFE8F2EC);
+  static const Color darkTextPrimary = Color(0xFF2B3A33);
+  static const Color darkTextSecondary = Color(0xFF627B70);
+  static const Color darkTextMuted = Color(0xFF9AB2A6);
 
   // ─── 16 Thai Bank Colors
   static const Color bankKBank = Color(0xFF138F2D);

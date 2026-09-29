@@ -130,13 +130,8 @@ class SlipScannerScreen extends ConsumerWidget {
           // Privacy & Mode Banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : AppColors.primaryLight.withOpacity(0.4),
-              border: Border(
-                bottom: BorderSide(
-                  color: isDark ? AppColors.darkBorder : AppColors.primary.withOpacity(0.2),
-                ),
-              ),
+            decoration: const BoxDecoration(
+              color: AppColors.primarySoftBg,
             ),
             child: Row(
               children: [

@@ -121,94 +121,77 @@ class JodMascotCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        // No border — soft shadow only
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
+            color: const Color(0xFF386450).withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Tiny retro dots + label (cute, not neon)
-          Row(
-            children: [
-              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppColors.expense.withOpacity(0.7), shape: BoxShape.circle)),
-              const SizedBox(width: 3),
-              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.7), shape: BoxShape.circle)),
-              const SizedBox(width: 3),
-              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.7), shape: BoxShape.circle)),
-              const Spacer(),
-              const Text(
-                'LAZY JOD CLUB 🌿',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
-                  color: AppColors.textMuted,
-                ),
-              ),
-            ],
+          // Mascot Avatar with soft glow
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              shape: BoxShape.circle,
+            ),
+            child: const JodMascotAvatar(size: 54),
           ),
-          const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const JodMascotAvatar(size: 52),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          title ?? 'จ้อด (Lazy Jod)',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryDark,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        // Badge — soft pill, NO border
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'มาสคอตสายขี้เกียจ',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryDark,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
                     Text(
-                      displayMessage,
+                      title ?? 'จ้อด (Lazy Jod)',
                       style: const TextStyle(
-                        fontSize: 12.5,
-                        height: 1.35,
-                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Cute soft pill badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        'สล้อตสายชิลล์ 💤',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 5),
+                Text(
+                  displayMessage,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -87,17 +87,17 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Month Selector Bar
+              // Month Selector Bar — Cute Capsule
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: const Color(0xFF386450).withOpacity(0.05),
+                      blurRadius: 12,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -105,19 +105,26 @@ class DashboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.chevron_left),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      color: AppColors.primaryDark,
                       onPressed: () => ref.read(selectedMonthProvider.notifier).goToPrevMonth(),
                     ),
-                    Text(
-                      '$monthName $yearThai',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        const Text('📅 ', style: TextStyle(fontSize: 16)),
+                        Text(
+                          '$monthName $yearThai',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.chevron_right),
+                      icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                      color: AppColors.primaryDark,
                       onPressed: () => ref.read(selectedMonthProvider.notifier).goToNextMonth(),
                     ),
                   ],
@@ -321,8 +328,8 @@ class DashboardScreen extends ConsumerWidget {
                       context: context,
                       title: 'E-Statement',
                       subtitle: 'PDF บัตรเครดิต',
-                      icon: Icons.picture_as_pdf,
-                      color: const Color(0xFF722ED1),
+                      icon: Icons.picture_as_pdf_rounded,
+                      color: const Color(0xFFAFA2DC),
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const StatementImportScreen()),
@@ -547,31 +554,29 @@ class DashboardScreen extends ConsumerWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(22),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          // No border — soft shadow only
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: const Color(0xFF386450).withOpacity(0.06),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           children: [
-            // Solid fill circle icon — iOS style
+            // Cute squircle cartoon icon pod
             Container(
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                // Blend toward primary mint for cohesion
-                color: Color.alphaBlend(color.withOpacity(0.6), AppColors.primaryMint),
-                shape: BoxShape.circle,
+                color: Color.alphaBlend(color.withOpacity(0.7), AppColors.primaryMint),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: color.withOpacity(0.2),
@@ -580,13 +585,13 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
             const SizedBox(height: 8),
             Text(
               title,
               style: const TextStyle(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 fontSize: 12.5,
                 color: AppColors.textPrimary,
               ),
@@ -596,6 +601,7 @@ class DashboardScreen extends ConsumerWidget {
               subtitle,
               style: const TextStyle(
                 fontSize: 10,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textMuted,
               ),
               textAlign: TextAlign.center,

@@ -180,17 +180,13 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                       margin: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard : Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.primary.withOpacity(0.35),
-                          width: 1.2,
-                        ),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            color: const Color(0xFF386450).withOpacity(0.08),
+                            blurRadius: 14,
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -246,36 +242,72 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'ภาพรวม',
+      bottomNavigationBar: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        child: SafeArea(
+          top: false,
+          child: Container(
+            height: 66,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(33),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF386450).withOpacity(0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.dashboard_rounded, 'ภาพรวม'),
+                _buildNavItem(1, Icons.receipt_long_rounded, 'รายการ'),
+                _buildNavItem(2, Icons.qr_code_scanner_rounded, 'สแกนสลิป'),
+                _buildNavItem(3, Icons.category_rounded, 'หมวดหมู่'),
+                _buildNavItem(4, Icons.settings_rounded, 'ตั้งค่า'),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'รายการ',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner_outlined),
-            selectedIcon: Icon(Icons.qr_code_scanner),
-            label: 'สแกนสลิป',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category),
-            label: 'หมวดหมู่',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'ตั้งค่า',
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(22),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryLight : Colors.transparent,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 21,
+              color: isSelected ? AppColors.primaryDark : AppColors.textMuted,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primaryDark : AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

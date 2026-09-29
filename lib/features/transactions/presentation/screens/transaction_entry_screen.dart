@@ -133,11 +133,17 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
               children: [
                 // Type Selector (Segmented)
                 Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.cardBorder, width: 1.2),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF386450).withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
@@ -150,11 +156,10 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                 if (_type == TransactionType.transfer) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.transfer.withOpacity(isDark ? 0.15 : 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.transfer.withOpacity(0.3)),
+                      color: AppColors.transfer.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Row(
                       children: [
@@ -175,13 +180,19 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                 // Amount Field with Calculator Trigger
                 InkWell(
                   onTap: () => setState(() => _showCalculator = true),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF386450).withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

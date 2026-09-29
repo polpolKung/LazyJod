@@ -170,9 +170,8 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : AppColors.background,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(18),
             ),
             child: Row(
               children: [
@@ -203,9 +202,20 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
             decoration: InputDecoration(
               labelText: 'บันทึกช่วยจำ / ชื่อผู้รับ',
               prefixIcon: const Icon(Icons.notes),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
               filled: true,
-              fillColor: isDark ? AppColors.darkCard : AppColors.background,
+              fillColor: AppColors.background,
             ),
           ),
           const SizedBox(height: 12),
@@ -235,13 +245,12 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
                       });
                     }
                   },
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCard : AppColors.background,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: [
@@ -270,13 +279,12 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
               Expanded(
                 child: InkWell(
                   onTap: _pickDateTime,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCard : AppColors.background,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: [

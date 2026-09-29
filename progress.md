@@ -42,22 +42,30 @@
 ---
 
 ## 2. Current Phase
-- **Phase:** Feature-Complete Core & Advanced Ingestion + Cute Matcha Pastel Unified Theme (No Dark/Light Mode Split)
+- **Phase:** Feature-Complete Core & Advanced Ingestion + Cute Cartoon Kawaii Aesthetic (Pompompurin & Bakery Bear Style)
 - **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
-- **Recent Milestone:** Soft Matcha & Cute Pastel Green Unified Theme Rework — inspired by retro sticker club & Tamagotchi aesthetic (Image 3/4 reference), eliminating harsh neon/dark mode splits in favor of a soothing matcha milk palette (`#EBF3EA`, `#72B584`, `#FFFFFF`, `#C0DAC6`), retro 3-dot window cards, and squircle sticker icon bubbles.
+- **Recent Milestone:** Cute Cartoon Kawaii UI Rework — inspired by Pompompurin & Bakery Bear references, eliminating ALL harsh border outlines (`cardBorder = transparent`), adopting warm matcha milk background (`#F3F8F4`), marshmallow white borderless cards with gentle warm shadows, chubby squircle action pods, speech card mascot Jod, and a floating rounded bottom dock.
 
 ---
 
 ## 3. Completed Tasks (✅)
 
-### Cute Matcha Pastel Unified Theme & Sticker Aesthetic (Rework)
-- ✅ **Soft Matcha Milk & Forest Palette (`app_colors.dart`, `app_theme.dart`):**
-  - Designed cozy, eye-friendly pastel matcha palette inspired by user reference artwork (Images 1-4):
-    - Primary: Soft Matcha Green (`#72B584`)
-    - Primary Light: Matcha Milk Tint (`#E5F2E8`)
-    - Background: Soft Matcha Milk (`#EBF3EA`)
-    - Surface & Cards: Crisp Milk White (`#FFFFFF`) / Soft Mint Cream (`#F8FCF8`)
-    - Card Borders: Soft Matcha Outline (`#C0DAC6`, width 1.5)
+### Cute Cartoon Kawaii UI Rework (Pompompurin & Bakery Bear Style)
+- ✅ **Completely Borderless Aesthetic (`app_colors.dart`, `app_theme.dart`):**
+  - Eliminated all artificial border outlines across cards, pills, buttons, and dialogs (`cardBorder = Colors.transparent`).
+  - Warm milky matcha background (`#F3F8F4`) and marshmallow white cards (`#FFFFFF`) with ultra-gentle warm ambient shadows (`Color(0xFF386450).withOpacity(0.06)`).
+  - Primary color locked to the Lazy Jod sloth logo mint (`#62C29B`), soft strawberry milk expense (`#F39CA6`), soft butter yellow accent (`#FDE89C`).
+- ✅ **Floating Cute Marshmallow Dock (`main_navigation_screen.dart`):**
+  - Replaced standard Android Material 3 full-width NavigationBar with a floating rounded dock capsule (`borderRadius: 33`, soft floating shadow).
+  - Selected tab uses soft mint pill background with cute icons and compact labels.
+- ✅ **Chubby Cartoon Quick Action Pods (`dashboard_screen.dart`):**
+  - Upgraded action tiles to cute chubby pods (`borderRadius: 22`) with solid pastel squircle icon badges (สแกนสลิป, จดด้วยมือ, E-Statement in pastel lilac `#AFA2DC`).
+- ✅ **Cute Mascot Speech Card (`jod_mascot.dart`):**
+  - Transformed into a cute cartoon speech card with sleepy sloth avatar, soft pill badge (`สล้อตสายชิลล์ 💤`), and cuddly borderless container.
+- ✅ **Cute Capsule Month Selector & Clean Net Balance Layout (`dashboard_screen.dart`):**
+  - Rounded capsule month bar with mini calendar icon and cute back/forward chevrons.
+  - Borderless Net Balance card with side-by-side dot indicator for income/expense.
+- ✅ **All 49/49 Unit Tests Passing (100%):** Verified all slip parsing, deduplication, income folders, and budget alert tests remain green.
     - Text: Forest Slate (`#2E3E33`) & Sage Muted (`#5D7766`, `#8BA694`)
     - Expense: Soft Strawberry Milk Pink (`#F28A94`)
     - Income: Fresh Matcha Green (`#65B880`)
