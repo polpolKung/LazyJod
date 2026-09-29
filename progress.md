@@ -50,6 +50,19 @@
 
 ## 3. Completed Tasks (✅)
 
+### Scanner UX & Category Icon Accuracy Rework (Latest)
+- ✅ **Category Icon Accuracy (`category_model.dart`, `local_storage_service.dart`):**
+  - Resolved mismatched icon glyphs in category picker (e.g. food showing TV monitor, transport showing dropper, bills showing flash off).
+  - Implemented explicit ID-based `IconData get icon` mapper returning genuine `Icons.*_rounded` (restaurant, directions_car, shopping_bag, receipt_long, home, sports_esports, favorite, pets, payments, savings, account_balance_wallet).
+  - Updated `CategoryModel.defaultCategories` and bumped `_currentCategoriesVersion` to `3` for seamless auto-migration.
+- ✅ **Slip Scanner Screen UX Overhaul (`slip_scanner_screen.dart`):**
+  - Removed top privacy banner ("สแกนเฉพาะอัลบั้มที่เลือก (Privacy-First)...") to keep the interface clean and focused.
+  - Added interactive active folders preview card showing selected expense and income folders.
+  - Centered folder management button ("เลือกโฟลเดอร์ / อัลบั้มสลิปที่จะสแกน") directly alongside the scan action buttons.
+- ✅ **First Launch Album Review Flow (`main_navigation_screen.dart`, `album_picker_screen.dart`):**
+  - On first app launch, directly presents `AlbumPickerScreen(isFirstLaunch: true)` with detected banking folders pre-selected by default.
+  - Users can clearly see which bank folders are included, add/remove folders, and tap "ยืนยันและเริ่มสแกนสลิป" to begin scanning immediately.
+
 ### Prominent Logo Mint & Cartoon Comic Line Art Rework
 - ✅ **Logo Mint Wallpaper (`app_colors.dart`):**
   - App background upgraded from washed-out white to noticeable pastel mint wallpaper (`#BDE6D4`), matching the brand logo's mint background.

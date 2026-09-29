@@ -127,37 +127,6 @@ class SlipScannerScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Privacy & Mode Banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: AppColors.primarySoftBg,
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.shield_outlined, color: AppColors.primary, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'สแกนเฉพาะอัลบั้มที่เลือก (Privacy-First) ประมวลผลบนเครื่อง ไม่ส่งภาพออกภายนอก',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.textPrimary,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AlbumPickerScreen()),
-                    );
-                  },
-                  child: const Text('จัดการโฟลเดอร์', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                ),
-              ],
-            ),
-          ),
 
           // Scan Progress Indicator
           if (state.isScanning) ...[
@@ -287,87 +256,166 @@ class SlipScannerScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // Active folders card
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.folder_outlined, size: 16, color: AppColors.expense),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      selectedExpenseAlbums.isNotEmpty
-                                          ? 'รายจ่าย: ${selectedExpenseAlbums.length} โฟลเดอร์ (${selectedExpenseAlbums.take(2).map((a) => a.name).join(", ")}${selectedExpenseAlbums.length > 2 ? "..." : ""})'
-                                          : 'รายจ่าย: ยังไม่ได้เลือกโฟลเดอร์',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                          // Active folders cartoon card (tap to manage)
+                          InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const AlbumPickerScreen()),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.cartoonOutline.withOpacity(0.10),
+                                    offset: const Offset(0, 3),
+                                    blurRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.folder_special_rounded, size: 18, color: AppColors.cartoonOutline),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            'โฟลเดอร์ที่จะสแกน',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.savings_outlined, size: 16, color: AppColors.income),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      selectedIncomeAlbums.isNotEmpty
-                                          ? 'รายรับ: ${selectedIncomeAlbums.length} โฟลเดอร์ (${selectedIncomeAlbums.take(2).map((a) => a.name).join(", ")}${selectedIncomeAlbums.length > 2 ? "..." : ""})'
-                                          : 'รายรับ: ยังไม่ได้เลือกโฟลเดอร์ (แตะเพื่อเพิ่ม)',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: selectedIncomeAlbums.isNotEmpty
-                                            ? (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)
-                                            : AppColors.income,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryLight,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: AppColors.cartoonOutline, width: 1.2),
+                                        ),
+                                        child: const Text(
+                                          'แตะเพื่อจัดการ ✏️',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.cartoonOutline,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.folder_outlined, size: 16, color: AppColors.expense),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          selectedExpenseAlbums.isNotEmpty
+                                              ? 'รายจ่าย: ${selectedExpenseAlbums.length} โฟลเดอร์ (${selectedExpenseAlbums.take(2).map((a) => a.name).join(", ")}${selectedExpenseAlbums.length > 2 ? "..." : ""})'
+                                              : 'รายจ่าย: ยังไม่ได้เลือกโฟลเดอร์',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.savings_outlined, size: 16, color: AppColors.income),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          selectedIncomeAlbums.isNotEmpty
+                                              ? 'รายรับ: ${selectedIncomeAlbums.length} โฟลเดอร์ (${selectedIncomeAlbums.take(2).map((a) => a.name).join(", ")}${selectedIncomeAlbums.length > 2 ? "..." : ""})'
+                                              : 'รายรับ: ยังไม่ได้เลือกโฟลเดอร์ (แตะเพื่อเพิ่ม)',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: selectedIncomeAlbums.isNotEmpty
+                                                ? AppColors.textPrimary
+                                                : AppColors.income,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Button 1: Scan Targeted Albums
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () => notifier.scanTargetedAlbums(),
-                              icon: const Icon(Icons.sync),
+                              icon: const Icon(Icons.sync_rounded, color: Colors.white),
                               label: const Text('เริ่มสแกนโฟลเดอร์สลิป'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                side: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
                             ),
                           ),
                           const SizedBox(height: 12),
 
-                          // Button 2: Pick from Gallery directly with type selector
+                          // Button 2: Choose / Manage Folders to Scan
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const AlbumPickerScreen()),
+                                );
+                              },
+                              icon: const Icon(Icons.folder_open_rounded, color: AppColors.cartoonOutline),
+                              label: const Text('เลือกโฟลเดอร์ / อัลบั้มสลิปที่จะสแกน'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.cartoonOutline,
+                                side: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Button 3: Pick from Gallery directly with type selector
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
                               onPressed: () => _showGalleryPickerSheet(context, notifier),
-                              icon: const Icon(Icons.photo_library_outlined),
+                              icon: const Icon(Icons.photo_library_outlined, color: AppColors.cartoonOutline),
                               label: const Text('เลือกรูปสลิปจากแกลเลอรีโดยตรง'),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side: const BorderSide(color: AppColors.primary, width: 1.5),
+                                foregroundColor: AppColors.cartoonOutline,
+                                side: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
                             ),
                           ),

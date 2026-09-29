@@ -135,6 +135,14 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     await _storage.setScanAlbumsConfigured(true);
   }
 
+  Future<void> confirmAlbumSelection() async {
+    final selectedIncome = state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toSet();
+    final selectedExpense = state.albums.where((a) => a.isSelected).map((a) => a.id).toSet();
+    await _storage.setSelectedIncomeAlbumIds(selectedIncome);
+    await _storage.setSelectedExpenseAlbumIds(selectedExpense);
+    await _storage.setScanAlbumsConfigured(true);
+  }
+
   Future<void> addCustomFolderName(String name, {bool isIncome = false}) async {
     if (isIncome) {
       _albumService.addIncomeFolderName(name);

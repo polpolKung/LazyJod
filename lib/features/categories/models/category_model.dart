@@ -28,7 +28,41 @@ class CategoryModel {
     this.emoji,
   });
 
-  IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+  IconData get icon {
+    switch (id) {
+      case 'cat_food':
+        return Icons.restaurant_rounded;
+      case 'cat_transport':
+        return Icons.directions_car_rounded;
+      case 'cat_shopping':
+        return Icons.shopping_bag_rounded;
+      case 'cat_uncategorized':
+        return Icons.help_outline_rounded;
+      case 'cat_transfer':
+        return Icons.swap_horiz_rounded;
+      case 'cat_bills':
+        return Icons.receipt_long_rounded;
+      case 'cat_housing':
+        return Icons.home_rounded;
+      case 'cat_entertainment':
+        return Icons.sports_esports_rounded;
+      case 'cat_health':
+        return Icons.favorite_rounded;
+      case 'cat_pets':
+        return Icons.pets_rounded;
+      case 'cat_other_expense':
+        return Icons.more_horiz_rounded;
+      case 'cat_salary':
+        return Icons.payments_rounded;
+      case 'cat_bonus':
+        return Icons.savings_rounded;
+      case 'cat_other_income':
+        return Icons.account_balance_wallet_rounded;
+      default:
+        return IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+    }
+  }
+
   Color get color => Color(colorValue);
 
   Map<String, dynamic> toMap() {
@@ -60,16 +94,16 @@ class CategoryModel {
   }
 
   static List<CategoryModel> get defaultCategories => [
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_food',
       nameThai: 'อาหารและเครื่องดื่ม',
       nameEnglish: 'Food & Drinks',
-      iconCodePoint: 0xf00ee, // ramen_dining_rounded
+      iconCodePoint: Icons.restaurant_rounded.codePoint,
       colorValue: 0xFFFFA07A, // Pastel Salmon Peach
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🍜',
-      autoKeywords: [
+      autoKeywords: const [
         'cafe', 'coffee', 'kitchen', 'restaurant', 'food', 'bakery', 'tea',
         'เซเว่น', '7-eleven', 'lineman', 'grabfood', 'shopeefood', 'เตี๋ยว',
         'ข้าวมันไก่', 'หมูกระทะ', 'ชาบู', 'ส้มตำ', 'ชาไข่มุก', 'สุกี้',
@@ -77,166 +111,166 @@ class CategoryModel {
         'ไก่ทอด', 'บะหมี่', 'ก๋วยเตี๋ยว', 'ข้าวต้ม', 'อาหาร',
       ],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_transport',
       nameThai: 'เดินทาง/คมนาคม',
       nameEnglish: 'Transportation',
-      iconCodePoint: 0xf659, // commute_rounded (bus/train/car)
+      iconCodePoint: Icons.directions_car_rounded.codePoint,
       colorValue: 0xFF48CAE4, // Pastel Sky Cyan
       type: CategoryType.expense,
       isDefault: true,
-      emoji: '🚊',
-      autoKeywords: [
+      emoji: '🚗',
+      autoKeywords: const [
         'bts', 'mrt', 'grab', 'bolt', 'ptt', 'bcp', 'shell', 'caltex',
         'ทางด่วน', 'easy pass', 'm-flow', 'น้ำมัน', 'ปั๊ม', 'แท็กซี่'
       ],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_shopping',
       nameThai: 'ช้อปปิ้ง/ของใช้',
       nameEnglish: 'Shopping',
-      iconCodePoint: 0xf016e, // shopping_bag_rounded
+      iconCodePoint: Icons.shopping_bag_rounded.codePoint,
       colorValue: 0xFFFF85A1, // Pastel Blossom Pink
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🛍️',
-      autoKeywords: [
+      autoKeywords: const [
         'shopee', 'lazada', 'tiktok', 'central', 'lotus', 'big c', 'cj express',
         'วัตสัน', 'watsons', 'boots', 'uniqlo', 'zara', 'mr.diy', 'd.i.y',
         'ลาซาด้า', 'ช้อปปี้', 'ติ๊กต็อก', 'เซ็นทรัล', 'โลตัส', 'แม็กซ์แวลู',
         'บิ๊กซี', 'ท็อปส์', 'จัสโก้', 'อิเกีย', 'ฮาร์บา', 'ช้อปปิ้ง',
       ],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_uncategorized',
       nameThai: 'รอเลือกหมวดหมู่',
       nameEnglish: 'Uncategorized',
-      iconCodePoint: 0xf06e5, // psychology_alt_rounded (sloth thinking)
+      iconCodePoint: Icons.help_outline_rounded.codePoint,
       colorValue: 0xFFFFB703, // Pastel Honey Sloth Gold
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🦥',
-      autoKeywords: [],
+      autoKeywords: const [],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_transfer',
       nameThai: 'โอนเงิน / โอนให้ผู้อื่น',
       nameEnglish: 'Transfer',
-      iconCodePoint: 0xf0204, // swap_horizontal_circle_rounded
+      iconCodePoint: Icons.swap_horiz_rounded.codePoint,
       colorValue: 0xFF5AA9E6, // Pastel Azure Blue
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🔄',
-      autoKeywords: [
+      autoKeywords: const [
         'โอนเงิน', 'พร้อมเพย์', 'promptpay', 'transfer', 'โอน',
         'คืนเงิน', 'ฝากเงิน', 'เติมเงิน', 'นาย', 'น.ส.', 'นาง',
       ],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_bills',
       nameThai: 'บิลและสาธารณูปโภค',
       nameEnglish: 'Bills & Utilities',
-      iconCodePoint: 0xf05a1, // electric_bolt_rounded
+      iconCodePoint: Icons.receipt_long_rounded.codePoint,
       colorValue: 0xFFF4A261, // Pastel Warm Amber
       type: CategoryType.expense,
       isDefault: true,
-      emoji: '⚡',
-      autoKeywords: [
+      emoji: '🧾',
+      autoKeywords: const [
         'การไฟฟ้า', 'pea', 'mea', 'การประปา', 'pwa', 'mwa', 'ais', 'true',
         'dtac', '3bb', 'nt', 'อินเทอร์เน็ต', 'ค่าไฟ', 'ค่าน้ำ', 'ค่าโทรศัพท์'
       ],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_housing',
       nameThai: 'ที่อยู่อาศัย',
       nameEnglish: 'Housing & Rent',
-      iconCodePoint: 0xf655, // cottage_rounded
+      iconCodePoint: Icons.home_rounded.codePoint,
       colorValue: 0xFFA29BFE, // Pastel Soft Lavender
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🏡',
-      autoKeywords: ['ค่าเช่า', 'ค่าหอ', 'คอนโด', 'ส่วนกลาง', 'นิติบุคคล', 'เฟอร์นิเจอร์', 'ikea', 'index'],
+      autoKeywords: const ['ค่าเช่า', 'ค่าหอ', 'คอนโด', 'ส่วนกลาง', 'นิติบุคคล', 'เฟอร์นิเจอร์', 'ikea', 'index'],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_entertainment',
       nameThai: 'บันเทิงและสตรีมมิ่ง',
       nameEnglish: 'Entertainment',
-      iconCodePoint: 0xf01cd, // sports_esports_rounded
+      iconCodePoint: Icons.sports_esports_rounded.codePoint,
       colorValue: 0xFFC77DFF, // Pastel Neon Lilac
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🎮',
-      autoKeywords: ['netflix', 'spotify', 'youtube', 'disney', 'major', 'sf cinema', 'steam', 'game', 'playstation'],
+      autoKeywords: const ['netflix', 'spotify', 'youtube', 'disney', 'major', 'sf cinema', 'steam', 'game', 'playstation'],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_health',
       nameThai: 'สุขภาพและความงาม',
       nameEnglish: 'Health & Beauty',
-      iconCodePoint: 0xe5e1, // spa_rounded
+      iconCodePoint: Icons.favorite_rounded.codePoint,
       colorValue: 0xFF70C1B3, // Pastel Spa Mint
       type: CategoryType.expense,
       isDefault: true,
-      emoji: '🧴',
-      autoKeywords: ['โรงพยาบาล', 'คลินิก', 'เภสัช', 'ยา', 'หมอฟัน', 'ฟิตเนส', 'fitness', 'เสริมสวย', 'ทำเล็บ', 'ตัดผม'],
+      emoji: '💖',
+      autoKeywords: const ['โรงพยาบาล', 'คลินิก', 'เภสัช', 'ยา', 'หมอฟัน', 'ฟิตเนส', 'fitness', 'เสริมสวย', 'ทำเล็บ', 'ตัดผม'],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_pets',
       nameThai: 'สัตว์เลี้ยง (น้องสล้อต/หมา/แมว)',
       nameEnglish: 'Pets',
-      iconCodePoint: 0xf680, // cruelty_free_rounded
+      iconCodePoint: Icons.pets_rounded.codePoint,
       colorValue: 0xFFE0A96D, // Pastel Warm Caramel Mocca
       type: CategoryType.expense,
       isDefault: true,
       emoji: '🐾',
-      autoKeywords: ['อาหารแมว', 'อาหารหมา', 'ทรายแมว', 'คลินิกสัตว์', 'pet shop', 'สัตวแพทย์'],
+      autoKeywords: const ['อาหารแมว', 'อาหารหมา', 'ทรายแมว', 'คลินิกสัตว์', 'pet shop', 'สัตวแพทย์'],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_other_expense',
       nameThai: 'อื่นๆ (รายจ่าย)',
       nameEnglish: 'Other Expense',
-      iconCodePoint: 0xf5f3, // bubble_chart_rounded
+      iconCodePoint: Icons.more_horiz_rounded.codePoint,
       colorValue: 0xFF8E9AAF, // Pastel Slate Sage
       type: CategoryType.expense,
       isDefault: true,
       emoji: '💬',
-      autoKeywords: [],
+      autoKeywords: const [],
     ),
     // Income Categories
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_salary',
       nameThai: 'เงินเดือน/ค่าจ้าง',
       nameEnglish: 'Salary & Wages',
-      iconCodePoint: 0xf0027, // payments_rounded
+      iconCodePoint: Icons.payments_rounded.codePoint,
       colorValue: 0xFF52B788, // Pastel Fresh Emerald
       type: CategoryType.income,
       isDefault: true,
       emoji: '💵',
-      autoKeywords: ['เงินเดือน', 'salary', 'payroll', 'ค่าจ้างรายเดือน', 'wages'],
+      autoKeywords: const ['เงินเดือน', 'salary', 'payroll', 'ค่าจ้างรายเดือน', 'wages'],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_bonus',
       nameThai: 'รายได้เสริม/โบนัส',
       nameEnglish: 'Bonus & Side Hustle',
-      iconCodePoint: 0xf598, // auto_awesome_rounded
+      iconCodePoint: Icons.savings_rounded.codePoint,
       colorValue: 0xFFFEE440, // Pastel Sunshine Yellow
       type: CategoryType.income,
       isDefault: true,
       emoji: '✨',
-      autoKeywords: [
+      autoKeywords: const [
         'freelance', 'ฟรีแลนซ์', 'โบนัส', 'คอมมิชชั่น', 'เงินปันผล', 'ดอกเบี้ย',
         'ขายของ', 'ค่าสินค้า', 'รายได้เสริม', 'ค่าสอน', 'commission', 'bonus', 'dividend'
       ],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'cat_other_income',
       nameThai: 'อื่นๆ (รายรับ)',
       nameEnglish: 'Other Income',
-      iconCodePoint: 0xf0077, // price_check_rounded
+      iconCodePoint: Icons.account_balance_wallet_rounded.codePoint,
       colorValue: 0xFF56CFE1, // Pastel Ocean Mint
       type: CategoryType.income,
       isDefault: true,
       emoji: '💰',
-      autoKeywords: ['รายรับ', 'เงินเข้า', 'โอนเข้า', 'คืนเงิน', 'รับเงิน'],
+      autoKeywords: const ['รายรับ', 'เงินเข้า', 'โอนเข้า', 'คืนเงิน', 'รับเงิน'],
     ),
   ];
 }

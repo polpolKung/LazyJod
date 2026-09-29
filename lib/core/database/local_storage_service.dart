@@ -51,7 +51,7 @@ class LocalStorageService {
   }
 
   static const String _prefCategoriesVersionKey = 'lazyjod_categories_version';
-  static const int _currentCategoriesVersion = 2; // v2: Pastel theme with cute rounded icons & emoji
+  static const int _currentCategoriesVersion = 3; // v3: Accurate rounded category icons
 
   // Categories
   Future<List<CategoryModel>> loadCategories() async {
@@ -192,6 +192,8 @@ class LocalStorageService {
     if (_prefs == null) await init();
     await _prefs?.setBool(_prefFirstLaunchKey, true);
   }
+
+  Future<void> setFirstLaunchComplete() => setFirstLaunchCompleted();
 
   // ── OCR Sync Queue ────────────────────────────────────────────────────────
   static const String _prefSyncQueueKey = 'lazyjod_ocr_sync_queue';

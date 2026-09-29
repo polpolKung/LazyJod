@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/database/local_storage_service.dart';
 import '../../providers/ingestion_provider.dart';
 import '../../services/targeted_album_service.dart';
 
@@ -8,7 +9,9 @@ import '../../services/targeted_album_service.dart';
 enum _AlbumScanMode { none, expense, income }
 
 class AlbumPickerScreen extends ConsumerWidget {
-  const AlbumPickerScreen({super.key});
+  final bool isFirstLaunch;
+
+  const AlbumPickerScreen({super.key, this.isFirstLaunch = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,22 +24,25 @@ class AlbumPickerScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('เลือกโฟลเดอร์สแกนสลิป'),
+        title: Text(isFirstLaunch ? 'โฟลเดอร์สแกนสลิป (เริ่มต้น)' : 'เลือกโฟลเดอร์สแกนสลิป'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(40),
+          preferredSize: const Size.fromHeight(42),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: isDark ? AppColors.darkSurface : AppColors.primaryLight.withOpacity(0.3),
+            color: AppColors.primarySoftBg,
             child: Row(
               children: [
-                const Icon(Icons.touch_app_outlined, size: 14, color: AppColors.primary),
-                const SizedBox(width: 6),
+                const Icon(Icons.touch_app_outlined, size: 16, color: AppColors.cartoonOutline),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'แตะที่ปุ่มด้านล่างแต่ละโฟลเดอร์เพื่อเลือก — ต้องเลือกเองทั้งหมด',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    isFirstLaunch
+                        ? '💡 เลือกอัลบั้มธนาคารเริ่มต้นไว้ให้แล้ว ตรวจสอบหรือเลือกเพิ่มได้ตามสบาย'
+                        : 'แตะที่ปุ่มด้านล่างแต่ละโฟลเดอร์เพื่อเลือกประเภทการสแกน',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -96,10 +102,18 @@ class AlbumPickerScreen extends ConsumerWidget {
 
       // Bottom summary + save bar
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : Colors.white,
-          border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border)),
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.cartoonOutline.withOpacity(0.12),
+              offset: const Offset(0, -3),
+              blurRadius: 0,
+            ),
+          ],
         ),
         child: SafeArea(
           child: Column(
@@ -127,26 +141,40 @@ class AlbumPickerScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.check_rounded, size: 18),
+                  onPressed: () async {
+                    final storage = LocalStorageService();
+                    await notifier.confirmAlbumSelection();
+                    if (isFirstLaunch) {
+                      await storage.setFirstLaunchCompleted();
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        notifier.scanTargetedAlbums();
+                      }
+                    } else {
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.check_rounded, size: 20, color: Colors.white),
                   label: Text(
-                    (selectedExpenseCount + selectedIncomeCount) == 0
-                        ? 'ยืนยัน (ยังไม่ได้เลือกโฟลเดอร์)'
-                        : 'ยืนยัน — สแกน ${selectedExpenseCount + selectedIncomeCount} โฟลเดอร์',
+                    isFirstLaunch
+                        ? 'ยืนยันและเริ่มสแกนสลิป (${selectedExpenseCount + selectedIncomeCount} โฟลเดอร์)'
+                        : ((selectedExpenseCount + selectedIncomeCount) == 0
+                            ? 'ยืนยัน (ยังไม่ได้เลือกโฟลเดอร์)'
+                            : 'บันทึก — สแกน ${selectedExpenseCount + selectedIncomeCount} โฟลเดอร์'),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: (selectedExpenseCount + selectedIncomeCount) > 0
-                        ? AppColors.primary
-                        : (isDark ? AppColors.darkSurface : Colors.grey.shade300),
-                    foregroundColor: (selectedExpenseCount + selectedIncomeCount) > 0
-                        ? Colors.black
-                        : (isDark ? AppColors.darkTextMuted : Colors.grey.shade600),
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
             ],
           ),
         ),
