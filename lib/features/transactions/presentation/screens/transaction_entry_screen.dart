@@ -135,8 +135,9 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.cardBorder, width: 1.2),
                   ),
                   child: Row(
                     children: [
@@ -396,9 +397,10 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? (isDark ? AppColors.darkCard : Colors.white) : Colors.transparent,
+            color: isSelected ? AppColors.primaryLight : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected ? [const BoxShadow(color: Colors.black12, blurRadius: 4)] : null,
+            border: isSelected ? Border.all(color: AppColors.cardBorder, width: 1) : null,
+            boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.08), blurRadius: 4)] : null,
           ),
           alignment: Alignment.center,
           child: Text(

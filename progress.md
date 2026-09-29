@@ -42,18 +42,37 @@
 ---
 
 ## 2. Current Phase
-- **Phase:** Feature-Complete Core & Advanced Ingestion (Zero-Click Auto-Accounting) + Complete UI/UX Rework
+- **Phase:** Feature-Complete Core & Advanced Ingestion + Cute Matcha Pastel Unified Theme (No Dark/Light Mode Split)
 - **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
-- **Recent Milestone:** Major UI/UX Rework & Mascot Integration — Pastel Mint & Cheeky Sloth "จ้อด" (Lazy Jod) theme, 14 custom pastel category icons, launcher icons generated from user artwork, and automated APK naming.
+- **Recent Milestone:** Soft Matcha & Cute Pastel Green Unified Theme Rework — inspired by retro sticker club & Tamagotchi aesthetic (Image 3/4 reference), eliminating harsh neon/dark mode splits in favor of a soothing matcha milk palette (`#EBF3EA`, `#72B584`, `#FFFFFF`, `#C0DAC6`), retro 3-dot window cards, and squircle sticker icon bubbles.
 
 ---
 
 ## 3. Completed Tasks (✅)
 
-### UI/UX Rework & Brand Transformation
-- ✅ **Pastel Mint & Cheeky Sloth Theme (`app_colors.dart` & `app_theme.dart`):**
-  - Designed harmonic palette matching user mascot artwork: Pastel Mint (`#56C596`), Background Mint (`#9BEAC2`), Hoodie Charcoal (`#13171B`), Cyan Sunglasses (`#38BDF8`), and Tongue Pink (`#FF6B8B`).
-  - Warm, cozy rounded squircle design system (16-18px radii, subtle pastel gradients, high-legibility contrasts).
+### Cute Matcha Pastel Unified Theme & Sticker Aesthetic (Rework)
+- ✅ **Soft Matcha Milk & Forest Palette (`app_colors.dart`, `app_theme.dart`):**
+  - Designed cozy, eye-friendly pastel matcha palette inspired by user reference artwork (Images 1-4):
+    - Primary: Soft Matcha Green (`#72B584`)
+    - Primary Light: Matcha Milk Tint (`#E5F2E8`)
+    - Background: Soft Matcha Milk (`#EBF3EA`)
+    - Surface & Cards: Crisp Milk White (`#FFFFFF`) / Soft Mint Cream (`#F8FCF8`)
+    - Card Borders: Soft Matcha Outline (`#C0DAC6`, width 1.5)
+    - Text: Forest Slate (`#2E3E33`) & Sage Muted (`#5D7766`, `#8BA694`)
+    - Expense: Soft Strawberry Milk Pink (`#F28A94`)
+    - Income: Fresh Matcha Green (`#65B880`)
+    - Transfer: Soft Retro Blue (`#78B8CC`)
+- ✅ **Single Unified Theme (No Dark/Light Mode Split):**
+  - Unified `AppTheme.darkTheme` and `AppTheme.lightTheme` to both render the soothing matcha pastel palette, preventing OS-level dark mode from turning the app into harsh obsidian/neon.
+  - Set `ThemeNotifier` default and state to `ThemeMode.light`.
+  - Replaced dark mode toggle in Settings (`_ThemeToggleCard`) with an active theme badge: "ธีมหลัก: มัทฉะพาสเทล & น้องจ้อด 🌿 (ใช้งานอยู่ ✨)".
+- ✅ **Retro Sticker Window & Card Styling (`jod_mascot.dart`, `dashboard_screen.dart`):**
+  - Added retro 3-dot top window accent (pink, yellow, green dots + "LAZY JOD CLUB 🌿") to `JodMascotCard`.
+  - Replaced hardcoded dark/gray gradients on dashboard overview cards with pure milk surface (`#FFFFFF`), matcha milk income box, and soft strawberry expense box.
+- ✅ **Squircle Sticker Icon Bubble (`category_icon_bubble.dart`):**
+  - Upgraded `CategoryIconBubble` to squircle sticker styling matching Image 3: smooth rounded squircle corners (`size * 0.34`), subtle ambient shadow, soft pastel blended backgrounds (`Color.alphaBlend`), and matching outline borders.
+
+### UI/UX Rework & Brand Transformation (Previous)
 - ✅ **14 Distinctive Pastel Category Icons & Bubble Widget (`category_model.dart`, `category_icon_bubble.dart`):**
   - Replaced generic icons with expressive, semantically matching rounded icons and emoji metadata:
     - 🍜 Food & Drinks: `Icons.ramen_dining_rounded` (Pastel Salmon `#FFA07A`)

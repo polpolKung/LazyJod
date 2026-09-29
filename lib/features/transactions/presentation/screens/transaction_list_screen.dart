@@ -122,10 +122,11 @@ class TransactionListScreen extends ConsumerWidget {
                       margin: EdgeInsets.only(top: monthIndex == 0 ? 8 : 20, left: 16, right: 16, bottom: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard : const Color(0xFFF1F5F9),
+                        color: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : AppColors.border,
+                          color: AppColors.cardBorder,
+                          width: 1.2,
                         ),
                       ),
                       child: Row(

@@ -86,7 +86,7 @@ class EmptyStateWidget extends StatelessWidget {
                 label: Text(buttonText!),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: const Color(0xFF13171B),
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

@@ -117,71 +117,101 @@ class JodMascotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final displayMessage = message ?? JodQuotes.getRandomIdleQuote();
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkCard
-            : AppColors.primaryLight.withOpacity(0.45),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: AppColors.primary.withOpacity(isDark ? 0.25 : 0.4),
-          width: 1.2,
+          color: AppColors.cardBorder,
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
         children: [
-          const JodMascotAvatar(size: 52),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+          // Retro sticker window top bar dots (Inspired by Sticker Club / Tamagotchi aesthetic)
+          Row(
+            children: [
+              Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.expense, shape: BoxShape.circle)),
+              const SizedBox(width: 4),
+              Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
+              const SizedBox(width: 4),
+              Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+              const Spacer(),
+              const Text(
+                'LAZY JOD CLUB 🌿',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const JodMascotAvatar(size: 52),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title ?? 'จ้อด (Lazy Jod)',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'มาสคอตสายขี้เกียจ',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryDark,
+                    Row(
+                      children: [
+                        Text(
+                          title ?? 'จ้อด (Lazy Jod)',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryDark,
+                          ),
                         ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.cardBorder, width: 1),
+                          ),
+                          child: const Text(
+                            'มาสคอตสายขี้เกียจ',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      displayMessage,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        height: 1.35,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  displayMessage,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    height: 1.3,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

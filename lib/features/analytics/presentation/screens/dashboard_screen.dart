@@ -136,21 +136,15 @@ class DashboardScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? const [AppColors.darkCard, AppColors.darkSurface]
-                        : const [Colors.white, AppColors.background],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: isDark ? AppColors.primary.withOpacity(0.35) : AppColors.border,
-                    width: isDark ? 1.2 : 1.0,
+                    color: AppColors.cardBorder,
+                    width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: isDark ? AppColors.primary.withOpacity(0.12) : Colors.black.withOpacity(0.04),
+                      color: AppColors.primary.withOpacity(0.06),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -162,26 +156,27 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'คงเหลือสุทธิ (Net Balance)',
                           style: TextStyle(
-                            color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            color: AppColors.textSecondary,
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(isDark ? 0.18 : 0.12),
-                            borderRadius: BorderRadius.circular(8),
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.cardBorder, width: 1),
                           ),
                           child: Text(
                             monthName,
                             style: const TextStyle(
-                              color: AppColors.primary,
+                              color: AppColors.primaryDark,
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -190,34 +185,36 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       CurrencyFormatter.format(summary.netBalance),
-                      style: TextStyle(
-                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
                     Row(
                       children: [
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.primaryLight.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0),
+                                color: AppColors.cardBorder,
+                                width: 1.2,
                               ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'รายรับรวม',
                                   style: TextStyle(
-                                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                                    color: AppColors.textSecondary,
                                     fontSize: 11,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 const SizedBox(height: 3),
@@ -234,20 +231,22 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.expense.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0),
+                                color: AppColors.expense.withOpacity(0.25),
+                                width: 1.2,
                               ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'รายจ่ายรวม',
                                   style: TextStyle(
-                                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                                    color: AppColors.textSecondary,
                                     fontSize: 11,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 const SizedBox(height: 3),

@@ -1,42 +1,46 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Brand colors (Pastel Mint & Cheeky Sloth theme matching mascot)
-  static const Color primary = Color(0xFF56C596); // Cute Pastel Mint Green
-  static const Color primaryLight = Color(0xFFD6F5E8); // Soft mint cream
-  static const Color primaryDark = Color(0xFF389E73);
-  static const Color primaryMint = Color(0xFF9BEAC2); // Exact mascot backdrop mint
+  // Brand colors (Matcha Pastel & Cute Sloth Sticker Club Theme)
+  static const Color primary = Color(0xFF72B584); // Soft Matcha Green (Warm, cute, friendly)
+  static const Color primaryLight = Color(0xFFE5F2E8); // Soft Matcha Milk
+  static const Color primaryDark = Color(0xFF4D885F);
+  static const Color primaryMint = Color(0xFFA2D7B2); // Gentle Mint
+  static const Color primarySoftBg = Color(0xFFD6EAD9); // Match Image 3/4 squircle background
 
-  static const Color secondary = Color(0xFF38BDF8); // Cyan Sunglasses
-  static const Color accent = Color(0xFFFFB703); // Playful Sloth Honey / Amber
-  static const Color tonguePink = Color(0xFFFF6B8B); // Cheeky Tongue Pink
-  static const Color slothBrown = Color(0xFF8D6E63); // Warm Sloth Fur Mocca
+  static const Color secondary = Color(0xFF78B8CC); // Soft Retro Sky Blue
+  static const Color accent = Color(0xFFEFC668); // Soft Butter Honey
+  static const Color tonguePink = Color(0xFFF28A94); // Cute Strawberry Milk Pink
+  static const Color slothBrown = Color(0xFF9E816E); // Cozy Sloth Mocca
 
-  // Financial semantic colors (Pastel, friendly, distinct)
-  static const Color expense = Color(0xFFFF6B8B); // Cheeky Coral Pink (soft on eyes)
-  static const Color income = Color(0xFF48BB8D); // Fresh Pastel Mint
-  static const Color transfer = Color(0xFF38BDF8); // Sunglasses Cyan Blue
-  static const Color warning = Color(0xFFFFB703); // Warning Honey
+  // Financial semantic colors (Gentle Pastel - No harsh neons)
+  static const Color expense = Color(0xFFF28A94); // Soft Pastel Strawberry Pink
+  static const Color income = Color(0xFF65B880); // Cute Matcha Green
+  static const Color transfer = Color(0xFF78B8CC); // Soft Retro Blue
+  static const Color warning = Color(0xFFEFC668); // Pastel Honey Butter
 
-  // Light Backgrounds & Neutrals (Soft mint-tinted, warm & clean)
-  static const Color background = Color(0xFFF3FAF6);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE2EFE7);
-  static const Color divider = Color(0xFFEDF6F1);
+  // Unified Soft Pastel Matcha Background & Surfaces (Image 3 & 4 style)
+  static const Color background = Color(0xFFEBF3EA); // Soft matcha milk background
+  static const Color surface = Color(0xFFFFFFFF); // Pure milk card surface
+  static const Color cardBg = Color(0xFFF8FCF8); // Very soft milk mint card
+  static const Color cardBorder = Color(0xFFC0DAC6); // Soft matcha outline
+  static const Color border = Color(0xFFC8E0CD);
+  static const Color divider = Color(0xFFE2EFE5);
 
-  // Dark Backgrounds & Neutrals (Hoodie Charcoal & Cozy Night)
-  static const Color darkBackground = Color(0xFF13171B);
-  static const Color darkSurface = Color(0xFF1B2228);
-  static const Color darkCard = Color(0xFF222B33);
-  static const Color darkBorder = Color(0xFF2E3B46);
-  static const Color darkDivider = Color(0xFF26323C);
-  static const Color darkTextPrimary = Color(0xFFF1F5F9);
-  static const Color darkTextSecondary = Color(0xFF94A3B8);
-  static const Color darkTextMuted = Color(0xFF64748B);
+  // Cozy Organic Forest Slate Text (Gentle on the eyes, natural & readable)
+  static const Color textPrimary = Color(0xFF2E3E33);
+  static const Color textSecondary = Color(0xFF5D7766);
+  static const Color textMuted = Color(0xFF8BA694);
+
+  // Unified mode tokens (identical to preserve unified pastel appearance everywhere)
+  static const Color darkBackground = Color(0xFFEBF3EA);
+  static const Color darkSurface = Color(0xFFFFFFFF);
+  static const Color darkCard = Color(0xFFF8FCF8);
+  static const Color darkBorder = Color(0xFFC0DAC6);
+  static const Color darkDivider = Color(0xFFE2EFE5);
+  static const Color darkTextPrimary = Color(0xFF2E3E33);
+  static const Color darkTextSecondary = Color(0xFF5D7766);
+  static const Color darkTextMuted = Color(0xFF8BA694);
 
   // 16 Thai Bank Colors
   static const Color bankKBank = Color(0xFF138F2D); // KBank Green

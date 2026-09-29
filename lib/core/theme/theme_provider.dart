@@ -5,24 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 const String _prefThemeKey = 'lazyjod_theme_mode';
 
 class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier() : super(ThemeMode.dark) {
+  ThemeNotifier() : super(ThemeMode.light) {
     _loadTheme();
   }
 
   Future<void> _loadTheme() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString(_prefThemeKey);
-      if (saved == 'light') {
-        state = ThemeMode.light;
-      } else if (saved == 'dark') {
-        state = ThemeMode.dark;
-      } else {
-        state = ThemeMode.dark; // Default is Dark Mode
-      }
-    } catch (_) {
-      state = ThemeMode.dark;
-    }
+    // Single unified cute pastel matcha theme
+    state = ThemeMode.light;
   }
 
   Future<void> setTheme(ThemeMode mode) async {

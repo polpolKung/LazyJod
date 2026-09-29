@@ -296,38 +296,56 @@ class SettingsScreen extends ConsumerWidget {
 class _ThemeToggleCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeProvider);
-    final isDark = themeMode == ThemeMode.dark;
-
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.cardBorder, width: 1.5),
       ),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(
-              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-              color: AppColors.primary,
-            ),
-            title: Text(
-              isDark ? 'โหมดมืด (Cozy Charcoal)' : 'โหมดสว่าง (Pastel Mint)',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              isDark ? 'พื้นหลังชาร์โคลนุ่มตา สีพาสเทลมิ้นต์' : 'พื้นหลังสะอาด สบายตา แนะนำสำหรับกลางวัน',
-              style: const TextStyle(fontSize: 12),
-            ),
-            trailing: Switch(
-              value: isDark,
-              activeColor: AppColors.primary,
-              onChanged: (val) {
-                ref.read(themeProvider.notifier).setTheme(val ? ThemeMode.dark : ThemeMode.light);
-              },
+      child: ListTile(
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.cardBorder, width: 1.2),
+          ),
+          child: const Center(
+            child: Text('🌿', style: TextStyle(fontSize: 22)),
+          ),
+        ),
+        title: const Text(
+          'ธีมหลัก: มัทฉะพาสเทล & น้องจ้อด',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        subtitle: const Text(
+          'โทนสีเขียวมัทฉะนม สบายตา น่ารักสไตล์สติ๊กเกอร์เรโทร',
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primary.withOpacity(0.4), width: 1),
+          ),
+          child: const Text(
+            'ใช้งานอยู่ ✨',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryDark,
             ),
           ),
-        ],
+        ),
       ),
     );
   }

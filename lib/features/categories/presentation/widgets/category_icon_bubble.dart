@@ -46,7 +46,7 @@ class CategoryIconBubble extends StatelessWidget {
         ? '🔄'
         : (isUncategorized ? '🦥' : (overrideEmoji ?? category?.emoji));
 
-    final borderRadius = BorderRadius.circular(size * 0.32);
+    final borderRadius = BorderRadius.circular(size * 0.34);
 
     return Stack(
       clipBehavior: Clip.none,
@@ -57,29 +57,24 @@ class CategoryIconBubble extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             borderRadius: borderRadius,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                effectiveColor.withOpacity(isSelected ? 0.35 : 0.22),
-                effectiveColor.withOpacity(isSelected ? 0.20 : 0.08),
-              ],
-            ),
+            color: isSelected
+                ? effectiveColor.withOpacity(0.26)
+                : Color.alphaBlend(effectiveColor.withOpacity(0.12), AppColors.surface),
             border: Border.all(
               color: isSelected
                   ? effectiveColor
-                  : effectiveColor.withOpacity(0.40),
-              width: isSelected ? 2.5 : 1.5,
+                  : Color.alphaBlend(effectiveColor.withOpacity(0.40), AppColors.cardBorder),
+              width: isSelected ? 2.2 : 1.5,
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: effectiveColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? effectiveColor.withOpacity(0.25)
+                    : Colors.black.withOpacity(0.03),
+                blurRadius: isSelected ? 8 : 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Center(
             child: Icon(
