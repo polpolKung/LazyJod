@@ -51,54 +51,7 @@ class AlbumPickerScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: state.albums.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 12),
-                  Text('กำลังค้นหาอัลบั้มในอุปกรณ์...', style: TextStyle(fontSize: 13)),
-                ],
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-              itemCount: state.albums.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final album = state.albums[index];
-                final mode = album.isIncomeSelected
-                    ? _AlbumScanMode.income
-                    : album.isSelected
-                        ? _AlbumScanMode.expense
-                        : _AlbumScanMode.none;
-
-                return _AlbumTile(
-                  album: album,
-                  mode: mode,
-                  isDark: isDark,
-                  onModeChanged: (newMode) async {
-                    if (newMode == mode) return; // No change
-
-                    // Deselect from current mode first (if any)
-                    if (album.isSelected) {
-                      await notifier.toggleAlbumSelection(album.id, isIncome: false);
-                    }
-                    if (album.isIncomeSelected) {
-                      await notifier.toggleAlbumSelection(album.id, isIncome: true);
-                    }
-
-                    // Then select new mode (if not "none")
-                    if (newMode == _AlbumScanMode.expense) {
-                      await notifier.toggleAlbumSelection(album.id, isIncome: false);
-                    } else if (newMode == _AlbumScanMode.income) {
-                      await notifier.toggleAlbumSelection(album.id, isIncome: true);
-                    }
-                  },
-                );
-              },
-            ),
+      body: _buildBody(state, notifier),
 
       // Bottom summary + save bar
       bottomNavigationBar: Container(
@@ -179,6 +132,113 @@ class AlbumPickerScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBody(IngestionState state, IngestionNotifier notifier) {
+    // Not yet loaded — show spinner
+    if (state.isLoadingAlbums) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: AppColors.primary),
+            SizedBox(height: 12),
+            Text('กำลังค้นหาอัลบั้มในอุปกรณ์...', style: TextStyle(fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    // Permission denied — show grant button
+    if (!state.hasPhotoPermission) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.photo_library_outlined, size: 64, color: AppColors.primary),
+              const SizedBox(height: 16),
+              const Text(
+                'ต้องการสิทธิ์เข้าถึงรูปภาพ',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'แอปต้องการสิทธิ์อ่านคลังรูปภาพเพื่อค้นหาสลิปธนาคาร\nกรุณาอนุญาตเพื่อดำเนินการต่อ',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => notifier.requestPermissionAndLoadAlbums(),
+                icon: const Icon(Icons.lock_open_rounded, color: Colors.white),
+                label: const Text('อนุญาตเข้าถึงรูปภาพ'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Albums loaded but empty
+    if (state.albums.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.folder_off_outlined, size: 64, color: AppColors.textMuted),
+            const SizedBox(height: 12),
+            const Text('ไม่พบอัลบั้มในอุปกรณ์', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () => notifier.loadAlbums(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('โหลดใหม่'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Albums loaded — show list
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+      itemCount: state.albums.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final album = state.albums[index];
+        final mode = album.isIncomeSelected
+            ? _AlbumScanMode.income
+            : album.isSelected
+                ? _AlbumScanMode.expense
+                : _AlbumScanMode.none;
+
+        return _AlbumTile(
+          album: album,
+          mode: mode,
+          isDark: Theme.of(context).brightness == Brightness.dark,
+          onModeChanged: (newMode) async {
+            if (newMode == mode) return;
+            if (album.isSelected) await notifier.toggleAlbumSelection(album.id, isIncome: false);
+            if (album.isIncomeSelected) await notifier.toggleAlbumSelection(album.id, isIncome: true);
+            if (newMode == _AlbumScanMode.expense) {
+              await notifier.toggleAlbumSelection(album.id, isIncome: false);
+            } else if (newMode == _AlbumScanMode.income) {
+              await notifier.toggleAlbumSelection(album.id, isIncome: true);
+            }
+          },
+        );
+      },
     );
   }
 }

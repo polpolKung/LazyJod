@@ -29,6 +29,8 @@ class IngestionState {
   final List<SlipParseResult> parsedSlips;
   final List<String> selectedSlipIds;
   final int totalScannedAssets;
+  final bool isLoadingAlbums;
+  final bool hasPhotoPermission;
 
   const IngestionState({
     this.isScanning = false,
@@ -39,6 +41,8 @@ class IngestionState {
     this.parsedSlips = const [],
     this.selectedSlipIds = const [],
     this.totalScannedAssets = 0,
+    this.isLoadingAlbums = false,
+    this.hasPhotoPermission = true,
   });
 
   IngestionState copyWith({
@@ -50,6 +54,8 @@ class IngestionState {
     List<SlipParseResult>? parsedSlips,
     List<String>? selectedSlipIds,
     int? totalScannedAssets,
+    bool? isLoadingAlbums,
+    bool? hasPhotoPermission,
   }) {
     return IngestionState(
       isScanning: isScanning ?? this.isScanning,
@@ -60,6 +66,8 @@ class IngestionState {
       parsedSlips: parsedSlips ?? this.parsedSlips,
       selectedSlipIds: selectedSlipIds ?? this.selectedSlipIds,
       totalScannedAssets: totalScannedAssets ?? this.totalScannedAssets,
+      isLoadingAlbums: isLoadingAlbums ?? this.isLoadingAlbums,
+      hasPhotoPermission: hasPhotoPermission ?? this.hasPhotoPermission,
     );
   }
 }
@@ -82,24 +90,67 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     loadAlbums();
   }
 
-  Future<void> loadAlbums() async {
-    final expenseFolders = await _storage.getExpenseFolderNames();
-    final incomeFolders = await _storage.getIncomeFolderNames();
-    _albumService.setExpenseFolderNames(expenseFolders);
-    _albumService.setIncomeFolderNames(incomeFolders);
+  /// Explicitly requests photo permissions with OS prompt and loads albums.
+  Future<void> requestPermissionAndLoadAlbums() async {
+    state = state.copyWith(isLoadingAlbums: true);
+    try {
+      final perm = await _albumService.requestPermission();
+      if (!perm.hasAccess) {
+        state = state.copyWith(
+          isLoadingAlbums: false,
+          hasPhotoPermission: false,
+          albums: [],
+        );
+        return;
+      }
+      state = state.copyWith(hasPhotoPermission: true);
+      await loadAlbums(skipPermissionRequest: true);
+    } catch (e) {
+      print('Error requesting permission: $e');
+      state = state.copyWith(isLoadingAlbums: false);
+    }
+  }
 
-    final savedExpenseIds = await _storage.getSelectedExpenseAlbumIds();
-    final savedIncomeIds = await _storage.getSelectedIncomeAlbumIds();
+  Future<void> loadAlbums({bool skipPermissionRequest = false}) async {
+    state = state.copyWith(isLoadingAlbums: true);
+    try {
+      if (!skipPermissionRequest) {
+        final perm = await _albumService.requestPermission();
+        if (!perm.hasAccess) {
+          state = state.copyWith(
+            isLoadingAlbums: false,
+            hasPhotoPermission: false,
+            albums: [],
+          );
+          return;
+        }
+      }
 
-    // Check if user has ever explicitly configured albums.
-    // null  → first launch → getAvailableAlbums uses conservative auto-select.
-    // Set   → configured  → getAvailableAlbums uses ONLY those IDs (explicit-only).
-    final isConfigured = await _storage.isScanAlbumsConfigured();
-    final albums = await _albumService.getAvailableAlbums(
-      savedExpenseIds: isConfigured ? savedExpenseIds : null,
-      savedIncomeIds: isConfigured ? savedIncomeIds : null,
-    );
-    state = state.copyWith(albums: albums);
+      final expenseFolders = await _storage.getExpenseFolderNames();
+      final incomeFolders = await _storage.getIncomeFolderNames();
+      _albumService.setExpenseFolderNames(expenseFolders);
+      _albumService.setIncomeFolderNames(incomeFolders);
+
+      final savedExpenseIds = await _storage.getSelectedExpenseAlbumIds();
+      final savedIncomeIds = await _storage.getSelectedIncomeAlbumIds();
+
+      // Check if user has ever explicitly configured albums.
+      // null  → first launch → getAvailableAlbums uses conservative auto-select.
+      // Set   → configured  → getAvailableAlbums uses ONLY those IDs (explicit-only).
+      final isConfigured = await _storage.isScanAlbumsConfigured();
+      final albums = await _albumService.getAvailableAlbums(
+        savedExpenseIds: isConfigured ? savedExpenseIds : null,
+        savedIncomeIds: isConfigured ? savedIncomeIds : null,
+      );
+      state = state.copyWith(
+        albums: albums,
+        isLoadingAlbums: false,
+        hasPhotoPermission: true,
+      );
+    } catch (e) {
+      print('Error loading albums: $e');
+      state = state.copyWith(isLoadingAlbums: false);
+    }
   }
 
   Future<void> toggleAlbumSelection(String albumId, {bool isIncome = false}) async {

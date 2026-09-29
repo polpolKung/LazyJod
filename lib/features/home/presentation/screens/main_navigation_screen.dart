@@ -36,15 +36,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       final storage = LocalStorageService();
       final isFirst = await storage.isFirstLaunch();
       if (isFirst && mounted) {
-        // Pre-load device albums with default bank folder selections
-        await ref.read(ingestionProvider.notifier).loadAlbums();
-        if (mounted) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AlbumPickerScreen(isFirstLaunch: true),
-            ),
-          );
-        }
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const AlbumPickerScreen(isFirstLaunch: true),
+          ),
+        );
       } else {
         ref.read(ingestionProvider.notifier).autoScanAndImportOnLaunch();
       }
