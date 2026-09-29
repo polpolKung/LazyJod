@@ -136,12 +136,13 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF386450).withOpacity(0.05),
-                        blurRadius: 10,
+                        color: AppColors.cartoonOutline.withOpacity(0.12),
                         offset: const Offset(0, 3),
+                        blurRadius: 0,
                       ),
                     ],
                   ),
@@ -158,17 +159,18 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.transfer.withOpacity(0.12),
+                      color: AppColors.transfer.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cartoonOutline, width: 1.5),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.info_outline, size: 16, color: AppColors.transfer),
+                        Icon(Icons.info_outline, size: 16, color: AppColors.cartoonOutline),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'ย้ายเงินระหว่างบัญชีตนเอง ไม่คิดรวมเป็นรายรับหรือรายจ่าย',
-                            style: TextStyle(fontSize: 12, color: AppColors.transfer, fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 12, color: AppColors.cartoonOutline, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -180,17 +182,18 @@ class _TransactionEntryScreenState extends ConsumerState<TransactionEntryScreen>
                 // Amount Field with Calculator Trigger
                 InkWell(
                   onTap: () => setState(() => _showCalculator = true),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF386450).withOpacity(0.05),
-                          blurRadius: 10,
+                          color: AppColors.cartoonOutline.withOpacity(0.12),
                           offset: const Offset(0, 3),
+                          blurRadius: 0,
                         ),
                       ],
                     ),

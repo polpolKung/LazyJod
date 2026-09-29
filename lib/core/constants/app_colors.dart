@@ -1,48 +1,50 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // ─── Cute Sloth Brand Mint Palette (derived from logo ~#76E0B1)
-  // Soft, warm, pastel cartoon aesthetic (Pompompurin / Bakery Kawaii style)
-  static const Color primary = Color(0xFF62C29B);      // Cute brand logo mint
-  static const Color primaryLight = Color(0xFFD6F3E7); // Milky mint cream
-  static const Color primaryDark = Color(0xFF2C7D5D);  // Forest slate for text
-  static const Color primaryMint = Color(0xFFA6E5CA);  // Soft pastel mint
-  static const Color primarySoftBg = Color(0xFFE9F8F1); // Marshmallow mint
+  // ─── Brand Logo Mint Theme (derived directly from Jod mascot logo ~#76E0B1)
+  // Prominent pastel mint wallpaper background + Cute Cartoon Comic Line Art
+  static const Color primary = Color(0xFF4EBE90);      // Logo brand mint
+  static const Color primaryLight = Color(0xFFD5F3E6); // Soft mint milk
+  static const Color primaryDark = Color(0xFF225B44);  // Deep forest
+  static const Color primaryMint = Color(0xFF86D9B5);  // Vibrant logo mint
+  static const Color primarySoftBg = Color(0xFFE2F7EE); // Pastel mint container
 
-  static const Color secondary = Color(0xFF8CCDE0);   // Soft pastel sky (sunglasses)
+  static const Color secondary = Color(0xFF8ACDE0);   // Baby sky (sloth sunglasses)
   static const Color accent = Color(0xFFFDE89C);       // Warm butter pudding yellow
-  static const Color tonguePink = Color(0xFFF8A8B2);   // Cute strawberry milk pink
+  static const Color tonguePink = Color(0xFFF8A2AC);   // Cute strawberry milk pink
   static const Color slothBrown = Color(0xFFA58265);   // Cozy sloth mocca fur
 
-  // ─── Financial semantic (cute pastel, zero neon)
-  static const Color expense = Color(0xFFF39CA6);  // Soft strawberry milk rose
-  static const Color income = Color(0xFF5EBFA1);   // Cozy logo mint
-  static const Color transfer = Color(0xFF8CCDE0); // Soft baby sky
-  static const Color warning = Color(0xFFF6C870);  // Honey butter
+  // ─── Financial semantic
+  static const Color expense = Color(0xFFF39CA6);  // Strawberry milk rose
+  static const Color income = Color(0xFF4EBE90);   // Logo mint
+  static const Color transfer = Color(0xFF8ACDE0); // Baby sky
+  static const Color warning = Color(0xFFF8C868);  // Honey butter
 
-  // ─── Backgrounds — cozy warm milk cream & pure marshmallow white
-  static const Color background = Color(0xFFF3F8F4); // Warm milky matcha background
-  static const Color surface = Color(0xFFFFFFFF);    // Marshmallow white cards
-  static const Color cardBg = Color(0xFFFFFFFF);     // Pure white
-  // Zero borders across the entire app — borderless cute cartoon style
-  static const Color cardBorder = Colors.transparent;
-  static const Color border = Colors.transparent;
-  static const Color divider = Color(0xFFE8F2EC);
+  // ─── Prominent Mint Wallpaper Background & Cream Cards
+  static const Color background = Color(0xFFBDE6D4); // Clear pastel mint green from logo
+  static const Color surface = Color(0xFFFFFFFF);    // Marshmallow white / cream cards
+  static const Color cardBg = Color(0xFFFFFFFF);     // Pure white card inside
 
-  // ─── Text — friendly warm slate/mocca (no harsh black)
-  static const Color textPrimary = Color(0xFF2B3A33);   // Warm forest slate
-  static const Color textSecondary = Color(0xFF627B70); // Gentle matcha
-  static const Color textMuted = Color(0xFF9AB2A6);     // Soft pastel mute
+  // ─── Cartoon Line Art ("ลายเส้นการ์ตูน" — like Sanrio / Pompompurin / Webtoon)
+  static const Color cartoonOutline = Color(0xFF2A3830); // Warm dark cartoon ink line
+  static const Color cardBorder = Color(0xFF2A3830);     // 2.0px cartoon border
+  static const Color border = Color(0xFF2A3830);
+  static const Color divider = Color(0xFFE4EDE7);
 
-  // ─── Unified Mode tokens (seamless single-theme)
-  static const Color darkBackground = Color(0xFFF3F8F4);
+  // ─── Text — friendly warm cartoon slate (high legibility)
+  static const Color textPrimary = Color(0xFF223028);   // Dark ink slate
+  static const Color textSecondary = Color(0xFF4C6156); // Matcha slate
+  static const Color textMuted = Color(0xFF7A9486);     // Soft mute slate
+
+  // ─── Single Unified Theme (matches light mode)
+  static const Color darkBackground = Color(0xFFBDE6D4);
   static const Color darkSurface = Color(0xFFFFFFFF);
   static const Color darkCard = Color(0xFFFFFFFF);
-  static const Color darkBorder = Colors.transparent;
-  static const Color darkDivider = Color(0xFFE8F2EC);
-  static const Color darkTextPrimary = Color(0xFF2B3A33);
-  static const Color darkTextSecondary = Color(0xFF627B70);
-  static const Color darkTextMuted = Color(0xFF9AB2A6);
+  static const Color darkBorder = Color(0xFF2A3830);
+  static const Color darkDivider = Color(0xFFE4EDE7);
+  static const Color darkTextPrimary = Color(0xFF223028);
+  static const Color darkTextSecondary = Color(0xFF4C6156);
+  static const Color darkTextMuted = Color(0xFF7A9486);
 
   // ─── 16 Thai Bank Colors
   static const Color bankKBank = Color(0xFF138F2D);

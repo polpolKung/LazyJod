@@ -182,11 +182,12 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF386450).withOpacity(0.08),
-                            blurRadius: 14,
+                            color: AppColors.cartoonOutline.withOpacity(0.12),
                             offset: const Offset(0, 3),
+                            blurRadius: 0,
                           ),
                         ],
                       ),
@@ -253,11 +254,12 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(33),
+              border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF386450).withOpacity(0.08),
-                  blurRadius: 18,
+                  color: AppColors.cartoonOutline.withOpacity(0.14),
                   offset: const Offset(0, 4),
+                  blurRadius: 0,
                 ),
               ],
             ),
@@ -288,6 +290,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryLight : Colors.transparent,
           borderRadius: BorderRadius.circular(22),
+          border: isSelected
+              ? Border.all(color: AppColors.cartoonOutline, width: 1.5)
+              : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -295,15 +300,15 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             Icon(
               icon,
               size: 21,
-              color: isSelected ? AppColors.primaryDark : AppColors.textMuted,
+              color: isSelected ? AppColors.cartoonOutline : AppColors.textMuted,
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primaryDark : AppColors.textMuted,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                color: isSelected ? AppColors.cartoonOutline : AppColors.textMuted,
               ),
             ),
           ],

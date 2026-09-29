@@ -68,20 +68,22 @@ class CategoryIconBubble extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: borderRadius,
             color: fillColor,
-            // Soft shadow only — no border
+            border: Border.all(
+              color: AppColors.cartoonOutline,
+              width: isSelected ? 2.4 : 1.8,
+            ),
             boxShadow: [
               BoxShadow(
-                color: rawColor.withOpacity(isSelected ? 0.30 : 0.14),
-                blurRadius: isSelected ? 10 : 4,
-                offset: const Offset(0, 2),
+                color: AppColors.cartoonOutline.withOpacity(isSelected ? 0.20 : 0.10),
+                offset: const Offset(0, 3),
+                blurRadius: 0,
               ),
             ],
           ),
           child: Center(
             child: Icon(
               effectiveIcon,
-              // Icon is always white, like iOS-style solid icon
-              color: Colors.white.withOpacity(isSelected ? 1.0 : 0.95),
+              color: Colors.white,
               size: size * 0.50,
             ),
           ),
@@ -95,11 +97,12 @@ class CategoryIconBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 shape: BoxShape.circle,
+                border: Border.all(color: AppColors.cartoonOutline, width: 1.4),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
+                    color: AppColors.cartoonOutline.withOpacity(0.12),
+                    offset: const Offset(0, 2),
+                    blurRadius: 0,
                   ),
                 ],
               ),

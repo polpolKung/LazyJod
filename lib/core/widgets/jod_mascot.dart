@@ -125,23 +125,25 @@ class JodMascotCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF386450).withOpacity(0.06),
-            blurRadius: 16,
+            color: AppColors.cartoonOutline.withOpacity(0.12),
             offset: const Offset(0, 4),
+            blurRadius: 0,
           ),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Mascot Avatar with soft glow
+          // Mascot Avatar with cartoon ink outline
           Container(
-            padding: const EdgeInsets.all(3),
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
+              border: Border.all(color: AppColors.cartoonOutline, width: 1.8),
             ),
             child: const JodMascotAvatar(size: 54),
           ),
@@ -158,23 +160,24 @@ class JodMascotCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primaryDark,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Cute soft pill badge
+                    // Cute cartoon pill badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(
                         color: AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.cartoonOutline, width: 1.4),
                       ),
                       child: const Text(
                         'สล้อตสายชิลล์ 💤',
                         style: TextStyle(
                           fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.cartoonOutline,
                         ),
                       ),
                     ),

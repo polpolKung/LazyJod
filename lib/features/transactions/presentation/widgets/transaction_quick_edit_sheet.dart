@@ -170,21 +170,22 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(18),
+              color: AppColors.primaryLight.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
             ),
             child: Row(
               children: [
                 const Text(
                   '฿',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.cartoonOutline),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: '0.00',
@@ -201,21 +202,21 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
             controller: _noteController,
             decoration: InputDecoration(
               labelText: 'บันทึกช่วยจำ / ชื่อผู้รับ',
-              prefixIcon: const Icon(Icons.notes),
+              prefixIcon: const Icon(Icons.notes, color: AppColors.cartoonOutline),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(color: AppColors.cartoonOutline, width: 2.4),
               ),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: AppColors.surface,
             ),
           ),
           const SizedBox(height: 12),
@@ -245,12 +246,13 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
                       });
                     }
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                     ),
                     child: Row(
                       children: [
@@ -261,14 +263,14 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
                             currentCat.nameThai,
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: currentCat.color,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Icon(Icons.arrow_drop_down, size: 20),
+                        const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.cartoonOutline),
                       ],
                     ),
                   ),
@@ -279,12 +281,13 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
               Expanded(
                 child: InkWell(
                   onTap: _pickDateTime,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                     ),
                     child: Row(
                       children: [

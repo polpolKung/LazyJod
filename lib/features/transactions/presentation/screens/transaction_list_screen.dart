@@ -123,12 +123,13 @@ class TransactionListScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF386450).withOpacity(0.05),
-                            blurRadius: 10,
+                            color: AppColors.cartoonOutline.withOpacity(0.12),
                             offset: const Offset(0, 3),
+                            blurRadius: 0,
                           ),
                         ],
                       ),

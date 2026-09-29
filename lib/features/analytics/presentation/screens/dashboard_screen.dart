@@ -93,11 +93,12 @@ class DashboardScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF386450).withOpacity(0.05),
-                      blurRadius: 12,
+                      color: AppColors.cartoonOutline.withOpacity(0.12),
                       offset: const Offset(0, 3),
+                      blurRadius: 0,
                     ),
                   ],
                 ),
@@ -106,7 +107,7 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-                      color: AppColors.primaryDark,
+                      color: AppColors.cartoonOutline,
                       onPressed: () => ref.read(selectedMonthProvider.notifier).goToPrevMonth(),
                     ),
                     Row(
@@ -116,7 +117,7 @@ class DashboardScreen extends ConsumerWidget {
                           '$monthName $yearThai',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -124,7 +125,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                      color: AppColors.primaryDark,
+                      color: AppColors.cartoonOutline,
                       onPressed: () => ref.read(selectedMonthProvider.notifier).goToNextMonth(),
                     ),
                   ],
@@ -151,11 +152,12 @@ class DashboardScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 18,
+                      color: AppColors.cartoonOutline.withOpacity(0.12),
                       offset: const Offset(0, 4),
+                      blurRadius: 0,
                     ),
                   ],
                 ),
@@ -170,22 +172,23 @@ class DashboardScreen extends ConsumerWidget {
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        // Soft pill badge — no border
+                        // Cartoon pill badge
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.primaryLight,
                             borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.cartoonOutline, width: 1.4),
                           ),
                           child: Text(
                             monthName,
                             style: const TextStyle(
-                              color: AppColors.primaryDark,
+                              color: AppColors.cartoonOutline,
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -347,12 +350,13 @@ class DashboardScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: AppColors.cartoonOutline.withOpacity(0.12),
+                        offset: const Offset(0, 3),
+                        blurRadius: 0,
                       ),
                     ],
                   ),
@@ -381,12 +385,13 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      color: AppColors.cartoonOutline.withOpacity(0.12),
+                      offset: const Offset(0, 4),
+                      blurRadius: 0,
                     ),
                   ],
                 ),
@@ -397,7 +402,7 @@ class DashboardScreen extends ConsumerWidget {
                       'สัดส่วนรายจ่ายตามหมวดหมู่',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -420,7 +425,7 @@ class DashboardScreen extends ConsumerWidget {
                       'งบประมาณรายเดือน',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -452,12 +457,12 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         'รายการวันนี้',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       if (todayTransactions.isNotEmpty) ...[
@@ -465,15 +470,16 @@ class DashboardScreen extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.18),
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.cartoonOutline, width: 1.4),
                           ),
                           child: Text(
                             '${todayTransactions.length}',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -496,12 +502,13 @@ class DashboardScreen extends ConsumerWidget {
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      color: AppColors.cartoonOutline.withOpacity(0.12),
+                      offset: const Offset(0, 4),
+                      blurRadius: 0,
                     ),
                   ],
                 ),
@@ -560,11 +567,12 @@ class DashboardScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.cartoonOutline, width: 2.0),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF386450).withOpacity(0.06),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
+              color: AppColors.cartoonOutline.withOpacity(0.12),
+              offset: const Offset(0, 3),
+              blurRadius: 0,
             ),
           ],
         ),
@@ -577,13 +585,7 @@ class DashboardScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: Color.alphaBlend(color.withOpacity(0.7), AppColors.primaryMint),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                border: Border.all(color: AppColors.cartoonOutline, width: 1.8),
               ),
               child: Icon(icon, color: Colors.white, size: 24),
             ),

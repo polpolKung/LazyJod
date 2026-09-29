@@ -42,30 +42,25 @@
 ---
 
 ## 2. Current Phase
-- **Phase:** Feature-Complete Core & Advanced Ingestion + Cute Cartoon Kawaii Aesthetic (Pompompurin & Bakery Bear Style)
+- **Phase:** Feature-Complete Core & Advanced Ingestion + Prominent Logo Mint Wallpaper & Cartoon Comic Doodle Line Art
 - **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
-- **Recent Milestone:** Cute Cartoon Kawaii UI Rework — inspired by Pompompurin & Bakery Bear references, eliminating ALL harsh border outlines (`cardBorder = transparent`), adopting warm matcha milk background (`#F3F8F4`), marshmallow white borderless cards with gentle warm shadows, chubby squircle action pods, speech card mascot Jod, and a floating rounded bottom dock.
+- **Recent Milestone:** Prominent Logo Mint & Cartoon Comic Doodle Line Art — background upgraded to distinct pastel mint from logo (`#BDE6D4`), cream white cards with bold 2.0px cartoon ink outlines (`#2A3830`), sticker offset shadows, and hand-drawn cartoon comic feel matching user reference images.
 
 ---
 
 ## 3. Completed Tasks (✅)
 
-### Cute Cartoon Kawaii UI Rework (Pompompurin & Bakery Bear Style)
-- ✅ **Completely Borderless Aesthetic (`app_colors.dart`, `app_theme.dart`):**
-  - Eliminated all artificial border outlines across cards, pills, buttons, and dialogs (`cardBorder = Colors.transparent`).
-  - Warm milky matcha background (`#F3F8F4`) and marshmallow white cards (`#FFFFFF`) with ultra-gentle warm ambient shadows (`Color(0xFF386450).withOpacity(0.06)`).
-  - Primary color locked to the Lazy Jod sloth logo mint (`#62C29B`), soft strawberry milk expense (`#F39CA6`), soft butter yellow accent (`#FDE89C`).
-- ✅ **Floating Cute Marshmallow Dock (`main_navigation_screen.dart`):**
-  - Replaced standard Android Material 3 full-width NavigationBar with a floating rounded dock capsule (`borderRadius: 33`, soft floating shadow).
-  - Selected tab uses soft mint pill background with cute icons and compact labels.
-- ✅ **Chubby Cartoon Quick Action Pods (`dashboard_screen.dart`):**
-  - Upgraded action tiles to cute chubby pods (`borderRadius: 22`) with solid pastel squircle icon badges (สแกนสลิป, จดด้วยมือ, E-Statement in pastel lilac `#AFA2DC`).
-- ✅ **Cute Mascot Speech Card (`jod_mascot.dart`):**
-  - Transformed into a cute cartoon speech card with sleepy sloth avatar, soft pill badge (`สล้อตสายชิลล์ 💤`), and cuddly borderless container.
-- ✅ **Cute Capsule Month Selector & Clean Net Balance Layout (`dashboard_screen.dart`):**
-  - Rounded capsule month bar with mini calendar icon and cute back/forward chevrons.
-  - Borderless Net Balance card with side-by-side dot indicator for income/expense.
-- ✅ **All 49/49 Unit Tests Passing (100%):** Verified all slip parsing, deduplication, income folders, and budget alert tests remain green.
+### Prominent Logo Mint & Cartoon Comic Line Art Rework
+- ✅ **Logo Mint Wallpaper (`app_colors.dart`):**
+  - App background upgraded from washed-out white to noticeable pastel mint wallpaper (`#BDE6D4`), matching the brand logo's mint background.
+- ✅ **Cartoon Comic Ink Line Art (`app_colors.dart`, `app_theme.dart`):**
+  - Added signature 2.0px dark ink cartoon outlines (`#2A3830`) on all cards, pods, floating dock, and inputs with sticker offset shadows (`Offset(0, 3-4)`).
+- ✅ **Comic Panel Mascot & Pods (`jod_mascot.dart`, `dashboard_screen.dart`):**
+  - Jod mascot styled like an authentic cartoon sticker panel with sleepy sloth avatar and ink-bordered pill badge.
+  - Quick action buttons styled as cute squircle cartoon pods.
+- ✅ **Floating Cartoon Dock (`main_navigation_screen.dart`):**
+  - Floating pill dock with 2.0px cartoon ink border and sticker shadow on the mint wallpaper.
+- ✅ **All 49/49 Unit Tests Passing (100%):** Verified zero regression across all core features.
     - Text: Forest Slate (`#2E3E33`) & Sage Muted (`#5D7766`, `#8BA694`)
     - Expense: Soft Strawberry Milk Pink (`#F28A94`)
     - Income: Fresh Matcha Green (`#65B880`)
