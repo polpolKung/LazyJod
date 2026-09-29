@@ -74,6 +74,7 @@
 - ✅ **App Launcher Icon Automation:**
   - Automated generation from `assets/icons/iconApp.png` across all Android mipmap densities (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`).
   - Configured adaptive icon with mint `#9BEAC2` background and centered mascot foreground.
+  - **CI/CD Resource Fix:** Explicitly un-ignored `android/app/src/main/res/**` in `.gitignore` so all generated `ic_launcher_foreground.png` assets are tracked and linked properly by AAPT during `assembleRelease`.
 - ✅ **App Renaming & APK Output Configuration:**
   - Renamed from "เหมียวจด" to **"Lazy Jod (เลซี่จด)"** across `AndroidManifest.xml`, `AppConstants`, navigation, dashboard, and settings.
   - Configured `android/app/build.gradle` `applicationVariants` to automatically output `LazyJod.apk`.
