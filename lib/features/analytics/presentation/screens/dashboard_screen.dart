@@ -91,9 +91,15 @@ class DashboardScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,15 +143,11 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: AppColors.cardBorder,
-                    width: 1.5,
-                  ),
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.06),
-                      blurRadius: 16,
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 18,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -161,28 +163,28 @@ class DashboardScreen extends ConsumerWidget {
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        // Soft pill badge — no border
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.cardBorder, width: 1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             monthName,
                             style: const TextStyle(
                               color: AppColors.primaryDark,
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       CurrencyFormatter.format(summary.netBalance),
                       style: const TextStyle(
@@ -192,67 +194,83 @@ class DashboardScreen extends ConsumerWidget {
                         letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
+                    // Divider line
+                    Container(height: 1, color: AppColors.divider),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryLight.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.cardBorder,
-                                width: 1.2,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'รายรับรวม',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 8, height: 8,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.income,
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
+                                  const SizedBox(width: 6),
+                                  const Text(
+                                    'รายรับรวม',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '+${CurrencyFormatter.format(summary.totalIncome)}',
+                                style: const TextStyle(
+                                  color: AppColors.income,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  '+${CurrencyFormatter.format(summary.totalIncome)}',
-                                  style: const TextStyle(color: AppColors.income, fontSize: 14, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        Container(width: 1, height: 36, color: AppColors.divider),
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.expense.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.expense.withOpacity(0.25),
-                                width: 1.2,
-                              ),
-                            ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'รายจ่ายรวม',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 8, height: 8,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.expense,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'รายจ่ายรวม',
+                                      style: TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 3),
+                                const SizedBox(height: 4),
                                 Text(
                                   '-${CurrencyFormatter.format(summary.totalExpense)}',
-                                  style: const TextStyle(color: AppColors.expense, fontSize: 14, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    color: AppColors.expense,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ],
                             ),
@@ -321,9 +339,15 @@ class DashboardScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.accent.withOpacity(0.35)),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
@@ -332,9 +356,9 @@ class DashboardScreen extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           summary.insights.first,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12.5,
-                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                            color: AppColors.textPrimary,
                             height: 1.3,
                           ),
                         ),
@@ -349,19 +373,25 @@ class DashboardScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'สัดส่วนรายจ่ายตามหมวดหมู่',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -379,12 +409,12 @@ class DashboardScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'งบประมาณรายเดือน',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     TextButton(
@@ -458,9 +488,15 @@ class DashboardScreen extends ConsumerWidget {
               // Today's Transactions List with Quick Edit Support
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: todayTransactions.isEmpty
                     ? Padding(
@@ -509,42 +545,58 @@ class DashboardScreen extends ConsumerWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          // No border — soft shadow only
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           children: [
+            // Solid fill circle icon — iOS style
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                // Blend toward primary mint for cohesion
+                color: Color.alphaBlend(color.withOpacity(0.6), AppColors.primaryMint),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
             const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 12.5,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 10,
-                color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                color: AppColors.textMuted,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,

@@ -124,36 +124,33 @@ class JodMascotCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.cardBorder,
-          width: 1.5,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        // No border — soft shadow only
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
             offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Retro sticker window top bar dots (Inspired by Sticker Club / Tamagotchi aesthetic)
+          // Tiny retro dots + label (cute, not neon)
           Row(
             children: [
-              Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.expense, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppColors.expense.withOpacity(0.7), shape: BoxShape.circle)),
+              const SizedBox(width: 3),
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.7), shape: BoxShape.circle)),
+              const SizedBox(width: 3),
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.7), shape: BoxShape.circle)),
               const Spacer(),
               const Text(
                 'LAZY JOD CLUB 🌿',
                 style: TextStyle(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
                   color: AppColors.textMuted,
                 ),
               ),
@@ -181,17 +178,17 @@ class JodMascotCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
+                        // Badge — soft pill, NO border
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: AppColors.cardBorder, width: 1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text(
                             'มาสคอตสายขี้เกียจ',
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 9,
                               fontWeight: FontWeight.w600,
                               color: AppColors.primaryDark,
                             ),
@@ -205,7 +202,7 @@ class JodMascotCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12.5,
                         height: 1.35,
-                        color: AppColors.textPrimary,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
