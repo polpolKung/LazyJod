@@ -12,8 +12,13 @@ import '../widgets/icon_picker_dialog.dart';
 
 class CategoryEditScreen extends ConsumerStatefulWidget {
   final CategoryModel? initialCategory;
+  final CategoryType? initialType;
 
-  const CategoryEditScreen({super.key, this.initialCategory});
+  const CategoryEditScreen({
+    super.key,
+    this.initialCategory,
+    this.initialType,
+  });
 
   @override
   ConsumerState<CategoryEditScreen> createState() => _CategoryEditScreenState();
@@ -75,7 +80,7 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
     } else {
       _nameController = TextEditingController();
       _keywordsController = TextEditingController();
-      _type = CategoryType.expense;
+      _type = widget.initialType ?? CategoryType.expense;
       _iconCodePoint = Icons.category.codePoint;
       _colorValue = _presetColors.first.value;
       final hsv = HSVColor.fromColor(_presetColors.first);
@@ -122,7 +127,8 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
         }
         final ext = picked.path.split('.').last;
         final targetFile = File('${catIconsDir.path}/cat_icon_${DateTime.now().millisecondsSinceEpoch}.$ext');
-        await File(picked.path).copy(targetFile.path);
+        final bytes = await picked.readAsBytes();
+        await targetFile.writeAsBytes(bytes);
 
         setState(() {
           _customImagePath = targetFile.path;
@@ -173,6 +179,7 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.initialCategory != null ? 'แก้ไขหมวดหมู่' : 'สร้างหมวดหมู่ใหม่'),
@@ -274,7 +281,92 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // ── Category Type Switcher (รายจ่าย / รายรับ) ────────────────
+            const Text(
+              'ประเภทหมวดหมู่',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.primarySoftBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cartoonOutline, width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _type = CategoryType.expense),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _type == CategoryType.expense ? AppColors.expense : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_upward_rounded,
+                              size: 16,
+                              color: _type == CategoryType.expense ? Colors.white : AppColors.expense,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '💸 รายจ่าย',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: _type == CategoryType.expense ? Colors.white : AppColors.expense,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _type = CategoryType.income),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _type == CategoryType.income ? AppColors.income : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_downward_rounded,
+                              size: 16,
+                              color: _type == CategoryType.income ? Colors.white : AppColors.income,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '💰 รายรับ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: _type == CategoryType.income ? Colors.white : AppColors.income,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
 
             // ── Name ──────────────────────────────────────────────────────
             TextField(

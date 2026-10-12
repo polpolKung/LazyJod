@@ -5,6 +5,7 @@ import '../../../transactions/models/transaction_type.dart';
 import '../../../categories/models/category_model.dart';
 import '../../../categories/providers/category_provider.dart';
 import 'category_icon_bubble.dart';
+import '../screens/category_edit_screen.dart';
 
 /// Special sentinel value returned when user picks "ย้ายเงิน"
 const String kTransferCategoryResult = '__transfer__';
@@ -78,15 +79,38 @@ class _CategoryPickerSheetState extends ConsumerState<_CategoryPickerSheet> {
           ),
           const SizedBox(height: 14),
 
-          // Title
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'เลือกหมวดหมู่',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          // Title & Quick Add Action
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'เลือกหมวดหมู่',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CategoryEditScreen(initialType: _selectedTab),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_rounded, size: 18, color: AppColors.primary),
+                  label: const Text(
+                    'เพิ่มหมวดหมู่',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Segmented Tab Switcher (รายจ่าย / รายรับ)
           Container(
@@ -240,7 +264,7 @@ class _CategoryPickerSheetState extends ConsumerState<_CategoryPickerSheet> {
                 ),
                 icon: const Icon(Icons.swap_horiz_rounded, color: AppColors.transfer, size: 20),
                 label: const Text(
-                  '⇄  ย้ายเงินระหว่างบัญชี (ไม่คิดรายรับ-จ่าย)',
+                  'ย้ายเงินระหว่างบัญชี (ไม่คิดรายรับ-จ่าย)',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 13,

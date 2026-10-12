@@ -46,23 +46,26 @@ class CategoryIconBubble extends StatelessWidget {
 
     // ── Custom image icon ─────────────────────────────────────────────────
     if (imagePath != null && imagePath.isNotEmpty) {
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          border: Border.all(
-            color: AppColors.cartoonOutline,
-            width: isSelected ? 2.4 : 1.8,
+      final file = File(imagePath);
+      if (file.existsSync()) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+            border: Border.all(
+              color: AppColors.cartoonOutline,
+              width: isSelected ? 2.4 : 1.8,
+            ),
+            boxShadow: [shadowDecoration],
+            image: DecorationImage(
+              image: FileImage(file),
+              fit: BoxFit.cover,
+            ),
           ),
-          boxShadow: [shadowDecoration],
-          image: DecorationImage(
-            image: FileImage(File(imagePath)),
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
+        );
+      }
     }
 
     // ── Material icon bubble ──────────────────────────────────────────────

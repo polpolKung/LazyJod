@@ -85,6 +85,7 @@ class LocalStorageService {
               isDefault: true,
               autoKeywords: fresh.autoKeywords,
               emoji: fresh.emoji,
+              customImagePath: c.customImagePath,
             );
           }
           return c;
