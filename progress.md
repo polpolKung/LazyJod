@@ -50,7 +50,17 @@
 
 ## 3. Completed Tasks (✅)
 
-### Brand Splash, Dynamic Calendar Badge & In-Place APK Updates (Latest)
+### Zero-Click Scan Auto-Import & Launch/Category Bug Fixes (Latest)
+- ✅ **Fixed Launch Black Screen Bug (`launch_background.xml`, `launch_image.png`, `styles.xml`):**
+  - Resolved black screen on app startup caused by `<bitmap>` attempting to decode adaptive XML icon `@mipmap/ic_launcher`. Added dedicated PNG raster `launch_image.png` and updated `values-night/styles.xml` to ensure clean mint theme background and logo display on all Android versions and dark mode settings.
+- ✅ **Zero-Click Instant Slip Auto-Import (`ingestion_provider.dart`):**
+  - Streamlined ingestion UX: once slip scanning finishes (whether from folders, gallery, or launch auto-scan), all valid non-duplicate slips are automatically imported directly into transactions without presenting intermediate confirmation checkbox screen.
+  - Shows friendly notification banner (e.g. "จดสลิปใหม่ให้แล้ว X รายการเรียบร้อย! 🦥✨") which auto-dismisses after 4 seconds.
+- ✅ **Fixed Category Custom Image Persistence (`category_edit_screen.dart`):**
+  - Resolved bug where editing a category erased its custom uploaded image icon.
+  - Correctly initialized `_customImagePath = c.customImagePath` in `initState` and copied picked image files permanently to `getApplicationDocumentsDirectory()/category_icons/` to guarantee permanent persistence.
+
+### Brand Splash, Dynamic Calendar Badge & In-Place APK Updates
 - ✅ **Theme Launch Splash Screen (`launch_background.xml`, `colors.xml`):**
   - Replaced native Android blank white launch screen with brand mint wallpaper (`#BDE6D4`) and centered Lazy Jod logo (`ic_launcher`), eliminating the white flash on app startup.
 - ✅ **Dynamic Cartoon Calendar Badge (`dashboard_screen.dart`):**

@@ -374,22 +374,39 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
 
       final selectedIds = parsedResults.where((s) => !s.isDuplicate && s.amount > 0).map((s) => s.id!).toList();
 
-      String msg = 'สแกนเสร็จสิ้น พบสลิป ${parsedResults.length} รายการ';
-      if (parsedResults.isEmpty && errorCount > 0) {
-        msg = 'เกิดข้อผิดพลาดในการประมวลผล OCR ($caughtError)';
-      }
-
       await _notif.showDone(total: total, found: parsedResults.length);
 
       state = state.copyWith(
-        isScanning: false,
-        scanProgress: 1.0,
-        statusMessage: msg,
-        lastError: caughtError,
         parsedSlips: parsedResults,
         selectedSlipIds: selectedIds,
         totalScannedAssets: total,
       );
+
+      // Auto-import all valid non-duplicate slips immediately
+      if (selectedIds.isNotEmpty) {
+        final importedCount = await importSelectedSlips();
+        state = state.copyWith(
+          isScanning: false,
+          scanProgress: 1.0,
+          statusMessage: 'จดสลิปจากรูปให้แล้ว $importedCount รายการเรียบร้อย! 🦥✨',
+          lastError: caughtError,
+          parsedSlips: [],
+          selectedSlipIds: [],
+          totalScannedAssets: total,
+        );
+      } else {
+        state = state.copyWith(
+          isScanning: false,
+          scanProgress: 1.0,
+          statusMessage: parsedResults.isEmpty
+              ? 'ไม่พบรูปแบบสลิปในรูปที่เลือก'
+              : 'รูปสลิปที่เลือกเคยจดไปแล้ว (สลิปซ้ำ)',
+          lastError: caughtError,
+          parsedSlips: [],
+          selectedSlipIds: [],
+          totalScannedAssets: total,
+        );
+      }
       _autoDismissStatusAfter(4);
     } catch (e) {
       await _notif.cancelAll();
@@ -522,14 +539,36 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     await _notif.showDone(total: total, found: parsedResults.length);
 
     state = state.copyWith(
-      isScanning: false,
-      scanProgress: 1.0,
-      statusMessage: resultMsg,
-      lastError: lastError,
       parsedSlips: parsedResults,
       selectedSlipIds: selectedIds,
       totalScannedAssets: total,
     );
+
+    // Auto-import all valid non-duplicate slips immediately
+    if (selectedIds.isNotEmpty) {
+      final importedCount = await importSelectedSlips();
+      state = state.copyWith(
+        isScanning: false,
+        scanProgress: 1.0,
+        statusMessage: 'จดสลิปใหม่ให้แล้ว $importedCount รายการเรียบร้อย! 🦥✨',
+        lastError: lastError,
+        parsedSlips: [],
+        selectedSlipIds: [],
+        totalScannedAssets: total,
+      );
+    } else {
+      state = state.copyWith(
+        isScanning: false,
+        scanProgress: 1.0,
+        statusMessage: parsedResults.isEmpty
+            ? resultMsg
+            : 'ตรวจพบสลิป ${parsedResults.length} ใบ แต่ทั้งหมดเคยจดไปแล้ว (สลิปซ้ำ)',
+        lastError: lastError,
+        parsedSlips: [],
+        selectedSlipIds: [],
+        totalScannedAssets: total,
+      );
+    }
     _autoDismissStatusAfter(4);
   }
 
@@ -693,17 +732,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       }
 
       await _processScannableAssets(scannables);
-
-      // Auto-import all non-duplicate slips found (do not wait for user confirmation)
-      final autoImportCount = await importSelectedSlips();
-      state = state.copyWith(
-        isScanning: false,
-        statusMessage: autoImportCount > 0
-            ? 'จดสลิปใหม่ให้แล้ว $autoImportCount รายการ ✨'
-            : 'ไม่พบสลิปใหม่ในวันนี้',
-      );
-      _autoDismissStatusAfter(4);
-      return autoImportCount;
+      return state.totalScannedAssets;
     } catch (e) {
       state = state.copyWith(isScanning: false, statusMessage: '');
       return 0;

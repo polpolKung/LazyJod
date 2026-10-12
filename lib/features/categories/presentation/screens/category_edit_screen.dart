@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../models/category_model.dart';
@@ -65,6 +66,7 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
       _type = c.type;
       _iconCodePoint = c.iconCodePoint;
       _colorValue = c.colorValue;
+      _customImagePath = c.customImagePath;
       // Extract HSV from saved color
       final hsv = HSVColor.fromColor(Color(_colorValue));
       _hue = hsv.hue;
@@ -112,9 +114,24 @@ class _CategoryEditScreenState extends ConsumerState<CategoryEditScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
     if (picked != null) {
-      setState(() {
-        _customImagePath = picked.path;
-      });
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        final catIconsDir = Directory('${appDir.path}/category_icons');
+        if (!await catIconsDir.exists()) {
+          await catIconsDir.create(recursive: true);
+        }
+        final ext = picked.path.split('.').last;
+        final targetFile = File('${catIconsDir.path}/cat_icon_${DateTime.now().millisecondsSinceEpoch}.$ext');
+        await File(picked.path).copy(targetFile.path);
+
+        setState(() {
+          _customImagePath = targetFile.path;
+        });
+      } catch (e) {
+        setState(() {
+          _customImagePath = picked.path;
+        });
+      }
     }
   }
 
