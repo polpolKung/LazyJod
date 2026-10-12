@@ -50,7 +50,19 @@
 
 ## 3. Completed Tasks (✅)
 
-### Zero-Click Scan Auto-Import & Launch/Category Bug Fixes (Latest)
+### Interactive Category Dashboard Navigation & Filtering (Latest)
+- ✅ **Interactive Category Breakdown Chart & Legend (`category_pie_chart.dart`, `dashboard_screen.dart`):**
+  - Enabled tap interaction on both the Pie Chart sections and the top 5 Category legend list rows.
+  - Added clean visual feedback with ripple (`InkWell`), category percentage, amount, and cute chevron indicator (`Icons.chevron_right_rounded`).
+  - Tapping any category on the dashboard automatically filters transactions by that specific category (`setCategory(category.categoryId)`) and smoothly navigates to `TransactionListScreen`.
+- ✅ **Spending Insights Category Tile Navigation (`spending_insights_screen.dart`):**
+  - Tapping any category tile in the detailed monthly category breakdown list sets the filter to that category and navigates to `TransactionListScreen`.
+- ✅ **Active Filter Banner & Quick Clear in Transaction List (`transaction_list_screen.dart`):**
+  - Added cute cartoon-styled active filter bar at the top of `TransactionListScreen` showing the currently filtered category name (e.g. `หมวดหมู่: อาหารและเครื่องดื่ม`).
+  - Added one-tap "ล้างตัวกรอง" button inside the banner to quickly restore the full transaction list view without having to open the filter menu.
+  - All 49/49 automated unit tests passing (100%).
+
+### Zero-Click Scan Auto-Import & Launch/Category Bug Fixes
 - ✅ **Fixed Launch Black Screen Bug (`launch_background.xml`, `launch_image.png`, `styles.xml`):**
   - Resolved black screen on app startup caused by `<bitmap>` attempting to decode adaptive XML icon `@mipmap/ic_launcher`. Added dedicated PNG raster `launch_image.png` and updated `values-night/styles.xml` to ensure clean mint theme background and logo display on all Android versions and dark mode settings.
 - ✅ **Zero-Click Instant Slip Auto-Import (`ingestion_provider.dart`):**

@@ -7,11 +7,13 @@ import '../../models/spending_summary.dart';
 class CategoryPieChart extends StatefulWidget {
   final List<CategorySpending> breakdown;
   final double totalExpense;
+  final void Function(CategorySpending category)? onCategoryTap;
 
   const CategoryPieChart({
     super.key,
     required this.breakdown,
     required this.totalExpense,
+    this.onCategoryTap,
   });
 
   @override
@@ -56,6 +58,15 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                         }
                         _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
                       });
+
+                      if (event is FlTapUpEvent &&
+                          pieTouchResponse != null &&
+                          pieTouchResponse.touchedSection != null) {
+                        final touchedIdx = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                        if (touchedIdx >= 0 && touchedIdx < widget.breakdown.length) {
+                          widget.onCategoryTap?.call(widget.breakdown[touchedIdx]);
+                        }
+                      }
                     },
                   ),
                   borderData: FlBorderData(show: false),
@@ -110,44 +121,58 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
         // Legend List (Top 5 categories)
         Column(
           children: widget.breakdown.take(5).map((item) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: Color(item.colorValue),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      item.categoryName,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => widget.onCategoryTap?.call(item),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Color(item.colorValue),
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.categoryName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${item.percentage.toStringAsFixed(1)}%  ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                        ),
+                      ),
+                      Text(
+                        CurrencyFormatter.format(item.amount),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${item.percentage.toStringAsFixed(1)}%  ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
-                    ),
-                  ),
-                  Text(
-                    CurrencyFormatter.format(item.amount),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                    ),
-                  ),
-                ],
+                ),
               ),
             );
           }).toList(),

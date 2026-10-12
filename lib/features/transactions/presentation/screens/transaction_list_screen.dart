@@ -4,6 +4,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/empty_state.dart';
+import '../../../categories/models/category_model.dart';
+import '../../../categories/providers/category_provider.dart';
 import '../../models/transaction_model.dart';
 import '../../models/transaction_type.dart';
 import '../../providers/transaction_provider.dart';
@@ -56,6 +58,92 @@ class TransactionListScreen extends ConsumerWidget {
       mGroup.dayGroups.putIfAbsent(dateKey, () => []).add(tx);
     }
 
+    CategoryModel? activeCategory;
+    if (filter.categoryId != null) {
+      final categories = ref.watch(categoryProvider);
+      final match = categories.where((c) => c.id == filter.categoryId);
+      if (match.isNotEmpty) {
+        activeCategory = match.first;
+      }
+    }
+
+    Widget buildFilterBanner() {
+      if (!hasActiveFilter) return const SizedBox.shrink();
+
+      String label = 'ตัวกรองที่เลือก';
+      if (activeCategory != null) {
+        label = 'หมวดหมู่: ${activeCategory.nameThai}';
+      } else if (filter.type != null) {
+        label = filter.type == TransactionType.income ? 'รายรับ' : 'รายจ่าย';
+      } else if (filter.searchQuery.isNotEmpty) {
+        label = 'ค้นหา: "${filter.searchQuery}"';
+      }
+
+      return Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cartoonOutline, width: 1.8),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.cartoonOutline.withOpacity(0.1),
+              offset: const Offset(0, 2),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.filter_alt_rounded, size: 18, color: AppColors.cartoonOutline),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.cartoonOutline,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                ref.read(transactionFilterProvider.notifier).reset();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.cartoonOutline, width: 1.2),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.close_rounded, size: 14, color: AppColors.cartoonOutline),
+                    SizedBox(width: 4),
+                    Text(
+                      'ล้างตัวกรอง',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.cartoonOutline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('รายการทั้งหมด'),
@@ -87,28 +175,32 @@ class TransactionListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: transactions.isEmpty
-          ? EmptyStateWidget(
-              title: hasActiveFilter ? 'ไม่พบรายการที่ค้นหา' : 'ยังไม่มีรายการธุรกรรม',
-              message: hasActiveFilter
-                  ? 'ลองเปลี่ยนเงื่อนไขการค้นหา หรือรีเซ็ตตัวกรอง'
-                  : 'เริ่มบันทึกรายการด้วยตนเอง หรือกดสแกนสลิปอัตโนมัติได้เลย',
-              icon: Icons.receipt_long_outlined,
-              buttonText: hasActiveFilter ? 'รีเซ็ตตัวกรอง' : 'บันทึกรายการ',
-              onButtonPressed: () {
-                if (hasActiveFilter) {
-                  ref.read(transactionFilterProvider.notifier).reset();
-                } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
-                  );
-                }
-              },
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 80),
-              itemCount: monthGroups.keys.length,
-              itemBuilder: (context, monthIndex) {
+      body: Column(
+        children: [
+          buildFilterBanner(),
+          Expanded(
+            child: transactions.isEmpty
+                ? EmptyStateWidget(
+                    title: hasActiveFilter ? 'ไม่พบรายการที่ค้นหา' : 'ยังไม่มีรายการธุรกรรม',
+                    message: hasActiveFilter
+                        ? 'ลองเปลี่ยนเงื่อนไขการค้นหา หรือรีเซ็ตตัวกรอง'
+                        : 'เริ่มบันทึกรายการด้วยตนเอง หรือกดสแกนสลิปอัตโนมัติได้เลย',
+                    icon: Icons.receipt_long_outlined,
+                    buttonText: hasActiveFilter ? 'รีเซ็ตตัวกรอง' : 'บันทึกรายการ',
+                    onButtonPressed: () {
+                      if (hasActiveFilter) {
+                        ref.read(transactionFilterProvider.notifier).reset();
+                      } else {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
+                        );
+                      }
+                    },
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemCount: monthGroups.keys.length,
+                    itemBuilder: (context, monthIndex) {
                 final monthKey = monthGroups.keys.elementAt(monthIndex);
                 final mGroup = monthGroups[monthKey]!;
                 final monthName = DateFormatter.thaiMonthsFull[mGroup.month - 1];
@@ -307,6 +399,9 @@ class TransactionListScreen extends ConsumerWidget {
                 );
               },
             ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.black, size: 28),

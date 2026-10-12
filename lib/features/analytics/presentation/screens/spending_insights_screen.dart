@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../transactions/presentation/screens/transaction_list_screen.dart';
+import '../../../transactions/providers/transaction_provider.dart';
 import '../../providers/analytics_provider.dart';
 
 class SpendingInsightsScreen extends ConsumerWidget {
@@ -140,6 +142,13 @@ class SpendingInsightsScreen extends ConsumerWidget {
               child: Column(
                 children: summary.categoryBreakdown.map((cat) {
                   return ListTile(
+                    onTap: () {
+                      ref.read(transactionFilterProvider.notifier).reset();
+                      ref.read(transactionFilterProvider.notifier).setCategory(cat.categoryId);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const TransactionListScreen()),
+                      );
+                    },
                     leading: Container(
                       width: 14,
                       height: 14,
@@ -150,18 +159,25 @@ class SpendingInsightsScreen extends ConsumerWidget {
                     ),
                     title: Text(cat.categoryName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                     subtitle: Text('${cat.transactionCount} รายการ', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          CurrencyFormatter.format(cat.amount),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              CurrencyFormatter.format(cat.amount),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            Text(
+                              '${cat.percentage.toStringAsFixed(1)}%',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ],
                         ),
-                        Text(
-                          '${cat.percentage.toStringAsFixed(1)}%',
-                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
                       ],
                     ),
                   );

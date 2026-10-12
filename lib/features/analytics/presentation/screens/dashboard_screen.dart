@@ -414,6 +414,13 @@ class DashboardScreen extends ConsumerWidget {
                     CategoryPieChart(
                       breakdown: summary.categoryBreakdown,
                       totalExpense: summary.totalExpense,
+                      onCategoryTap: (category) {
+                        ref.read(transactionFilterProvider.notifier).reset();
+                        ref.read(transactionFilterProvider.notifier).setCategory(category.categoryId);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const TransactionListScreen()),
+                        );
+                      },
                     ),
                   ],
                 ),
