@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../categories/models/category_model.dart';
 import '../../../categories/presentation/widgets/category_icon_bubble.dart';
 import '../../../categories/presentation/widgets/category_quick_picker_sheet.dart';
 import '../../../categories/providers/category_provider.dart';
