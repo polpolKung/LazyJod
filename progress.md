@@ -50,7 +50,16 @@
 
 ## 3. Completed Tasks (✅)
 
-### UX Enhancements, Color Wheel & Date-Based Scanning (Latest)
+### Brand Splash, Dynamic Calendar Badge & In-Place APK Updates (Latest)
+- ✅ **Theme Launch Splash Screen (`launch_background.xml`, `colors.xml`):**
+  - Replaced native Android blank white launch screen with brand mint wallpaper (`#BDE6D4`) and centered Lazy Jod logo (`ic_launcher`), eliminating the white flash on app startup.
+- ✅ **Dynamic Cartoon Calendar Badge (`dashboard_screen.dart`):**
+  - Replaced static `📅` emoji (which had "17" permanently baked into the emoji glyph) with custom `_CartoonCalendarIcon` badge displaying the real day number (`DateTime.now().day`), cute coral red binder header, and cartoon ink outlines.
+- ✅ **In-Place APK Update & Release Signing Key (`lazyjod.jks`, `build.gradle`, `build_apk.yml`):**
+  - Created persistent production keystore `lazyjod.jks` and configured release signing in `build.gradle` to ensure identical cryptographic signatures across all builds.
+  - Configured GitHub Actions to automatically pass `--build-number=${{ github.run_number }}` so `versionCode` increments on every build, allowing users to update APKs directly in-place without uninstalling and losing data.
+
+### UX Enhancements, Color Wheel & Date-Based Scanning
 - ✅ **Auto-Dismiss Scan Notification Banner (`ingestion_provider.dart`):**
   - Result banners (such as "ไม่พบสลิปใหม่ในวันนี้", "สแกนเสร็จสิ้น...", "นำเข้าข้อมูลสำเร็จ!") now disappear automatically after 4 seconds without forcing user to tap X.
 - ✅ **Removed Redundant Privacy-First Card (`settings_screen.dart`):**

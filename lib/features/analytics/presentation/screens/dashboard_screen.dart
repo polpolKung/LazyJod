@@ -112,7 +112,11 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     Row(
                       children: [
-                        const Text('📅 ', style: TextStyle(fontSize: 16)),
+                        _CartoonCalendarIcon(
+                          day: (selectedMonth.year == now.year && selectedMonth.month == now.month)
+                              ? now.day
+                              : 1,
+                        ),
                         Text(
                           '$monthName $yearThai',
                           style: const TextStyle(
@@ -612,6 +616,80 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CartoonCalendarIcon extends StatelessWidget {
+  final int day;
+
+  const _CartoonCalendarIcon({required this.day});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 25,
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.cartoonOutline, width: 1.8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cartoonOutline.withOpacity(0.15),
+            offset: const Offset(0, 2),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Cute header with two binding rings
+          Container(
+            height: 7,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFF6B6B), // Pastel coral red
+              borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  width: 2.5,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.cartoonOutline,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+                Container(
+                  width: 2.5,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.cartoonOutline,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Day number
+          Expanded(
+            child: Center(
+              child: Text(
+                '$day',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.cartoonOutline,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -32,9 +32,18 @@ android {
         versionName "1.0.0"
     }
 
+    signingConfigs {
+        release {
+            storeFile file("lazyjod.jks")
+            storePassword "lazyjodpassword"
+            keyAlias "lazyjod"
+            keyPassword "lazyjodpassword"
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
         }
