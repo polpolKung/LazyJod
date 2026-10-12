@@ -243,13 +243,9 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: _selectedTab == CategoryType.income ? AppColors.income : AppColors.expense,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(
-          _selectedTab == CategoryType.income ? 'เพิ่มหมวดหมู่รายรับ' : 'เพิ่มหมวดหมู่รายจ่าย',
-          style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
-        ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.black,
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -257,6 +253,7 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
             ),
           );
         },
+        child: const Icon(Icons.add),
       ),
     );
   }
