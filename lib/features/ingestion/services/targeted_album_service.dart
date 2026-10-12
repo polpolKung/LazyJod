@@ -198,7 +198,8 @@ class TargetedAlbumService {
   Future<List<ScannableAsset>> fetchAssetsToScan({
     List<String>? selectedExpenseAlbumIds,
     List<String>? selectedIncomeAlbumIds,
-    int maxCount = 1000,
+    DateTime? fromDate,
+    int maxCount = 2000,
   }) async {
     try {
       final filterOption = FilterOptionGroup()
@@ -227,6 +228,9 @@ class TargetedAlbumService {
         if (isIncomeTarget) {
           final assets = await path.getAssetListRange(start: 0, end: maxCount);
           for (final asset in assets) {
+            if (fromDate != null && asset.createDateTime.isBefore(fromDate)) {
+              continue;
+            }
             if (seenAssetIds.add(asset.id)) {
               scannableAssets.add(ScannableAsset(
                 asset: asset,
@@ -246,6 +250,9 @@ class TargetedAlbumService {
         if (isExpenseTarget) {
           final assets = await path.getAssetListRange(start: 0, end: maxCount);
           for (final asset in assets) {
+            if (fromDate != null && asset.createDateTime.isBefore(fromDate)) {
+              continue;
+            }
             if (seenAssetIds.add(asset.id)) {
               scannableAssets.add(ScannableAsset(
                 asset: asset,
@@ -269,10 +276,12 @@ class TargetedAlbumService {
   /// Legacy helper for backward compatibility
   Future<List<AssetEntity>> fetchAssetsFromTargetedAlbums({
     List<String>? selectedAlbumIds,
-    int maxCount = 1000,
+    DateTime? fromDate,
+    int maxCount = 2000,
   }) async {
     final scannables = await fetchAssetsToScan(
       selectedExpenseAlbumIds: selectedAlbumIds,
+      fromDate: fromDate,
       maxCount: maxCount,
     );
     return scannables.map((s) => s.asset).toList();

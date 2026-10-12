@@ -1,15 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../models/category_model.dart';
 
 /// iOS-style solid-fill squircle icon bubble.
-/// Uses solid mint fill (from logo) with white icon — like Image 3 reference.
-/// No gradient, no semi-transparent — clean, soft, and cute.
+/// Supports: Material icon + color, or a custom user-uploaded image path.
 class CategoryIconBubble extends StatelessWidget {
   final CategoryModel? category;
   final IconData? overrideIcon;
   final Color? overrideColor;
   final String? overrideEmoji;
+  final String? overrideImagePath; // Custom uploaded image path
   final double size;
   final bool isSelected;
   final bool isTransfer;
@@ -22,6 +23,7 @@ class CategoryIconBubble extends StatelessWidget {
     this.overrideIcon,
     this.overrideColor,
     this.overrideEmoji,
+    this.overrideImagePath,
     this.size = 46,
     this.isSelected = false,
     this.isTransfer = false,
@@ -31,17 +33,45 @@ class CategoryIconBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // For the solid fill: we use the category color but desaturate it
-    // to match the cute pastel "iOS icon" style from reference Image 3.
-    // Unselected = soft pastel fill; Selected = richer fill
+    final borderRadius = BorderRadius.circular(size * 0.26); // iOS squircle
+
+    // Resolve custom image: override param wins, then category model value
+    final imagePath = overrideImagePath ?? category?.customImagePath;
+
+    final shadowDecoration = BoxShadow(
+      color: AppColors.cartoonOutline.withOpacity(isSelected ? 0.20 : 0.10),
+      offset: const Offset(0, 3),
+      blurRadius: 0,
+    );
+
+    // ── Custom image icon ─────────────────────────────────────────────────
+    if (imagePath != null && imagePath.isNotEmpty) {
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          border: Border.all(
+            color: AppColors.cartoonOutline,
+            width: isSelected ? 2.4 : 1.8,
+          ),
+          boxShadow: [shadowDecoration],
+          image: DecorationImage(
+            image: FileImage(File(imagePath)),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
+    // ── Material icon bubble ──────────────────────────────────────────────
     final rawColor = isTransfer
         ? AppColors.transfer
         : (isUncategorized
             ? AppColors.warning
             : (overrideColor ?? category?.color ?? AppColors.primary));
 
-    // Blend the category color toward the primary mint to keep it cohesive
-    // and prevent any single category from looking neon
     final fillColor = isSelected
         ? Color.alphaBlend(rawColor.withOpacity(0.75), AppColors.primaryMint)
         : Color.alphaBlend(rawColor.withOpacity(0.55), AppColors.primaryLight);
@@ -55,8 +85,6 @@ class CategoryIconBubble extends StatelessWidget {
     final emoji = isTransfer
         ? '🔄'
         : (isUncategorized ? '🦥' : (overrideEmoji ?? category?.emoji));
-
-    final borderRadius = BorderRadius.circular(size * 0.26); // iOS squircle
 
     return Stack(
       clipBehavior: Clip.none,
@@ -72,13 +100,7 @@ class CategoryIconBubble extends StatelessWidget {
               color: AppColors.cartoonOutline,
               width: isSelected ? 2.4 : 1.8,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.cartoonOutline.withOpacity(isSelected ? 0.20 : 0.10),
-                offset: const Offset(0, 3),
-                blurRadius: 0,
-              ),
-            ],
+            boxShadow: [shadowDecoration],
           ),
           child: Center(
             child: Icon(

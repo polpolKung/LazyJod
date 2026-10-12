@@ -15,6 +15,7 @@ class CategoryModel {
   final bool isDefault;
   final List<String> autoKeywords; // Keywords matching recipient or merchant
   final String? emoji; // Cute mascot/category emoji
+  final String? customImagePath; // Path to user-uploaded custom icon image
 
   const CategoryModel({
     required this.id,
@@ -26,6 +27,7 @@ class CategoryModel {
     this.isDefault = false,
     this.autoKeywords = const [],
     this.emoji,
+    this.customImagePath,
   });
 
   IconData get icon {
@@ -76,6 +78,7 @@ class CategoryModel {
       'isDefault': isDefault,
       'autoKeywords': autoKeywords,
       'emoji': emoji,
+      'customImagePath': customImagePath,
     };
   }
 
@@ -90,6 +93,7 @@ class CategoryModel {
       isDefault: map['isDefault'] as bool? ?? false,
       autoKeywords: List<String>.from(map['autoKeywords'] ?? []),
       emoji: map['emoji'] as String?,
+      customImagePath: map['customImagePath'] as String?,
     );
   }
 

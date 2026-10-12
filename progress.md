@@ -50,7 +50,22 @@
 
 ## 3. Completed Tasks (✅)
 
-### Scanner UX & Category Icon Accuracy Rework (Latest)
+### UX Enhancements, Color Wheel & Date-Based Scanning (Latest)
+- ✅ **Auto-Dismiss Scan Notification Banner (`ingestion_provider.dart`):**
+  - Result banners (such as "ไม่พบสลิปใหม่ในวันนี้", "สแกนเสร็จสิ้น...", "นำเข้าข้อมูลสำเร็จ!") now disappear automatically after 4 seconds without forcing user to tap X.
+- ✅ **Removed Redundant Privacy-First Card (`settings_screen.dart`):**
+  - Cleaned up settings screen by removing the prominent green Privacy-First card.
+- ✅ **Full Category Color Customization & Custom Image Upload (`category_edit_screen.dart`, `category_icon_bubble.dart`, `category_model.dart`):**
+  - Added full HSV color palette sliders (เฉดสี, ความจัด, ความสว่าง) to tune any shade/hex desired.
+  - Expanded theme-friendly preset swatches to 20 pastel shades matching app theme.
+  - Added support for uploading custom icon images directly from device photo gallery via `ImagePicker`.
+  - Updated `CategoryIconBubble` and `CategoryModel` serialization to render custom uploaded images alongside Material icons.
+- ✅ **Date-Based Slip Scanning Replacement (`targeted_album_service.dart`, `ingestion_provider.dart`, `album_picker_screen.dart`, `settings_screen.dart`, `local_storage_service.dart`):**
+  - Replaced arbitrary slip count limit (30, 50, 100) with intuitive date-based cut-off (`getScanFromDate` / `setScanFromDate`).
+  - Scans only slips taken on or after the specified date (e.g. 7 days, 30 days, 90 days, 180 days, this year, or custom date via `showDatePicker`).
+  - Added interactive date cut-off badge in `AlbumPickerScreen` bottom bar and in `SettingsScreen`.
+
+### Scanner UX & Category Icon Accuracy Rework
 - ✅ **Category Icon Accuracy (`category_model.dart`, `local_storage_service.dart`):**
   - Resolved mismatched icon glyphs in category picker (e.g. food showing TV monitor, transport showing dropper, bills showing flash off).
   - Implemented explicit ID-based `IconData get icon` mapper returning genuine `Icons.*_rounded` (restaurant, directions_car, shopping_bag, receipt_long, home, sports_esports, favorite, pets, payments, savings, account_balance_wallet).

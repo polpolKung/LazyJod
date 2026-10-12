@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/local_storage_service.dart';
@@ -19,18 +20,18 @@ import '../../../../core/widgets/jod_mascot.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  Future<void> _showScanLimitDialog(BuildContext context) async {
+  Future<void> _showScanDateDialog(BuildContext context) async {
     final storage = LocalStorageService();
-    final current = await storage.getScanHistoryLimit();
+    final currentFromDate = await storage.getScanFromDate();
     if (!context.mounted) return;
 
+    final now = DateTime.now();
     final options = [
-      (30, '⚡ 30 สลิป', 'เร็วมาก (~5 วินาที)'),
-      (50, '🚀 50 สลิป (แนะนำ)', 'รวดเร็วและครอบคลุม (~10 วินาที)'),
-      (100, '📦 100 สลิป', 'สำหรับคนโอนบ่อย (~20 วินาที)'),
-      (300, '🗄️ 300 สลิป', 'ตรวจย้อนหลังเยอะ (~1 นาที)'),
-      (500, '📚 500 สลิป', 'ตรวจย้อนหลังละเอียด (~1.5 นาที)'),
-      (1000, '♾️ 1,000 สลิป (ทั้งหมด)', 'ตรวจทั้งหมด แต่อาจใช้เวลา 2-3 นาที'),
+      (now.subtract(const Duration(days: 7)), '⚡ 7 วันที่ผ่านมา (~1 สัปดาห์)', 'สแกนเฉพาะสลิปสัปดาห์ล่าสุด เร็วมาก'),
+      (now.subtract(const Duration(days: 30)), '🚀 30 วันที่ผ่านมา (~1 เดือน)', 'สแกนสลิป 1 เดือนล่าสุด'),
+      (now.subtract(const Duration(days: 90)), '📦 90 วันที่ผ่านมา (~3 เดือน)', 'แนะนำสำหรับการตรวจสลิปทั่วไป'),
+      (now.subtract(const Duration(days: 180)), '🗄️ 180 วันที่ผ่านมา (~6 เดือน)', 'สแกนสลิปย้อนหลังครึ่งปี'),
+      (DateTime(now.year, 1, 1), '🗓️ ตั้งแต่ต้นปีนี้ (${now.year + 543})', 'สแกนสลิปทั้งหมดของปีนี้'),
     ];
 
     await showDialog(
@@ -38,35 +39,64 @@ class SettingsScreen extends ConsumerWidget {
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
-          title: const Text('จำนวนสลิปที่สแกนต่อครั้ง', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: options.map((opt) {
-              final isSelected = opt.$1 == current;
-              return ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                tileColor: isSelected ? AppColors.primary.withOpacity(isDark ? 0.15 : 0.08) : null,
-                title: Text(
-                  opt.$2,
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? AppColors.primary : null,
-                    fontSize: 14,
-                  ),
-                ),
-                subtitle: Text(opt.$3, style: const TextStyle(fontSize: 11)),
-                trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
-                onTap: () async {
-                  await storage.setScanHistoryLimit(opt.$1);
-                  if (ctx.mounted) Navigator.of(ctx).pop();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('ตั้งค่าการสแกนเป็น ${opt.$2} เรียบร้อยแล้ว')),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('สแกนสลิปย้อนหลังถึงวันที่', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ...options.map((opt) {
+                  final isSelected = opt.$1.difference(currentFromDate).inDays.abs() <= 1;
+                  return ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    tileColor: isSelected ? AppColors.primary.withOpacity(isDark ? 0.15 : 0.08) : null,
+                    title: Text(
+                      opt.$2,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : null,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(opt.$3, style: const TextStyle(fontSize: 11)),
+                    trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
+                    onTap: () async {
+                      await storage.setScanFromDate(opt.$1);
+                      if (ctx.mounted) Navigator.of(ctx).pop();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('ตั้งค่าให้สแกนย้อนหลังถึง ${DateFormat('d MMM yyyy', 'th').format(opt.$1)} เรียบร้อยแล้ว')),
+                        );
+                      }
+                    },
+                  );
+                }),
+                const Divider(height: 16),
+                ListTile(
+                  leading: const Icon(Icons.edit_calendar_rounded, color: AppColors.primary),
+                  title: const Text('เลือกวันที่ระบุเอง...', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  subtitle: const Text('เลือกวันที่เริ่มต้นจากปฏิทินตามที่ต้องการ', style: TextStyle(fontSize: 11)),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: currentFromDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      helpText: 'เลือกวันที่เริ่มต้นที่ต้องการสแกนย้อนหลัง',
                     );
-                  }
-                },
-              );
-            }).toList(),
+                    if (picked != null) {
+                      await storage.setScanFromDate(picked);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('ตั้งค่าให้สแกนย้อนหลังถึง ${DateFormat('d MMM yyyy', 'th').format(picked)} เรียบร้อยแล้ว')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -116,54 +146,6 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Privacy Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary.withOpacity(0.12),
-                  AppColors.secondary.withOpacity(0.08),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary.withOpacity(0.25)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 36),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ความเป็นส่วนตัวระดับสูงสุด (Privacy-First)',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'สแกนเฉพาะอัลบั้มที่เลือก ประมวลผล OCR ในเครื่อง และบันทึกข้อมูลแบบ Offline 100%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
           // Theme toggle
           Text(
             'ธีมและหน้าตา',
@@ -196,11 +178,11 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.speed_rounded, color: AppColors.primary),
-                  title: const Text('จำนวนสลิปที่สแกนต่อครั้ง', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('ปรับลดจำนวนสลิปเพื่อให้แอปสแกนและเปิดได้เร็วขึ้น', style: TextStyle(fontSize: 12)),
+                  leading: const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
+                  title: const Text('สแกนสลิปย้อนหลังถึงวันที่', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  subtitle: const Text('กำหนดวันที่เริ่มต้นที่ต้องการให้แอปตรวจหาสลิป', style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showScanLimitDialog(context),
+                  onTap: () => _showScanDateDialog(context),
                 ),
                 const Divider(height: 1),
                 ListTile(

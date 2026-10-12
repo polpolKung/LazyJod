@@ -272,11 +272,11 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
     final selectedExpenseIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
     final selectedIncomeIds = state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList();
 
-    final scanLimit = await _storage.getScanHistoryLimit();
+    final scanFromDate = await _storage.getScanFromDate();
     final scannables = await _albumService.fetchAssetsToScan(
       selectedExpenseAlbumIds: selectedExpenseIds.isNotEmpty ? selectedExpenseIds : null,
       selectedIncomeAlbumIds: selectedIncomeIds.isNotEmpty ? selectedIncomeIds : null,
-      maxCount: scanLimit,
+      fromDate: scanFromDate,
     );
 
     if (scannables.isEmpty) {
@@ -390,6 +390,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         selectedSlipIds: selectedIds,
         totalScannedAssets: total,
       );
+      _autoDismissStatusAfter(4);
     } catch (e) {
       await _notif.cancelAll();
       state = state.copyWith(
@@ -529,6 +530,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       selectedSlipIds: selectedIds,
       totalScannedAssets: total,
     );
+    _autoDismissStatusAfter(4);
   }
 
   void toggleSlipSelection(String slipId) {
@@ -641,12 +643,21 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       selectedSlipIds: [],
       statusMessage: 'นำเข้าข้อมูล ${newTransactions.length} รายการสำเร็จ!',
     );
+    _autoDismissStatusAfter(4);
 
     return newTransactions.length;
   }
 
   void clearStatus() {
     state = state.copyWith(statusMessage: '');
+  }
+
+  /// Clears the status message after [seconds] seconds — used to auto-dismiss
+  /// the scan result banner without requiring the user to tap the X.
+  void _autoDismissStatusAfter(int seconds) {
+    Future.delayed(Duration(seconds: seconds), () {
+      if (mounted) clearStatus();
+    });
   }
 
   /// Auto-scan and auto-import all new slips silently when the app opens (Zero-Click)
@@ -669,11 +680,11 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
       final selectedExpenseIds = state.albums.where((a) => a.isSelected).map((a) => a.id).toList();
       final selectedIncomeIds = state.albums.where((a) => a.isIncomeSelected).map((a) => a.id).toList();
 
-      final scanLimit = await _storage.getScanHistoryLimit();
+      final scanFromDate = await _storage.getScanFromDate();
       final scannables = await _albumService.fetchAssetsToScan(
         selectedExpenseAlbumIds: selectedExpenseIds.isNotEmpty ? selectedExpenseIds : null,
         selectedIncomeAlbumIds: selectedIncomeIds.isNotEmpty ? selectedIncomeIds : null,
-        maxCount: scanLimit,
+        fromDate: scanFromDate,
       );
 
       if (scannables.isEmpty) {
@@ -691,6 +702,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
             ? 'จดสลิปใหม่ให้แล้ว $autoImportCount รายการ ✨'
             : 'ไม่พบสลิปใหม่ในวันนี้',
       );
+      _autoDismissStatusAfter(4);
       return autoImportCount;
     } catch (e) {
       state = state.copyWith(isScanning: false, statusMessage: '');

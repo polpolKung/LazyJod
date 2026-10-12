@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/database/local_storage_service.dart';
 import '../../providers/ingestion_provider.dart';
@@ -8,23 +9,126 @@ import '../../services/targeted_album_service.dart';
 /// The 3 mutually-exclusive scan states for a single album.
 enum _AlbumScanMode { none, expense, income }
 
-class AlbumPickerScreen extends ConsumerWidget {
+class AlbumPickerScreen extends ConsumerStatefulWidget {
   final bool isFirstLaunch;
 
   const AlbumPickerScreen({super.key, this.isFirstLaunch = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AlbumPickerScreen> createState() => _AlbumPickerScreenState();
+}
+
+class _AlbumPickerScreenState extends ConsumerState<AlbumPickerScreen> {
+  DateTime? _scanFromDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadScanFromDate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(ingestionProvider.notifier).requestPermissionAndLoadAlbums();
+    });
+  }
+
+  Future<void> _loadScanFromDate() async {
+    final storage = LocalStorageService();
+    final d = await storage.getScanFromDate();
+    if (mounted) {
+      setState(() => _scanFromDate = d);
+    }
+  }
+
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return 'กำลังโหลด...';
+    return DateFormat('d MMM yyyy', 'th').format(dt);
+  }
+
+  Future<void> _pickScanDate() async {
+    final storage = LocalStorageService();
+    final currentFromDate = _scanFromDate ?? await storage.getScanFromDate();
+    if (!mounted) return;
+
+    final now = DateTime.now();
+    final options = [
+      (now.subtract(const Duration(days: 7)), '⚡ 7 วันที่ผ่านมา (~1 สัปดาห์)', 'สแกนเฉพาะสลิปสัปดาห์ล่าสุด เร็วมาก'),
+      (now.subtract(const Duration(days: 30)), '🚀 30 วันที่ผ่านมา (~1 เดือน)', 'สแกนสลิป 1 เดือนล่าสุด'),
+      (now.subtract(const Duration(days: 90)), '📦 90 วันที่ผ่านมา (~3 เดือน)', 'แนะนำสำหรับการตรวจสลิปทั่วไป'),
+      (now.subtract(const Duration(days: 180)), '🗄️ 180 วันที่ผ่านมา (~6 เดือน)', 'สแกนสลิปย้อนหลังครึ่งปี'),
+      (DateTime(now.year, 1, 1), '🗓️ ตั้งแต่ต้นปีนี้ (${now.year + 543})', 'สแกนสลิปทั้งหมดของปีนี้'),
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('สแกนสลิปย้อนหลังถึงวันที่', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ...options.map((opt) {
+                  final isSelected = opt.$1.difference(currentFromDate).inDays.abs() <= 1;
+                  return ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    tileColor: isSelected ? AppColors.primary.withOpacity(isDark ? 0.15 : 0.08) : null,
+                    title: Text(
+                      opt.$2,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : null,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(opt.$3, style: const TextStyle(fontSize: 11)),
+                    trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
+                    onTap: () async {
+                      await storage.setScanFromDate(opt.$1);
+                      if (mounted) setState(() => _scanFromDate = opt.$1);
+                      if (ctx.mounted) Navigator.of(ctx).pop();
+                    },
+                  );
+                }),
+                const Divider(height: 16),
+                ListTile(
+                  leading: const Icon(Icons.edit_calendar_rounded, color: AppColors.primary),
+                  title: const Text('เลือกวันที่ระบุเอง...', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  subtitle: const Text('เลือกวันที่เริ่มต้นจากปฏิทินตามที่ต้องการ', style: TextStyle(fontSize: 11)),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: currentFromDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      helpText: 'เลือกวันที่เริ่มต้นที่ต้องการสแกนย้อนหลัง',
+                    );
+                    if (picked != null) {
+                      await storage.setScanFromDate(picked);
+                      if (mounted) setState(() => _scanFromDate = picked);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(ingestionProvider);
     final notifier = ref.read(ingestionProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final selectedExpenseCount = state.albums.where((a) => a.isSelected).length;
     final selectedIncomeCount = state.albums.where((a) => a.isIncomeSelected).length;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isFirstLaunch ? 'โฟลเดอร์สแกนสลิป (เริ่มต้น)' : 'เลือกโฟลเดอร์สแกนสลิป'),
+        title: Text(widget.isFirstLaunch ? 'โฟลเดอร์สแกนสลิป (เริ่มต้น)' : 'เลือกโฟลเดอร์สแกนสลิป'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(42),
           child: Container(
@@ -36,7 +140,7 @@ class AlbumPickerScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isFirstLaunch
+                    widget.isFirstLaunch
                         ? '💡 เลือกอัลบั้มธนาคารเริ่มต้นไว้ให้แล้ว ตรวจสอบหรือเลือกเพิ่มได้ตามสบาย'
                         : 'แตะที่ปุ่มด้านล่างแต่ละโฟลเดอร์เพื่อเลือกประเภทการสแกน',
                     style: const TextStyle(
@@ -89,15 +193,49 @@ class AlbumPickerScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+
+              // Date cut-off badge (tappable to customize)
+              InkWell(
+                onTap: _pickScanDate,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoftBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.cartoonOutline, width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_month_rounded, size: 15, color: AppColors.cartoonOutline),
+                      const SizedBox(width: 6),
+                      Text(
+                        'สแกนย้อนหลังถึง: ${_formatDate(_scanFromDate)} (แตะเพื่อเปลี่ยน)',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.cartoonOutline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 10),
+
               // Save button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     final storage = LocalStorageService();
+                    if (_scanFromDate != null) {
+                      await storage.setScanFromDate(_scanFromDate!);
+                    }
                     await notifier.confirmAlbumSelection();
-                    if (isFirstLaunch) {
+                    if (widget.isFirstLaunch) {
                       await storage.setFirstLaunchCompleted();
                       if (context.mounted) {
                         Navigator.of(context).pop();
@@ -111,7 +249,7 @@ class AlbumPickerScreen extends ConsumerWidget {
                   },
                   icon: const Icon(Icons.check_rounded, size: 20, color: Colors.white),
                   label: Text(
-                    isFirstLaunch
+                    widget.isFirstLaunch
                         ? 'ยืนยันและเริ่มสแกนสลิป (${selectedExpenseCount + selectedIncomeCount} โฟลเดอร์)'
                         : ((selectedExpenseCount + selectedIncomeCount) == 0
                             ? 'ยืนยัน (ยังไม่ได้เลือกโฟลเดอร์)'

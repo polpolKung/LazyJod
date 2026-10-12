@@ -169,19 +169,29 @@ class LocalStorageService {
     await _prefs?.setString(_prefScannedAssetIdsKey, jsonEncode(trimmed.toList()));
   }
 
-  // Scan History Limit & First Launch
-  static const String _prefScanLimitKey = 'lazyjod_scan_limit';
+  // Scan From-Date & First Launch
+  static const String _prefScanFromDateKey = 'lazyjod_scan_from_date';
+  static const String _prefScanLimitKey = 'lazyjod_scan_limit'; // legacy, kept for compatibility
   static const String _prefFirstLaunchKey = 'lazyjod_first_launch_done';
 
-  Future<int> getScanHistoryLimit() async {
+  /// Returns the scan-from date: only photos taken on or after this date will be scanned.
+  /// Defaults to 90 days ago if never set.
+  Future<DateTime> getScanFromDate() async {
     if (_prefs == null) await init();
-    return _prefs?.getInt(_prefScanLimitKey) ?? 50; // default to 50 for fast scanning
+    final ms = _prefs?.getInt(_prefScanFromDateKey);
+    if (ms != null) return DateTime.fromMillisecondsSinceEpoch(ms);
+    // Default: 90 days back
+    return DateTime.now().subtract(const Duration(days: 90));
   }
 
-  Future<void> setScanHistoryLimit(int limit) async {
+  Future<void> setScanFromDate(DateTime date) async {
     if (_prefs == null) await init();
-    await _prefs?.setInt(_prefScanLimitKey, limit);
+    await _prefs?.setInt(_prefScanFromDateKey, date.millisecondsSinceEpoch);
   }
+
+  // Legacy compat — kept so old Settings dialog references don't break at compile time
+  Future<int> getScanHistoryLimit() async => 9999;
+  Future<void> setScanHistoryLimit(int limit) async {}
 
   Future<bool> isFirstLaunch() async {
     if (_prefs == null) await init();
