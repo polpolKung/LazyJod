@@ -232,6 +232,7 @@ class _QuickEditContentState extends ConsumerState<_QuickEditContent> {
                       context,
                       ref,
                       currentCategoryId: _isTransfer ? kTransferCategoryResult : _selectedCategoryId,
+                      initialType: widget.transaction.type,
                     );
                     if (newCatId == null) return;
                     if (newCatId == kTransferCategoryResult) {

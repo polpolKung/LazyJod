@@ -192,6 +192,17 @@
 - ✅ **Verified with Real User KTB Slip (`test_slips/Income/1790620289198.jpg`):**
   - Extracted: Bank KTB, Amount 2,000.00 THB, Ref `Afdc8e9b2a067421e`, Sender `นายทิพย์ ท***`, Recipient `นายฌานพล ทิพวัน`.
   - Transaction successfully generated with type `TransactionType.income`, note `รับเงินจาก: นายทิพย์ ท***`.
+- ✅ **Scanner UI Streamlined (`slip_scanner_screen.dart`):**
+  - Removed duplicate folder picker button. Unified folder management via the interactive folder overview card and single primary scan button.
+- ✅ **KTB Bank Misidentification & Time Parsing Fix (`thai_bank_slip_parser.dart`):**
+  - Prioritized header and sender ("จาก / from") lines over recipient lines when identifying bank, stopping destination account keywords from misidentifying Krungthai slips.
+  - Strict time regex requiring valid 24-hr format or `น.` suffix, preventing decimal transfer amounts from being mistaken as transfer times.
+- ✅ **Segmented Category Quick Picker (`category_quick_picker_sheet.dart`):**
+  - Added clean segmented tab switcher (`💸 รายจ่าย` / `💰 รายรับ`), automatically defaulting to transaction's type (income or expense) when opened.
+- ✅ **Seamless First-Launch Permissions (`album_picker_screen.dart`):**
+  - Added AppLifecycleState resume detection: upon granting permission in Android dialog, album list refreshes automatically without needing manual tap.
+- ✅ **Auto-Dismiss Scanner Banner (`main_navigation_screen.dart`, `ingestion_provider.dart`):**
+  - Fixed persistent status banner on subsequent scans; automatically dismisses after 4 seconds.
 
 ### Accounting & Core Features
 - ✅ **Transaction Management:** Full CRUD, quick edit sheets, filtering by date/category/tags/bank, search.

@@ -383,28 +383,7 @@ class SlipScannerScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 12),
 
-                          // Button 2: Choose / Manage Folders to Scan
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const AlbumPickerScreen()),
-                                );
-                              },
-                              icon: const Icon(Icons.folder_open_rounded, color: AppColors.cartoonOutline),
-                              label: const Text('เลือกโฟลเดอร์ / อัลบั้มสลิปที่จะสแกน'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.cartoonOutline,
-                                side: const BorderSide(color: AppColors.cartoonOutline, width: 2.0),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Button 3: Pick from Gallery directly with type selector
+                          // Secondary action: Pick from Gallery directly with type selector
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(

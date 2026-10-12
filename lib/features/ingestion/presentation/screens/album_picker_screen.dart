@@ -18,16 +18,33 @@ class AlbumPickerScreen extends ConsumerStatefulWidget {
   ConsumerState<AlbumPickerScreen> createState() => _AlbumPickerScreenState();
 }
 
-class _AlbumPickerScreenState extends ConsumerState<AlbumPickerScreen> {
+class _AlbumPickerScreenState extends ConsumerState<AlbumPickerScreen> with WidgetsBindingObserver {
   DateTime? _scanFromDate;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadScanFromDate();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(ingestionProvider.notifier).requestPermissionAndLoadAlbums();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState == AppLifecycleState.resumed) {
+      final state = ref.read(ingestionProvider);
+      if (!state.hasPhotoPermission || state.albums.isEmpty) {
+        ref.read(ingestionProvider.notifier).requestPermissionAndLoadAlbums();
+      }
+    }
   }
 
   Future<void> _loadScanFromDate() async {

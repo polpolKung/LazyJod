@@ -52,6 +52,7 @@ class TransactionTile extends ConsumerWidget {
                   currentCategoryId: transaction.type == TransactionType.transfer
                       ? kTransferCategoryResult
                       : transaction.categoryId,
+                  initialType: transaction.type,
                 );
                 if (newCategoryId == null) return;
                 if (newCategoryId == kTransferCategoryResult) {
@@ -62,14 +63,20 @@ class TransactionTile extends ConsumerWidget {
                   );
                   ref.read(transactionProvider.notifier).updateTransaction(updated);
                 } else {
-                  final wasTransfer = transaction.type == TransactionType.transfer;
-                  if (newCategoryId != transaction.categoryId || wasTransfer) {
-                    final updated = transaction.copyWith(
-                      categoryId: newCategoryId,
-                      type: wasTransfer ? TransactionType.expense : transaction.type,
-                    );
-                    ref.read(transactionProvider.notifier).updateTransaction(updated);
-                  }
+                  final allCats = ref.read(categoryProvider);
+                  final chosenCat = allCats.firstWhere(
+                    (c) => c.id == newCategoryId,
+                    orElse: () => category,
+                  );
+                  final targetType = chosenCat.type == CategoryType.income
+                      ? TransactionType.income
+                      : TransactionType.expense;
+
+                  final updated = transaction.copyWith(
+                    categoryId: newCategoryId,
+                    type: targetType,
+                  );
+                  ref.read(transactionProvider.notifier).updateTransaction(updated);
                 }
               },
               child: CategoryIconBubble(

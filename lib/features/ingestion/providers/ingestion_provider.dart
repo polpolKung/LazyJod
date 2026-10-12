@@ -87,7 +87,6 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
   IngestionNotifier(this._ref) : super(const IngestionState()) {
     _syncQueue = OcrSyncQueueService(_storage, _ref);
     _notif.init();
-    loadAlbums();
   }
 
   /// Explicitly requests photo permissions with OS prompt and loads albums.
@@ -104,10 +103,10 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         return;
       }
       state = state.copyWith(hasPhotoPermission: true);
-      await loadAlbums(skipPermissionRequest: true);
+      await _loadAlbumsInternal();
     } catch (e) {
       print('Error requesting permission: $e');
-      state = state.copyWith(isLoadingAlbums: false);
+      state = state.copyWith(isLoadingAlbums: false, hasPhotoPermission: false);
     }
   }
 
@@ -126,31 +125,33 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         }
       }
 
-      final expenseFolders = await _storage.getExpenseFolderNames();
-      final incomeFolders = await _storage.getIncomeFolderNames();
-      _albumService.setExpenseFolderNames(expenseFolders);
-      _albumService.setIncomeFolderNames(incomeFolders);
-
-      final savedExpenseIds = await _storage.getSelectedExpenseAlbumIds();
-      final savedIncomeIds = await _storage.getSelectedIncomeAlbumIds();
-
-      // Check if user has ever explicitly configured albums.
-      // null  → first launch → getAvailableAlbums uses conservative auto-select.
-      // Set   → configured  → getAvailableAlbums uses ONLY those IDs (explicit-only).
-      final isConfigured = await _storage.isScanAlbumsConfigured();
-      final albums = await _albumService.getAvailableAlbums(
-        savedExpenseIds: isConfigured ? savedExpenseIds : null,
-        savedIncomeIds: isConfigured ? savedIncomeIds : null,
-      );
-      state = state.copyWith(
-        albums: albums,
-        isLoadingAlbums: false,
-        hasPhotoPermission: true,
-      );
+      state = state.copyWith(hasPhotoPermission: true);
+      await _loadAlbumsInternal();
     } catch (e) {
       print('Error loading albums: $e');
       state = state.copyWith(isLoadingAlbums: false);
     }
+  }
+
+  Future<void> _loadAlbumsInternal() async {
+    final expenseFolders = await _storage.getExpenseFolderNames();
+    final incomeFolders = await _storage.getIncomeFolderNames();
+    _albumService.setExpenseFolderNames(expenseFolders);
+    _albumService.setIncomeFolderNames(incomeFolders);
+
+    final savedExpenseIds = await _storage.getSelectedExpenseAlbumIds();
+    final savedIncomeIds = await _storage.getSelectedIncomeAlbumIds();
+
+    final isConfigured = await _storage.isScanAlbumsConfigured();
+    final albums = await _albumService.getAvailableAlbums(
+      savedExpenseIds: isConfigured ? savedExpenseIds : null,
+      savedIncomeIds: isConfigured ? savedIncomeIds : null,
+    );
+    state = state.copyWith(
+      albums: albums,
+      isLoadingAlbums: false,
+      hasPhotoPermission: true,
+    );
   }
 
   Future<void> toggleAlbumSelection(String albumId, {bool isIncome = false}) async {
@@ -287,6 +288,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         totalScannedAssets: 0,
         statusMessage: 'ไม่พบรูปภาพในโฟลเดอร์ที่เลือก (พบ $totalAlbums อัลบั้ม, เลือกไว้ $selectedCount อัลบั้ม) สามารถกด "เลือกโฟลเดอร์" เพื่อเลือกเพิ่ม หรือใช้ "เลือกรูปจากแกลเลอรี"',
       );
+      _autoDismissStatusAfter(4);
       return;
     }
 
@@ -443,6 +445,7 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
         selectedSlipIds: [],
         totalScannedAssets: 0,
       );
+      _autoDismissStatusAfter(4);
       return;
     }
 

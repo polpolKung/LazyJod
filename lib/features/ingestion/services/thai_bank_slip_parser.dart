@@ -64,7 +64,34 @@ class ThaiBankSlipParser {
   /// 1. Detect Thai Bank from 16 Banks + PromptPay
   static ThaiBank detectBank(String text) {
     final lower = text.toLowerCase();
+    final lines = text.split('\n');
+    final headerText = lines.take(5).join(' ').toLowerCase();
 
+    // 1. Highest priority: issuing bank in top header lines (lines 1 to 5)
+    for (final bank in ThaiBank.values) {
+      if (bank == ThaiBank.unknown) continue;
+      for (final kw in bank.detectionKeywords) {
+        if (headerText.contains(kw)) {
+          return bank;
+        }
+      }
+    }
+
+    // 2. Second priority: "จาก" (Sender Bank) section
+    final fromIdx = lines.indexWhere((l) => l.contains('จาก') || l.toLowerCase().contains('from'));
+    if (fromIdx != -1) {
+      final fromSection = lines.skip(fromIdx).take(4).join(' ').toLowerCase();
+      for (final bank in ThaiBank.values) {
+        if (bank == ThaiBank.unknown) continue;
+        for (final kw in bank.detectionKeywords) {
+          if (fromSection.contains(kw)) {
+            return bank;
+          }
+        }
+      }
+    }
+
+    // 3. Third priority: full text scan
     for (final bank in ThaiBank.values) {
       if (bank == ThaiBank.unknown) continue;
       for (final kw in bank.detectionKeywords) {
@@ -162,15 +189,43 @@ class ThaiBankSlipParser {
     int hour = 12;
     int minute = 0;
     int second = 0;
+    bool foundTime = false;
 
-    // Check for Time
-    final timeRegex = RegExp(r'(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?');
-    final timeMatch = timeRegex.firstMatch(text);
-    if (timeMatch != null) {
-      hour = int.tryParse(timeMatch.group(1)!) ?? 12;
-      minute = int.tryParse(timeMatch.group(2)!) ?? 0;
-      if (timeMatch.group(3) != null) {
-        second = int.tryParse(timeMatch.group(3)!) ?? 0;
+    final lines = text.split('\n');
+
+    // Step 1: Look for time on the line that contains the date or "เวลา"
+    for (final line in lines) {
+      // e.g. "07 ก.ย. 2569 - 14:21" or "วันที่ 12 ต.ค. 69 เวลา 21:14"
+      final timeOnDateLine = RegExp(r'(?<!\d)([01]?[0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9]))?').firstMatch(line);
+      if (timeOnDateLine != null) {
+        final hasDateContext = DateFormatter.parseThaiDate(line) != null ||
+            line.contains('เวลา') ||
+            line.contains('น.') ||
+            line.contains('รายการ');
+        if (hasDateContext) {
+          hour = int.parse(timeOnDateLine.group(1)!);
+          minute = int.parse(timeOnDateLine.group(2)!);
+          if (timeOnDateLine.group(3) != null) {
+            second = int.parse(timeOnDateLine.group(3)!);
+          }
+          foundTime = true;
+          break;
+        }
+      }
+    }
+
+    // Step 2: If not found on date line, check for explicit time label or suffix "น."
+    if (!foundTime) {
+      final labeledTime = RegExp(r'(?:เวลา|time)\s*[:\s]?\s*([01]?[0-9]|2[0-3])[:.]([0-5][0-9])(?::([0-5][0-9]))?', caseSensitive: false).firstMatch(text) ??
+          RegExp(r'(?<!\d)([01]?[0-9]|2[0-3])[:.]([0-5][0-9])\s*(?:น\.|น(?!\w))').firstMatch(text) ??
+          RegExp(r'(?<![0-9.,])([01]?[0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9]))?(?![0-9])').firstMatch(text);
+
+      if (labeledTime != null) {
+        hour = int.parse(labeledTime.group(1)!);
+        minute = int.parse(labeledTime.group(2)!);
+        if (labeledTime.group(3) != null) {
+          second = int.parse(labeledTime.group(3)!);
+        }
       }
     }
 

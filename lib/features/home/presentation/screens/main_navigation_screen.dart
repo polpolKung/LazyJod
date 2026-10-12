@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/local_storage_service.dart';
@@ -20,6 +21,7 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
 
 class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _currentIndex = 0;
+  Timer? _statusTimer;
 
   final List<Widget> _screens = const [
     DashboardScreen(),
@@ -48,7 +50,26 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   }
 
   @override
+  void dispose() {
+    _statusTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ref.listen<IngestionState>(ingestionProvider, (prev, next) {
+      if (next.statusMessage.isNotEmpty && !next.isScanning) {
+        _statusTimer?.cancel();
+        _statusTimer = Timer(const Duration(seconds: 4), () {
+          if (mounted) {
+            ref.read(ingestionProvider.notifier).clearStatus();
+          }
+        });
+      } else if (next.isScanning) {
+        _statusTimer?.cancel();
+      }
+    });
+
     final ingestionState = ref.watch(ingestionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
