@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/local_storage_service.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/scan_notification_service.dart';
 import '../../../../core/widgets/jod_mascot.dart';
 import '../../../analytics/presentation/screens/dashboard_screen.dart';
 import '../../../categories/presentation/screens/category_management_screen.dart';
@@ -19,7 +20,7 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
   ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   Timer? _statusTimer;
 
@@ -34,6 +35,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ScanNotificationService.instance.setAppForeground(true);
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final storage = LocalStorageService();
       final isFirst = await storage.isFirstLaunch();
@@ -50,7 +54,17 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ScanNotificationService.instance.setAppForeground(true);
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      ScanNotificationService.instance.setAppForeground(false);
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _statusTimer?.cancel();
     super.dispose();
   }

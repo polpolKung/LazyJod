@@ -96,6 +96,18 @@ class LocalStorageService {
         return migrated;
       }
 
+      final loadedIds = loaded.map((c) => c.id).toSet();
+      bool addedDefaults = false;
+      for (final def in CategoryModel.defaultCategories) {
+        if (!loadedIds.contains(def.id)) {
+          loaded.add(def);
+          addedDefaults = true;
+        }
+      }
+      if (addedDefaults) {
+        await saveCategories(loaded);
+      }
+
       return loaded;
     } catch (e) {
       return CategoryModel.defaultCategories;

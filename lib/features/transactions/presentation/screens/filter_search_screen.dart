@@ -118,11 +118,19 @@ class _FilterSearchScreenState extends ConsumerState<FilterSearchScreen> {
               runSpacing: 8,
               children: [
                 _buildFilterChip('ทุกหมวดหมู่', _categoryId == null, () => setState(() => _categoryId = null)),
-                ...categories.map((cat) => _buildFilterChip(
-                      cat.nameThai,
-                      _categoryId == cat.id,
-                      () => setState(() => _categoryId = cat.id),
-                    )),
+                _buildFilterChip(
+                  '🦥 รอเลือกหมวดหมู่',
+                  _categoryId == 'cat_uncategorized',
+                  () => setState(() => _categoryId = 'cat_uncategorized'),
+                  color: const Color(0xFFFFB703),
+                ),
+                ...categories
+                    .where((cat) => cat.id != 'cat_uncategorized')
+                    .map((cat) => _buildFilterChip(
+                          cat.nameThai,
+                          _categoryId == cat.id,
+                          () => setState(() => _categoryId = cat.id),
+                        )),
               ],
             ),
             const SizedBox(height: 24),

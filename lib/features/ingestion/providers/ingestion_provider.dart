@@ -397,12 +397,23 @@ class IngestionNotifier extends StateNotifier<IngestionState> {
           totalScannedAssets: total,
         );
       } else {
+        final anyDup = parsedResults.any((s) => s.isDuplicate);
+        final anyZeroAmount = parsedResults.any((s) => s.amount <= 0);
+        String msg;
+        if (parsedResults.isEmpty) {
+          msg = 'ไม่พบรูปแบบสลิปในรูปที่เลือก';
+        } else if (anyDup && !anyZeroAmount) {
+          msg = 'รูปสลิปที่เลือกเคยจดไปแล้ว (สลิปซ้ำ)';
+        } else if (anyZeroAmount && !anyDup) {
+          msg = 'ตรวจพบรูปสลิปแต่ไม่สามารถอ่านยอดเงินได้ กรุณาตรวจสอบรูปภาพ';
+        } else {
+          msg = 'รูปสลิปที่เลือกเคยจดไปแล้ว หรืออ่านยอดเงินไม่สำเร็จ';
+        }
+
         state = state.copyWith(
           isScanning: false,
           scanProgress: 1.0,
-          statusMessage: parsedResults.isEmpty
-              ? 'ไม่พบรูปแบบสลิปในรูปที่เลือก'
-              : 'รูปสลิปที่เลือกเคยจดไปแล้ว (สลิปซ้ำ)',
+          statusMessage: msg,
           lastError: caughtError,
           parsedSlips: [],
           selectedSlipIds: [],

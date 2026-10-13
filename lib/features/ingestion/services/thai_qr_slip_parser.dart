@@ -74,7 +74,9 @@ class ThaiQrSlipParser {
   }) {
     final qrAmount = qr.amount ?? 0;
     final amount = qrAmount > 0 ? qrAmount : ocr.amount;
-    final bank = qr.bank != ThaiBank.unknown ? qr.bank : ocr.bank;
+    final bank = (ocr.bank == ThaiBank.paoTang)
+        ? ThaiBank.paoTang
+        : (qr.bank != ThaiBank.unknown ? qr.bank : ocr.bank);
     final refId = (qr.refId != null && qr.refId!.isNotEmpty) ? qr.refId : ocr.refId;
     final dateTime = qr.dateTime ?? ocr.dateTime;
 

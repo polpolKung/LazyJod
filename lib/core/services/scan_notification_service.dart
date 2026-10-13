@@ -88,6 +88,15 @@ class ScanNotificationService {
     );
   }
 
+  bool isAppForeground = true;
+
+  void setAppForeground(bool foreground) {
+    isAppForeground = foreground;
+    if (foreground) {
+      cancelAll();
+    }
+  }
+
   /// Dismiss the progress notification and show a tappable completion banner.
   Future<void> showDone({
     required int total,
@@ -98,6 +107,12 @@ class ScanNotificationService {
     await _plugin.cancel(_progressId);
 
     if (found == 0) return; // no notification if nothing found
+
+    // If user is currently looking at or inside the app, do not pollute system drawer
+    if (isAppForeground) {
+      await cancelAll();
+      return;
+    }
 
     const androidDetails = AndroidNotificationDetails(
       _channelId,
@@ -117,11 +132,12 @@ class ScanNotificationService {
     );
   }
 
-  /// Cancel all scan-related notifications (e.g. on explicit cancel).
+  /// Cancel all scan-related notifications (e.g. on explicit cancel or app open).
   Future<void> cancelAll() async {
     await _ensureInit();
     await _plugin.cancel(_progressId);
     await _plugin.cancel(_doneId);
+    await _plugin.cancelAll();
   }
 
   Future<void> _ensureInit() async {

@@ -50,6 +50,7 @@ class AppColors {
   static const Color bankKBank = Color(0xFF138F2D);
   static const Color bankSCB = Color(0xFF4E2A84);
   static const Color bankKTB = Color(0xFF00A5E5);
+  static const Color bankPaoTang = Color(0xFF008CEE);
   static const Color bankTTB = Color(0xFF0056B3);
   static const Color bankBBL = Color(0xFF1E3A8A);
   static const Color bankGSB = Color(0xFFEB1985);

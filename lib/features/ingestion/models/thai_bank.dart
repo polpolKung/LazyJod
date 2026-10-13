@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 enum ThaiBank {
   kbank,
   scb,
+  paoTang,
   ktb,
   ttb,
   bbl,
@@ -24,6 +25,7 @@ enum ThaiBank {
     switch (this) {
       case ThaiBank.kbank: return 'กสิกรไทย (K PLUS)';
       case ThaiBank.scb: return 'ไทยพาณิชย์ (SCB EASY)';
+      case ThaiBank.paoTang: return 'เป๋าตัง (PaoTang)';
       case ThaiBank.ktb: return 'กรุงไทย (Krungthai NEXT)';
       case ThaiBank.ttb: return 'ทีทีบี (ttb touch)';
       case ThaiBank.bbl: return 'กรุงเทพ (Bualuang m)';
@@ -46,6 +48,7 @@ enum ThaiBank {
     switch (this) {
       case ThaiBank.kbank: return 'KBANK';
       case ThaiBank.scb: return 'SCB';
+      case ThaiBank.paoTang: return 'PAOTANG';
       case ThaiBank.ktb: return 'KTB';
       case ThaiBank.ttb: return 'TTB';
       case ThaiBank.bbl: return 'BBL';
@@ -68,6 +71,7 @@ enum ThaiBank {
     switch (this) {
       case ThaiBank.kbank: return AppColors.bankKBank;
       case ThaiBank.scb: return AppColors.bankSCB;
+      case ThaiBank.paoTang: return AppColors.bankPaoTang;
       case ThaiBank.ktb: return AppColors.bankKTB;
       case ThaiBank.ttb: return AppColors.bankTTB;
       case ThaiBank.bbl: return AppColors.bankBBL;
@@ -92,8 +96,10 @@ enum ThaiBank {
         return ['k plus', 'kplus', 'kasikorn', 'กสิกร', 'kbank', '004', 'make by kbank'];
       case ThaiBank.scb:
         return ['scb easy', 'scbeasy', 'siam commercial', 'ไทยพาณิชย์', '014', 'scb'];
+      case ThaiBank.paoTang:
+        return ['เป๋าตัง', 'เป๋าตังค์', 'paotang', 'poatang', 'pao tang', 'poa tang', 'g-wallet', 'gwallet', 'g wallet'];
       case ThaiBank.ktb:
-        return ['krungthai next', 'krungthai', 'กรุงไทย', '006', 'เป๋าตัง', 'ktb next', 'ktb', 'ธนาคารกรุงไทย'];
+        return ['krungthai next', 'krungthai', 'กรุงไทย', '006', 'ktb next', 'ktb', 'ธนาคารกรุงไทย'];
       case ThaiBank.ttb:
         return ['ttb touch', 'ttb', 'tmb', 'thanachart', 'ทหารไทยธนชาต', '011'];
       case ThaiBank.bbl:

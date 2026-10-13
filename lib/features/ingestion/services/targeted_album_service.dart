@@ -104,7 +104,7 @@ class TargetedAlbumService {
     // Income is NEVER auto-selected — user must explicitly pick.
     const firstLaunchAutoExpense = [
       'k plus', 'kplus', 'scb easy', 'scbeasy', 'krungthai next', 'ktbnext',
-      'make by kbank', 'paotang', 'เป๋าตัง', 'ttb touch', 'bualuang mbanking',
+      'make by kbank', 'paotang', 'poatang', 'pao tang', 'poa tang', 'เป๋าตัง', 'g-wallet', 'gwallet', 'ttb touch', 'bualuang mbanking',
       'bualuang', 'mymo', 'kma', 'krungsri', 'a-mobile', 'baac',
       'kkp mobile', 'cimb thai', 'uob tmrw', 'truemoney wallet',
       'ghb all', 'lhb you', 'move clean',

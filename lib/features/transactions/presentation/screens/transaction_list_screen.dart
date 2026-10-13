@@ -6,6 +6,7 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../categories/models/category_model.dart';
 import '../../../categories/providers/category_provider.dart';
+import '../../../ingestion/providers/ingestion_provider.dart';
 import '../../models/transaction_model.dart';
 import '../../models/transaction_type.dart';
 import '../../providers/transaction_provider.dart';
@@ -179,27 +180,42 @@ class TransactionListScreen extends ConsumerWidget {
         children: [
           buildFilterBanner(),
           Expanded(
-            child: transactions.isEmpty
-                ? EmptyStateWidget(
-                    title: hasActiveFilter ? 'ไม่พบรายการที่ค้นหา' : 'ยังไม่มีรายการธุรกรรม',
-                    message: hasActiveFilter
-                        ? 'ลองเปลี่ยนเงื่อนไขการค้นหา หรือรีเซ็ตตัวกรอง'
-                        : 'เริ่มบันทึกรายการด้วยตนเอง หรือกดสแกนสลิปอัตโนมัติได้เลย',
-                    icon: Icons.receipt_long_outlined,
-                    buttonText: hasActiveFilter ? 'รีเซ็ตตัวกรอง' : 'บันทึกรายการ',
-                    onButtonPressed: () {
-                      if (hasActiveFilter) {
-                        ref.read(transactionFilterProvider.notifier).reset();
-                      } else {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
-                        );
-                      }
-                    },
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 80),
-                    itemCount: monthGroups.keys.length,
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                await ref.read(ingestionProvider.notifier).autoScanAndImportOnLaunch();
+                await ref.read(transactionProvider.notifier).loadTransactions();
+              },
+              child: transactions.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: EmptyStateWidget(
+                            title: hasActiveFilter ? 'ไม่พบรายการที่ค้นหา' : 'ยังไม่มีรายการธุรกรรม',
+                            message: hasActiveFilter
+                                ? 'ลองเปลี่ยนเงื่อนไขการค้นหา หรือรีเซ็ตตัวกรอง'
+                                : 'เริ่มบันทึกรายการด้วยตนเอง หรือกดสแกนสลิปอัตโนมัติได้เลย',
+                            icon: Icons.receipt_long_outlined,
+                            buttonText: hasActiveFilter ? 'รีเซ็ตตัวกรอง' : 'บันทึกรายการ',
+                            onButtonPressed: () {
+                              if (hasActiveFilter) {
+                                ref.read(transactionFilterProvider.notifier).reset();
+                              } else {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount: monthGroups.keys.length,
                     itemBuilder: (context, monthIndex) {
                 final monthKey = monthGroups.keys.elementAt(monthIndex);
                 final mGroup = monthGroups[monthKey]!;
@@ -398,6 +414,7 @@ class TransactionListScreen extends ConsumerWidget {
                   ],
                 );
               },
+            ),
             ),
           ),
         ],

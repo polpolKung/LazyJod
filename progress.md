@@ -18,6 +18,7 @@
 
 ## 1. Tech Stack & Environment
 - **Framework:** Flutter (Channel stable, Dart 3.x)
+- **CLI & Environment Notes:** ในสภาพแวดล้อม Terminal/Shell นี้ **ไม่มีคำสั่ง `flutter`** มีเฉพาะคำสั่ง **`dart`** (Dart SDK 3.x) เท่านั้น การทดสอบความถูกต้องของ Business Logic และ Parser รันผ่าน `node test/run_tests.js`
 - **Architecture:** Feature-first modular architecture with Riverpod state management (`flutter_riverpod: ^2.5.1`)
 - **Local Storage & Database:**
   - `shared_preferences: ^2.2.3` (Offline persistence: Transactions, Categories, Budgets, Recurring rules, Album settings, Scanned Slip ID cache, Cloud OCR sync queue)
@@ -42,15 +43,40 @@
 ---
 
 ## 2. Current Phase
-- **Phase:** Feature-Complete Core & Advanced Ingestion + Prominent Logo Mint Wallpaper & Cartoon Comic Doodle Line Art
-- **Status:** Stable, Production-Ready, Tested (49/49 Unit Tests Passing 100%)
-- **Recent Milestone:** Prominent Logo Mint & Cartoon Comic Doodle Line Art — background upgraded to distinct pastel mint from logo (`#BDE6D4`), cream white cards with bold 2.0px cartoon ink outlines (`#2A3830`), sticker offset shadows, and hand-drawn cartoon comic feel matching user reference images.
+- **Phase:** Feature-Complete Core & Advanced Ingestion + PaoTang Bank Separation & Smart In-App Refresh
+- **Status:** Stable, Production-Ready, Tested (51/51 Unit Tests Passing 100%)
+- **Recent Milestone:** PaoTang Bank Separation, Filter Screen 'รอเลือกหมวดหมู่' Chip, Auto-Clear Notifications on Open, and Pull-to-Refresh Auto-Scan on Dashboard & Transaction List.
 
 ---
 
 ## 3. Completed Tasks (✅)
 
-### Interactive Category Dashboard Navigation & Filtering (Latest)
+### PaoTang Bank Separation, Filter Enhancements, Notification Auto-Clear & Pull-to-Refresh Ingestion (Latest)
+- ✅ **Separated PaoTang from Krungthai (`ThaiBank.paoTang`, `thai_bank.dart`, `thai_bank_slip_parser.dart`, `thai_qr_slip_parser.dart`):**
+  - Added dedicated `ThaiBank.paoTang` with Thai display name 'เป๋าตัง (PaoTang)', short code 'PAOTANG', and brand color `#008CEE`.
+  - Removed `'เป๋าตัง'` keyword from `ThaiBank.ktb` so Paotang slips are no longer grouped into Krungthai.
+  - Prioritized `paoTang` detection on slips with Paotang / G-Wallet markers (`เป๋าตัง`, `เป๋าตังค์`, `paotang`, `poatang`, `pao tang`, `poa tang`, `g-wallet`, `gwallet`).
+  - Added album name variants (`PoaTang`, `Pao Tang`, `Poa Tang`, `G-Wallet`) to `defaultBankingFolders` and first-launch auto-discovery in `TargetedAlbumService`.
+  - In `ThaiQrSlipParser.mergeWithOcr`: ensured `ThaiBank.paoTang` is preserved and not overwritten by QR code `006` clearing bank (KTB).
+- ✅ **Filter Screen Enhancements (`filter_search_screen.dart`, `local_storage_service.dart`):**
+  - Added 'เป๋าตัง (PaoTang)' choice chip to the bank sources section.
+  - Added prominent '🦥 รอเลือกหมวดหมู่' (`cat_uncategorized`) filter chip right alongside 'ทุกหมวดหมู่' for one-tap filtering of uncategorized slips.
+  - Guaranteed `cat_uncategorized` is migrated and preserved in `LocalStorageService.loadCategories()`.
+- ✅ **Auto-Clear Scan Notifications on App Open / In-App (`scan_notification_service.dart`, `main_navigation_screen.dart`):**
+  - Added `WidgetsBindingObserver` in `MainNavigationScreen` to track lifecycle states.
+  - Automatically cancels all scan progress and completion notifications when the app is resumed or opened.
+  - If the user is actively viewing/using the app in the foreground, completion notifications are not posted to the Android notification drawer.
+- ✅ **Pull-to-Refresh Slip Ingestion (`dashboard_screen.dart`, `transaction_list_screen.dart`):**
+  - Enabled pull-to-refresh on both `DashboardScreen` (Home) and `TransactionListScreen` (Transactions).
+  - Pulling down executes `autoScanAndImportOnLaunch()` followed by `loadTransactions()`, scanning for newly saved bank slips and auto-importing them into the transaction list with zero clicks.
+  - Wrapped `EmptyStateWidget` in `ListView(physics: AlwaysScrollableScrollPhysics())` so pull-to-refresh works even when the transaction list is empty.
+- ✅ **Fixed Duplicate Alert & Amount Extraction for Paotang Slips (`duplicate_detection_service.dart`, `thai_bank_slip_parser.dart`, `ingestion_provider.dart`):**
+  - Refactored `DuplicateDetectionService`: cleared cached hashes on every scan registration and prevented empty-string false positives in Tier 3 heuristic matching.
+  - Restricted `isWelfareSlip` to true government subsidies (`คนละครึ่ง`, `ไทยช่วยไทย`, `เราชนะ`), preventing regular Paotang transfers from falling into welfare parsing.
+  - Updated `pickAndScanGallerySlips` status messages to distinguish between duplicate slips and zero-amount slips instead of falsely reporting all non-imported slips as duplicate.
+- ✅ **All 51/51 Automated Tests Passing (100%):** Verified via `node test/run_tests.js`.
+
+### Interactive Category Dashboard Navigation & Filtering
 - ✅ **Interactive Category Breakdown Chart & Legend (`category_pie_chart.dart`, `dashboard_screen.dart`):**
   - Enabled tap interaction on both the Pie Chart sections and the top 5 Category legend list rows.
   - Added clean visual feedback with ripple (`InkWell`), category percentage, amount, and cute chevron indicator (`Icons.chevron_right_rounded`).

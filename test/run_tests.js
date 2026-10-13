@@ -27,7 +27,8 @@ function assert(condition, message) {
 const thaiBankKeywords = {
   KBANK: ['k plus', 'kplus', 'kasikorn', 'กสิกร', 'kbank'],
   SCB: ['scb easy', 'scbeasy', 'siam commercial', 'ไทยพาณิชย์', 'scb'],
-  KTB: ['krungthai next', 'krungthai', 'กรุงไทย', 'เป๋าตัง'],
+  PAOTANG: ['เป๋าตัง', 'เป๋าตังค์', 'paotang', 'poatang', 'pao tang', 'poa tang', 'g-wallet', 'gwallet'],
+  KTB: ['krungthai next', 'krungthai', 'กรุงไทย'],
   TTB: ['ttb touch', 'ttb', 'tmb', 'thanachart', 'ทหารไทยธนชาต'],
   BBL: ['bangkok bank', 'bualuang', 'บัวหลวง', 'กรุงเทพ'],
   GSB: ['mymo', 'gsb', 'ออมสิน', 'ธนาคารออมสิน'],
@@ -100,6 +101,10 @@ assert(extractAmount(ttbSlip) === 1240.00, 'Extracts ttb amount 1,240.00');
 const promptPaySlip = 'Thai QR Payment พร้อมเพย์ ไปยัง ร้านกาแฟ Cafe & Bakery จำนวนเงิน 120.00 บาท';
 assert(detectBank(promptPaySlip) === 'PromptPay', 'Detects PromptPay slip');
 assert(extractAmount(promptPaySlip) === 120.00, 'Extracts PromptPay amount 120.00');
+
+const paotangSlip = 'เป๋าตัง G-Wallet โอนเงินสำเร็จ ไปยัง ร้านก๋วยเตี๋ยวเรือ จำนวนเงิน: 60.00 บาท รหัสอ้างอิง: 20261013009988';
+assert(detectBank(paotangSlip) === 'PAOTANG', 'Detects PaoTang slip correctly (separate from KTB)');
+assert(extractAmount(paotangSlip) === 60.00, 'Extracts PaoTang amount 60.00');
 
 // Verify all 16 Thai banks detection
 let allBanksDetected = true;

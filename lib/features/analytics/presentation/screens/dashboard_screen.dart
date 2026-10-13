@@ -6,6 +6,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../ingestion/presentation/screens/slip_scanner_screen.dart';
 import '../../../ingestion/presentation/screens/statement_import_screen.dart';
+import '../../../ingestion/providers/ingestion_provider.dart';
 import '../../../transactions/presentation/screens/transaction_entry_screen.dart';
 import '../../../transactions/presentation/screens/transaction_list_screen.dart';
 import '../../../transactions/presentation/widgets/transaction_quick_edit_sheet.dart';
@@ -79,7 +80,9 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
+        color: AppColors.primary,
         onRefresh: () async {
+          await ref.read(ingestionProvider.notifier).autoScanAndImportOnLaunch();
           await ref.read(transactionProvider.notifier).loadTransactions();
         },
         child: SingleChildScrollView(

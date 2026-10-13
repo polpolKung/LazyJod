@@ -8,6 +8,8 @@ class DuplicateDetectionService {
   final Set<String> _recordedRefIds = {};
 
   void registerExistingTransactions(List<TransactionModel> transactions) {
+    _scannedHashes.clear();
+    _recordedRefIds.clear();
     for (final tx in transactions) {
       if (tx.slipImageHash != null && tx.slipImageHash!.isNotEmpty) {
         _scannedHashes.add(tx.slipImageHash!);
@@ -45,6 +47,9 @@ class DuplicateDetectionService {
     }
 
     // Tier 3: Fuzzy heuristic match
+    // Only if slip has positive amount
+    if (slip.amount <= 0) return false;
+
     // If an existing transaction has the exact same amount, same recipient (or similar),
     // and the transaction time is within 3 minutes of each other
     for (final existing in existingTransactions) {
@@ -54,9 +59,17 @@ class DuplicateDetectionService {
           final normalizedNew = slip.recipientName.replaceAll(RegExp(r'\s+'), '').toLowerCase();
           final normalizedOld = existing.note.replaceAll(RegExp(r'\s+'), '').toLowerCase();
           
-          if (normalizedNew.contains(normalizedOld) ||
-              normalizedOld.contains(normalizedNew) ||
-              (existing.slipRefId != null && existing.slipRefId == slip.refId)) {
+          final hasNameMatch = normalizedNew.length >= 3 &&
+              normalizedOld.length >= 3 &&
+              (normalizedNew.contains(normalizedOld) || normalizedOld.contains(normalizedNew));
+
+          final hasRefMatch = slip.refId != null &&
+              slip.refId!.isNotEmpty &&
+              existing.slipRefId != null &&
+              existing.slipRefId!.isNotEmpty &&
+              existing.slipRefId == slip.refId;
+
+          if (hasNameMatch || hasRefMatch) {
             return true;
           }
         }

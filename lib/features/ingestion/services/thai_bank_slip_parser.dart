@@ -61,13 +61,22 @@ class ThaiBankSlipParser {
         .trim();
   }
 
-  /// 1. Detect Thai Bank from 16 Banks + PromptPay
+  /// 1. Detect Thai Bank from 16 Banks + PromptPay + PaoTang
   static ThaiBank detectBank(String text) {
     final lower = text.toLowerCase();
+
+    // 0. Highest priority: Paotang slips often mention Krungthai as backend provider.
+    // If slip has Paotang / G-Wallet markers, it must ALWAYS resolve to Paotang.
+    for (final kw in ThaiBank.paoTang.detectionKeywords) {
+      if (lower.contains(kw)) {
+        return ThaiBank.paoTang;
+      }
+    }
+
     final lines = text.split('\n');
     final headerText = lines.take(5).join(' ').toLowerCase();
 
-    // 1. Highest priority: issuing bank in top header lines (lines 1 to 5)
+    // 1. Issuing bank in top header lines (lines 1 to 5)
     for (final bank in ThaiBank.values) {
       if (bank == ThaiBank.unknown) continue;
       for (final kw in bank.detectionKeywords) {
@@ -111,11 +120,11 @@ class ThaiBankSlipParser {
 
   /// 2. Extract Transfer Amount in THB
   static double extractAmount(String text, {ThaiBank? bank}) {
-    // --- Step 0: Government welfare slip detection (คนละครึ่ง / ไทยช่วยไทย / เป๋าตัง) ---
+    // --- Step 0: Government welfare slip detection (คนละครึ่ง / ไทยช่วยไทย / เราชนะ) ---
     // These slips show: ค่าสินค้า (full price), สิทธิฯ (subsidy, negative), จำนวนเงินที่ชำระ (user paid)
     // We MUST record only what the user actually paid (จำนวนเงินที่ชำระ).
     final isWelfareSlip = RegExp(
-      r'คนละครึ่ง|ไทยช่วยไทย|สิทธิ(?:ไทยช่วยไทย|คนละครึ่ง|เราชนะ|รัฐ)|เป๋าตัง|paotang|g.wallet|halfhalf',
+      r'คนละครึ่ง|ไทยช่วยไทย|เราชนะ|สิทธิ(?:ไทยช่วยไทย|คนละครึ่ง|เราชนะ|รัฐ|สวัสดิการ)|halfhalf',
       caseSensitive: false,
     ).hasMatch(text);
 
